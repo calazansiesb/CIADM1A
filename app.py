@@ -98,23 +98,7 @@ if 'E_SUBS' in df.columns and 'E_COMERC' in df.columns:
     ax_destino.set_ylabel('Proporção')
     st.pyplot(fig_destino)
 
-    # Etapa 2: Destino da produção por tipo de exploração
-    if 'SIST_CRIA' in df.columns:
-        tabela_cruzada_tipo_exploracao = pd.crosstab(df['SIST_CRIA'], [df['E_SUBS'], df['E_COMERC']])
-        tabela_cruzada_tipo_exploracao_prop = tabela_cruzada_tipo_exploracao.div(tabela_cruzada_tipo_exploracao.sum(axis=1), axis=0)
 
-        st.subheader('Destino da Produção por Tipo de Exploração (proporção)')
-        st.dataframe(tabela_cruzada_tipo_exploracao_prop)
-
-        fig_destino_tipo, ax_destino_tipo = plt.subplots(figsize=(10, 6))
-        tabela_cruzada_tipo_exploracao_prop.plot(kind='bar', stacked=True, ax=ax_destino_tipo)
-        ax_destino_tipo.set_title('Destino da Produção por Tipo de Exploração')
-        ax_destino_tipo.set_xlabel('Tipo de Exploração')
-        ax_destino_tipo.set_ylabel('Proporção')
-        plt.xticks(rotation=45, ha="right")
-        ax_destino_tipo.legend(title='(E_SUBS, E_COMERC)', bbox_to_anchor=(1.05, 1), loc='upper left')
-        plt.tight_layout()
-        st.pyplot(fig_destino_tipo)
 
     # Etapa 3: Destino da produção por região
     if 'NOM_TERR' in df.columns:
