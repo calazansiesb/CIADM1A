@@ -218,3 +218,4 @@ if 'Q_DZ_PROD' in df.columns and 'GAL_TOTAL' in df.columns:
         st.warning("A coluna 'Q_DZ_PROD' possui menos de 3 valores válidos para formar grupos.")
 else:
     st.warning("Coluna 'Q_DZ_PROD' ou 'GAL_TOTAL' não encontrada no DataFrame.")
+    from pages import page1
