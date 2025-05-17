@@ -1,0 +1,13 @@
+import streamlit as st
+import pandas as pd
+
+st.title('Análise do Dataset GALINACEOS.csv')
+
+# Lê o arquivo de dados principal
+df = pd.read_csv('GALINACEOS.csv', sep=';')  # ajuste o separador se necessário
+
+st.subheader('Visualização dos Dados')
+st.dataframe(df.head())
+
+st.subheader('Resumo Estatístico')
+st.write(df.describe())
