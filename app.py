@@ -27,6 +27,48 @@ if 'GAL_TOTAL' in df.columns:
     df['GAL_TOTAL'] = df['GAL_TOTAL'].replace('', np.nan)
     df['GAL_TOTAL'] = pd.to_numeric(df['GAL_TOTAL'], errors='coerce')
 
+# =======================
+# NOVO: Análise da Mão de Obra no Setor Avícola
+# =======================
+
+st.header('Análise da Mão de Obra no Setor Avícola')
+
+for col in ['N_TRAB_TOTAL', 'GAL_TOTAL']:
+    if col in df.columns:
+        df[col] = pd.to_numeric(df[col], errors='coerce')
+
+if 'N_TRAB_TOTAL' in df.columns:
+    st.subheader('Estatísticas Descritivas do Número de Trabalhadores')
+    st.write(df['N_TRAB_TOTAL'].describe())
+
+    st.subheader('Distribuição do Número de Trabalhadores')
+    fig, axs = plt.subplots(1, 2, figsize=(12, 5))
+    sns.histplot(df['N_TRAB_TOTAL'], kde=True, ax=axs[0])
+    axs[0].set_title('Distribuição do Número de Trabalhadores')
+    axs[0].set_xlabel('Número de Trabalhadores')
+    axs[0].set_ylabel('Frequência')
+    sns.boxplot(y=df['N_TRAB_TOTAL'], ax=axs[1])
+    axs[1].set_title('Boxplot do Número de Trabalhadores')
+    axs[1].set_ylabel('Número de Trabalhadores')
+    plt.tight_layout()
+    st.pyplot(fig)
+
+    if 'GAL_TOTAL' in df.columns:
+        st.subheader('Relação entre Tamanho do Estabelecimento e Número de Trabalhadores')
+        correlacao = df['GAL_TOTAL'].corr(df['N_TRAB_TOTAL'])
+        st.write(f"**Correlação entre GAL_TOTAL e N_TRAB_TOTAL:** {correlacao:.2f}")
+        fig2, ax2 = plt.subplots(figsize=(8, 6))
+        sns.scatterplot(x='GAL_TOTAL', y='N_TRAB_TOTAL', data=df, ax=ax2)
+        ax2.set_title('Tamanho do Estabelecimento vs. Número de Trabalhadores')
+        ax2.set_xlabel('Total de Galinhas (GAL_TOTAL)')
+        ax2.set_ylabel('Número de Trabalhadores (N_TRAB_TOTAL)')
+        plt.tight_layout()
+        st.pyplot(fig2)
+    else:
+        st.warning("A coluna 'GAL_TOTAL' não foi encontrada no DataFrame.")
+else:
+    st.warning("A coluna 'N_TRAB_TOTAL' não foi encontrada no DataFrame.")
+
 # Filtrar apenas as Unidades da Federação (UF)
 df_uf = df[df['NIV_TERR'] == 'UF']
 
@@ -55,7 +97,6 @@ st.pyplot(fig_bar)
 
 # Gráfico de Pizza - Proporção dos Sistemas de Criação
 fig_pie, ax_pie = plt.subplots(figsize=(8, 8))
-
 descricao_dict = {
     "1-SIST_POC": "Produtores de ovos para consumo",
     "2-SIST_POI": "Produtores de ovos para incubação",
@@ -63,7 +104,6 @@ descricao_dict = {
     "4-Outro": "Outros produtores"
 }
 descricao_labels = [descricao_dict.get(s, s) for s in prop_sistema_cria.index]
-
 wedges, texts, autotexts = ax_pie.pie(
     prop_sistema_cria,
     autopct='%1.1f%%',
@@ -144,13 +184,16 @@ if 'GAL_TOTAL' in df_uf.columns:
 else:
    st.header('Média de GAL_TOTAL por Grupo de Tamanho de Q_DZ_PROD')
 
+# =======================
+# 4. NOVO: Gráfico - Média de GAL_TOTAL por Grupo de Tamanho (Q_DZ_PROD)
+# =======================
+
 if 'Q_DZ_PROD' in df.columns and 'GAL_TOTAL' in df.columns:
     # Converte para numérico novamente (garante!)
     df['Q_DZ_PROD'] = pd.to_numeric(df['Q_DZ_PROD'], errors='coerce')
     df['GAL_TOTAL'] = pd.to_numeric(df['GAL_TOTAL'], errors='coerce')
-    # Mostra quantos valores válidos existem
+    st.header('Média de GAL_TOTAL por Grupo de Tamanho de Q_DZ_PROD')
     st.write('Valores válidos em Q_DZ_PROD:', df['Q_DZ_PROD'].notna().sum())
-    # Só faz os grupos se houver pelo menos 3 valores válidos
     if df['Q_DZ_PROD'].notna().sum() >= 3:
         try:
             df.loc[df['Q_DZ_PROD'].notna(), 'TAMANHO_GRUPO'] = pd.qcut(
@@ -175,4 +218,3 @@ if 'Q_DZ_PROD' in df.columns and 'GAL_TOTAL' in df.columns:
         st.warning("A coluna 'Q_DZ_PROD' possui menos de 3 valores válidos para formar grupos.")
 else:
     st.warning("Coluna 'Q_DZ_PROD' ou 'GAL_TOTAL' não encontrada no DataFrame.")
-
