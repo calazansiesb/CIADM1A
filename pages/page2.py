@@ -69,19 +69,4 @@ else:
     plt.tight_layout()
     st.pyplot(fig_pie)
 
-# --------- GRÁFICO 3: DENSIDADE - Aves por Sistema de Criação ---------
-st.subheader("Gráfico de Densidade: Aves por Sistema de Criação")
 
-if 'SIST_CRIA' not in df.columns or 'GAL_TOTAL' not in df.columns:
-    st.warning("O DataFrame não contém as colunas 'SIST_CRIA' ou 'GAL_TOTAL'.")
-else:
-    if df[['SIST_CRIA', 'GAL_TOTAL']].dropna().empty:
-        st.warning("Não há dados suficientes para gerar o gráfico de densidade.")
-    else:
-        fig, ax = plt.subplots(figsize=(10, 6))
-        sns.kdeplot(data=df, x='GAL_TOTAL', hue='SIST_CRIA', fill=True, ax=ax)
-        ax.set_title('Densidade de Aves por Sistema de Criação')
-        ax.set_xlabel('Total de Aves (Cabeça)')
-        ax.set_ylabel('Densidade')
-        plt.tight_layout()
-        st.pyplot(fig)
