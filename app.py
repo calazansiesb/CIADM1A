@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-st.title('Análise de Galináceos por UF')
+st.title('Análise de Galináceos no Brasil')
 
 # Função para limpar valores numéricos
 def clean_numeric_value(x):
@@ -14,25 +14,103 @@ def clean_numeric_value(x):
         return cleaned_value
     return x
 
-# Carregar o dataset
-df = pd.read_csv("GALINACEOS.csv", sep=";")
+# Carregar o DataFrame
+try:
+    df = pd.read_csv("GALINACEOS.csv", sep=';')
+except FileNotFoundError:
+    st.error("Erro: Arquivo 'GALINACEOS.csv' não encontrado.")
+    st.stop()
 
 # Limpar a coluna 'GAL_TOTAL'
-df['GAL_TOTAL'] = df['GAL_TOTAL'].apply(clean_numeric_value)
-df['GAL_TOTAL'] = df['GAL_TOTAL'].replace('', np.nan)
-df['GAL_TOTAL'] = pd.to_numeric(df['GAL_TOTAL'], errors='coerce')
+if 'GAL_TOTAL' in df.columns:
+    df['GAL_TOTAL'] = df['GAL_TOTAL'].apply(clean_numeric_value)
+    df['GAL_TOTAL'] = df['GAL_TOTAL'].replace('', np.nan)
+    df['GAL_TOTAL'] = pd.to_numeric(df['GAL_TOTAL'], errors='coerce')
 
 # Filtrar apenas as Unidades da Federação (UF)
 df_uf = df[df['NIV_TERR'] == 'UF']
 
-# Soma do total de aves por UF
-total_aves_por_uf = df_uf.groupby('NOM_TERR')['GAL_TOTAL'].sum().sort_values(ascending=False)
+# =======================
+# 1. Frequência/proporção por SIST_CRIA (Sistema de Criação)
+# =======================
 
-# Frequência de estabelecimentos por UF (apenas para exibir o gráfico original se desejar)
+st.header('Sistemas de Criação de Galináceos')
+freq_sistema_cria = df['SIST_CRIA'].value_counts()
+prop_sistema_cria = df['SIST_CRIA'].value_counts(normalize=True) * 100
+
+st.subheader('Frequência dos Sistemas de Criação')
+st.write(freq_sistema_cria)
+st.subheader('Proporção dos Sistemas de Criação (%)')
+st.write(prop_sistema_cria.round(1))
+
+# Gráfico de Barras - Proporção dos Sistemas de Criação
+fig_bar, ax_bar = plt.subplots(figsize=(10, 6))
+sns.barplot(x=prop_sistema_cria.index, y=prop_sistema_cria.values, ax=ax_bar)
+ax_bar.set_title('Proporção de Estabelecimentos por Sistema de Criação')
+ax_bar.set_xlabel('Sistema de Criação')
+ax_bar.set_ylabel('Proporção (%)')
+plt.xticks(rotation=45, ha='right')
+plt.tight_layout()
+st.pyplot(fig_bar)
+
+# Gráfico de Pizza - Proporção dos Sistemas de Criação
+fig_pie, ax_pie = plt.subplots(figsize=(8, 8))
+
+descricao_dict = {
+    "1-SIST_POC": "Produtores de ovos para consumo",
+    "2-SIST_POI": "Produtores de ovos para incubação",
+    "3-SIST_PFC": "Produtores de frangos de corte",
+    "4-Outro": "Outros produtores"
+}
+descricao_labels = [descricao_dict.get(s, s) for s in prop_sistema_cria.index]
+
+wedges, texts, autotexts = ax_pie.pie(
+    prop_sistema_cria,
+    autopct='%1.1f%%',
+    startangle=140,
+    pctdistance=0.85
+)
+legend_labels = [
+    f"{sistema}: {desc} ({prop:0.1f}%)"
+    for sistema, prop, desc in zip(
+        prop_sistema_cria.index,
+        prop_sistema_cria,
+        descricao_labels
+    )
+]
+ax_pie.legend(labels=legend_labels, loc="best", bbox_to_anchor=(1, 0.5))
+ax_pie.set_title('Proporção de Estabelecimentos por Sistema de Criação')
+ax_pie.axis('equal')
+plt.tight_layout()
+st.pyplot(fig_pie)
+
+# =======================
+# 2. Barras empilhadas: Distribuição dos tipos de exploração por UF
+# =======================
+
+st.header('Distribuição dos Sistemas de Criação por UF')
+dist_sistema_cria_por_uf = df_uf.groupby('NOM_TERR')['SIST_CRIA'].value_counts(normalize=True).unstack(fill_value=0) * 100
+
+st.dataframe(dist_sistema_cria_por_uf.round(1))
+
+fig_stack, ax_stack = plt.subplots(figsize=(13, 8))
+dist_sistema_cria_por_uf.plot(kind='bar', stacked=True, ax=ax_stack)
+ax_stack.set_title('Distribuição de Sistemas de Criação por UF')
+ax_stack.set_xlabel('UF')
+ax_stack.set_ylabel('Proporção (%)')
+plt.xticks(rotation=45, ha='right')
+ax_stack.legend(title='Sistema de Criação', bbox_to_anchor=(1.05, 1), loc='upper left')
+plt.tight_layout()
+st.pyplot(fig_stack)
+
+# =======================
+# 3. Gráficos e análises anteriores
+# =======================
+
+st.header('Análises Gerais por UF')
+
+# Frequência de estabelecimentos por UF
 freq_estab_por_uf = df_uf['NOM_TERR'].value_counts().sort_index()
-
-# Gráfico 1: Frequência de estabelecimentos por UF
-st.subheader('Frequência de Estabelecimentos por UF')
 fig1, ax1 = plt.subplots(figsize=(12, 6))
 sns.barplot(x=freq_estab_por_uf.index, y=freq_estab_por_uf.values, ax=ax1)
 ax1.set_title("Frequência de Estabelecimentos por UF")
@@ -42,27 +120,30 @@ plt.xticks(rotation=45, ha='right')
 plt.tight_layout()
 st.pyplot(fig1)
 
-# Gráfico 2: Total de aves por UF
-st.subheader('Total de Aves por UF')
-fig2, ax2 = plt.subplots(figsize=(12, 6))
-sns.barplot(x=total_aves_por_uf.index, y=total_aves_por_uf.values, ax=ax2)
-ax2.set_title('Total de Aves por UF')
-ax2.set_xlabel('UF')
-ax2.set_ylabel('Total de Aves')
-plt.xticks(rotation=45, ha='right')
-plt.tight_layout()
-st.pyplot(fig2)
+# Total de aves por UF
+if 'GAL_TOTAL' in df_uf.columns:
+    total_aves_por_uf = df_uf.groupby('NOM_TERR')['GAL_TOTAL'].sum().sort_values(ascending=False)
+    fig2, ax2 = plt.subplots(figsize=(12, 6))
+    sns.barplot(x=total_aves_por_uf.index, y=total_aves_por_uf.values, ax=ax2)
+    ax2.set_title('Total de Aves por UF')
+    ax2.set_xlabel('UF')
+    ax2.set_ylabel('Total de Aves')
+    plt.xticks(rotation=45, ha='right')
+    plt.tight_layout()
+    st.pyplot(fig2)
 
-# Estatísticas
-desvio_padrao_aves_uf = total_aves_por_uf.std()
-media_aves_uf = total_aves_por_uf.mean()
-coeficiente_variacao_aves_uf = (desvio_padrao_aves_uf / media_aves_uf) * 100
+    # Estatísticas
+    desvio_padrao_aves_uf = total_aves_por_uf.std()
+    media_aves_uf = total_aves_por_uf.mean()
+    coeficiente_variacao_aves_uf = (desvio_padrao_aves_uf / media_aves_uf) * 100
 
-st.subheader('Estatísticas do Total de Aves por UF')
-st.write(f"**Desvio padrão:** {desvio_padrao_aves_uf:,.2f}")
-st.write(f"**Média:** {media_aves_uf:,.2f}")
-st.write(f"**Coeficiente de variação:** {coeficiente_variacao_aves_uf:.2f}%")
+    st.subheader('Estatísticas do Total de Aves por UF')
+    st.write(f"**Desvio padrão:** {desvio_padrao_aves_uf:,.2f}")
+    st.write(f"**Média:** {media_aves_uf:,.2f}")
+    st.write(f"**Coeficiente de variação:** {coeficiente_variacao_aves_uf:.2f}%")
+else:
+    st.info("A coluna 'GAL_TOTAL' não está presente para análise de total de aves.")
 
-# Exibe exemplo dos dados filtrados
-st.subheader('Exemplo dos Dados das UF')
+# Exemplo dos dados filtrados
+st.header('Exemplo dos Dados das UF')
 st.dataframe(df_uf.head())
