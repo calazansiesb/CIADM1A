@@ -7,9 +7,9 @@ import seaborn as sns
 import streamlit as st
 
 st.title("Página Principal")
+st.write("Use o menu lateral para acessar outras páginas!")
 
-if st.button("➡️ Ir para Página 2"):
-    st.switch_page("pages/page2.py")
+#codigo
 st.title('Análise de Galináceos no Brasil')
 
 # Função para limpar valores numéricos
