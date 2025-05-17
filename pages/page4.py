@@ -1,137 +1,90 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
-import seaborn as sns
 
-def gerar_grafico_densidade_aves_por_sistema(df):
-    """
-    Exibe no Streamlit um gráfico de densidade da distribuição do total de aves (GAL_TOTAL)
-    por sistema de criação (SIST_CRIA).
-    """
-    st.subheader("Gráfico de Densidade: Aves por Sistema de Criação")
+st.title("Modelos de Regressão: Receita Total Agropecuária (RECT_AGRO)")
 
-    if 'SIST_CRIA' not in df.columns or 'GAL_TOTAL' not in df.columns:
-        st.warning("O DataFrame não contém as colunas 'SIST_CRIA' ou 'GAL_TOTAL'.")
-        return
+# Exemplo: Carregue/importe seu DataFrame aqui
+# df = pd.read_csv("SEU_ARQUIVO.csv")
+# Para teste, vamos criar um DataFrame fictício:
+np.random.seed(0)
+df = pd.DataFrame({
+    'RECT_AGRO': np.random.randint(10000, 100000, 100),
+    'GAL_TOTAL': np.random.randint(1000, 15000, 100),
+    'A_TOTAL': np.random.uniform(1, 50, 100),
+    'N_TRAB_TOTAL': np.random.randint(1, 20, 100),
+    'GAL_VEND': np.random.randint(500, 12000, 100),
+    'Q_DZ_PROD': np.random.randint(100, 10000, 100),
+    'E_COMERC': np.random.randint(0, 2, 100),
+    'E_AGRIFAM': np.random.randint(0, 2, 100),
+    'SIST_CRIA': np.random.choice(['Convencional', 'Caipira', 'Orgânico'], 100),
+    'NIV_TERR': np.random.choice(['Municipal', 'Estadual', 'Regional'], 100),
+})
 
-    df_plot = df[['SIST_CRIA', 'GAL_TOTAL']].dropna()
-    if df_plot.empty:
-        st.warning("Não há dados suficientes para gerar o gráfico de densidade.")
-        return
+target = 'RECT_AGRO'
+features = [
+    'GAL_TOTAL', 'A_TOTAL', 'N_TRAB_TOTAL', 'GAL_VEND', 'Q_DZ_PROD',
+    'E_COMERC', 'E_AGRIFAM', 'SIST_CRIA', 'NIV_TERR'
+]
 
-    fig, ax = plt.subplots(figsize=(10, 6))
-    sistemas = df_plot['SIST_CRIA'].unique()
-    cores = sns.color_palette("Set2", len(sistemas))
-    for cor, sist in zip(cores, sistemas):
-        sns.kdeplot(
-            data=df_plot[df_plot['SIST_CRIA'] == sist],
-            x='GAL_TOTAL',
-            fill=True,
-            label=sist,
-            alpha=0.5,
-            ax=ax,
-            color=cor
-        )
-    ax.set_title('Densidade de Aves por Sistema de Criação')
-    ax.set_xlabel('Total de Aves (Cabeça)')
-    ax.set_ylabel('Densidade')
-    ax.legend(title='SIST_CRIA')
-    st.pyplot(fig)
-    plt.close(fig)
-
-def gerar_grafico_distribuicao_producao_por_sistema(df, tipo_producao='aves'):
-    """
-    Exibe no Streamlit um gráfico da distribuição da produção (aves ou ovos) por sistema de criação.
-    """
-    if tipo_producao == 'aves':
-        coluna_producao = 'GAL_VEND'
-        rotulo_eixo_y = 'Quantidade de Aves Vendidas (Cabeça)'
-        titulo_grafico = 'Distribuição da Venda de Aves por Sistema de Criação'
-    elif tipo_producao == 'ovos':
-        coluna_producao = 'Q_DZ_PROD'
-        rotulo_eixo_y = 'Quantidade de Ovos Produzidos (Dúzia)'
-        titulo_grafico = 'Distribuição da Produção de Ovos por Sistema de Criação'
-    else:
-        st.warning("Tipo de produção inválido. Escolha 'aves' ou 'ovos'.")
-        return
-
-    if 'SIST_CRIA' not in df.columns or coluna_producao not in df.columns:
-        st.warning(f"O DataFrame não contém as colunas 'SIST_CRIA' ou '{coluna_producao}'.")
-        return
-
-    producao_por_sistema = df.groupby('SIST_CRIA')[coluna_producao].sum().reset_index()
-
-    st.subheader(titulo_grafico)
-    fig, ax = plt.subplots(figsize=(10, 6))
-    sns.barplot(x='SIST_CRIA', y=coluna_producao, data=producao_por_sistema, palette="Set2", ax=ax)
-    ax.set_title(titulo_grafico)
-    ax.set_xlabel('Sistema de Criação')
-    ax.set_ylabel(rotulo_eixo_y)
-    plt.xticks(rotation=45, ha="right")
-    plt.tight_layout()
-    st.pyplot(fig)
-    plt.close(fig)
-
-def gerar_histograma_aves_por_sistema(df):
-    """
-    Exibe no Streamlit um histograma da distribuição do total de aves (GAL_TOTAL)
-    por sistema de criação (SIST_CRIA).
-    """
-    st.subheader("Histograma de Aves por Sistema de Criação")
-
-    if 'SIST_CRIA' not in df.columns or 'GAL_TOTAL' not in df.columns:
-        st.warning("O DataFrame não contém as colunas 'SIST_CRIA' ou 'GAL_TOTAL'.")
-        return
-
-    df_plot = df[['SIST_CRIA', 'GAL_TOTAL']].dropna()
-    if df_plot.empty:
-        st.warning("Não há dados suficientes para gerar o histograma.")
-        return
-
-    fig, ax = plt.subplots(figsize=(10, 6))
-    sns.histplot(data=df_plot, x='GAL_TOTAL', hue='SIST_CRIA', multiple='stack', palette="Set2", ax=ax)
-    ax.set_title('Histograma de Aves por Sistema de Criação')
-    ax.set_xlabel('Total de Aves (Cabeça)')
-    ax.set_ylabel('Frequência')
-    plt.tight_layout()
-    st.pyplot(fig)
-    plt.close(fig)
-
-# DataFrame de exemplo
-data = {
-    'SIST_CRIA': [
-        'Ovos para Consumo', 'Frangos de Corte', 'Ovos para Consumo', 'Outros',
-        'Frangos de Corte', 'Ovos para Incubação', 'Outros', 'Ovos para Consumo',
-        'Frangos de Corte', 'Ovos para Incubação'
-    ],
-    'GAL_TOTAL': [
-        10000, 12000, 11000, 5000,
-        13000, 14000, 6000, 9000,
-        11500, 12500
-    ],
-    'GAL_VEND': [
-        10000, 12000, 11000, 5000,
-        13000, 14000, 6000, 9000,
-        11500, 12500
-    ],
-    'Q_DZ_PROD': [
-        5000, 6000, 5500, 2000,
-        6500, 7000, 2500, 4500,
-        5750, 6250
-    ]
-}
-df = pd.DataFrame(data)
-
-# Gráfico 1: Densidade
-gerar_grafico_densidade_aves_por_sistema(df)
-
-# Gráfico 2: Distribuição da produção (usuário pode alternar entre aves/ovos)
-tipo = st.radio(
-    "Escolha o tipo de produção para visualizar por sistema de criação:",
-    ('aves', 'ovos'),
-    format_func=lambda x: "Aves vendidas" if x=="aves" else "Ovos produzidos"
+# Seleção de variáveis explicativas (features)
+st.sidebar.header("Selecione as variáveis para o modelo")
+selected_features = st.sidebar.multiselect(
+    "Variáveis explicativas:",
+    features,
+    default=features
 )
-gerar_grafico_distribuicao_producao_por_sistema(df, tipo_producao=tipo)
 
-# Gráfico 3: Histograma
-gerar_histograma_aves_por_sistema(df)
+# Verificação de dados
+st.write("Amostra dos dados usados no modelo:")
+st.write(df[[target] + selected_features].head())
+
+# TRATAMENTO DE DADOS: One-hot encoding para variáveis categóricas
+categorical = [col for col in selected_features if df[col].dtype == 'object' or df[col].dtype.name == 'category']
+df_model = df[[target] + selected_features].copy()
+if categorical:
+    df_model = pd.get_dummies(df_model, columns=categorical, drop_first=True)
+
+# Separação em X e y
+X = df_model.drop(columns=[target])
+y = df_model[target]
+
+# Divisão treino-teste
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Treinamento do modelo
+model = LinearRegression()
+model.fit(X_train, y_train)
+
+# Predição e métricas
+y_pred = model.predict(X_test)
+mse = mean_squared_error(y_test, y_pred)
+rmse = np.sqrt(mse)
+r2 = r2_score(y_test, y_pred)
+
+st.success(f"Métricas do Modelo de Regressão Linear:")
+st.write(f"**RMSE:** {rmse:.2f}")
+st.write(f"**R²:** {r2:.3f}")
+
+# Exibir os coeficientes das variáveis
+coef_df = pd.DataFrame({
+    'Variável': X.columns,
+    'Coeficiente': model.coef_
+}).sort_values(by='Coeficiente', key=abs, ascending=False)
+
+st.subheader("Importância das Variáveis (Coeficientes)")
+st.dataframe(coef_df)
+
+# Gráfico: Valores observados vs. preditos
+fig, ax = plt.subplots(figsize=(6,4))
+ax.scatter(y_test, y_pred, alpha=0.7)
+ax.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'r--')
+ax.set_xlabel("Valores Observados")
+ax.set_ylabel("Valores Preditos")
+ax.set_title("Valores Observados vs. Preditos")
+st.pyplot(fig)
