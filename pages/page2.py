@@ -16,7 +16,7 @@ if 'NOM_TERR' not in df.columns or 'GAL_MATR' not in df.columns:
     st.write("Colunas disponíveis:", df.columns.tolist())
     st.stop()
 
-# Converter nomes para formato consistente (strip e title)
+# Converter nomes para formato consistente (strip)
 df['NOM_TERR'] = df['NOM_TERR'].astype(str).str.strip()
 
 # Garantir que a coluna está numérica
@@ -28,7 +28,6 @@ df = df[~df['NOM_TERR'].str.upper().eq('BRASIL')]
 
 # --- Gráfico 1: Barras por Unidade Territorial (Estados e Regiões, exceto Brasil) ---
 st.subheader("Gráfico de Barras: Total de Matrizes por Unidade Territorial (Estados e Regiões)")
-
 total_matrizes_por_territorio = df.groupby('NOM_TERR', as_index=False)['GAL_MATR'].sum().sort_values('GAL_MATR', ascending=False)
 st.dataframe(total_matrizes_por_territorio)
 
@@ -65,11 +64,11 @@ else:
     plt.tight_layout()
     st.pyplot(fig_pie)
 
-# --- Gráfico 3: Barras por Estado (somente estados, sem regiões, sem Brasil) ---
-st.subheader("Gráfico de Barras: Total de Matrizes por Estado (Unidades Federativas)")
+# --- Gráfico 3: Barras por Estado (apenas estados, sem regiões e sem Brasil) ---
+st.subheader("Gráfico de Barras: Total de Matrizes por Estado (apenas UF, sem regiões e sem Brasil)")
 
-# Estados = tudo que não está em regiões nem é Brasil
-estados = df[~df['NOM_TERR'].str.title().isin(regioes)]
+# Estados: tudo que não está em regiões e não é Brasil
+estados = df[~df['NOM_TERR'].str.title().isin(regioes)].copy()
 
 if estados.empty or estados['GAL_MATR'].sum() == 0:
     st.warning("Não há dados de matrizes para os estados no arquivo.")
@@ -78,7 +77,7 @@ else:
     st.dataframe(total_matrizes_por_estado)
     fig_estado, ax_estado = plt.subplots(figsize=(16, 6))
     ax_estado.bar(total_matrizes_por_estado['NOM_TERR'], total_matrizes_por_estado['GAL_MATR'], color='orange')
-    ax_estado.set_title('Total de Matrizes por Estado')
+    ax_estado.set_title('Total de Matrizes por Estado (apenas UF)')
     ax_estado.set_xlabel('Estado')
     ax_estado.set_ylabel('Total de Matrizes (Cabeça)')
     plt.xticks(rotation=90, ha="center", fontsize=8)
