@@ -71,27 +71,31 @@ else:
     st.pyplot(fig_pie)
     #---------------------------------------
 
-def gerar_grafico_densidade_aves_por_sistema(df):
-    st.subheader("Gráfico de Densidade: Aves por Sistema de Criação")
-    if 'SIST_CRIA' not in df.columns or 'GAL_TOTAL' not in df.columns:
-        st.warning("O DataFrame não contém as colunas 'SIST_CRIA' ou 'GAL_TOTAL'.")
+def gerar_grafico_densidade_matrizes_por_territorio(df):
+    st.subheader("Gráfico de Densidade: Matrizes por Unidade Territorial")
+
+    # Verifica se as colunas existem
+    if 'NOM_TERR' not in df.columns or 'GAL_MATR' not in df.columns:
+        st.warning("O DataFrame não contém as colunas 'NOM_TERR' ou 'GAL_MATR'.")
         return
-    df_plot = df[['SIST_CRIA', 'GAL_TOTAL']].dropna()
+
+    df_plot = df[['NOM_TERR', 'GAL_MATR']].dropna()
     if df_plot.empty:
         st.warning("Não há dados suficientes para gerar o gráfico de densidade.")
         return
+
     try:
         fig = sns.displot(
             data=df_plot,
-            x='GAL_TOTAL',
-            hue='SIST_CRIA',
+            x='GAL_MATR',
+            hue='NOM_TERR',
             kind='kde',
             fill=True,
             height=6,
-            aspect=1.5
+            aspect=2
         )
-        fig.fig.suptitle('Densidade de Aves por Sistema de Criação')
-        fig.set_axis_labels('Total de Aves (Cabeça)', 'Densidade')
+        fig.fig.suptitle('Densidade de Matrizes por Unidade Territorial')
+        fig.set_axis_labels('Total de Matrizes (Cabeça)', 'Densidade')
         st.pyplot(fig.fig)
         plt.close('all')
     except Exception as e:
