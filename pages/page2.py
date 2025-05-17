@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 
-st.title("Análises de Matrizes por Unidade Territorial")
+st.title("Matrizes por Unidade Territorial: Estados e Regiões")
 
 # Carregar o DataFrame real do arquivo CSV
 try:
@@ -24,8 +24,8 @@ df['GAL_MATR'] = pd.to_numeric(df['GAL_MATR'], errors='coerce')
 regioes = ['Norte', 'Nordeste', 'Sudeste', 'Sul', 'Centro-Oeste']
 brasil = ['Brasil']
 
-# Gráfico 3: Barras por Estado (apenas UFs)
-st.subheader("Gráfico de Barras: Total de Matrizes por Estado (apenas UFs, sem regiões e sem Brasil)")
+# --------- GRÁFICO 1: BARRAS - Apenas Estados (UFs) ---------
+st.subheader("Gráfico de Barras: Total de Matrizes por Estado (apenas UFs)")
 
 # Filtrar apenas estados: não estão nas regiões nem em "Brasil"
 df_estados = df[~df['NOM_TERR'].isin(regioes + brasil)].copy()
@@ -43,3 +43,28 @@ else:
     plt.xticks(rotation=90, ha="center", fontsize=8)
     plt.tight_layout()
     st.pyplot(fig_estado)
+
+# --------- GRÁFICO 2: PIZZA - Apenas Regiões ---------
+st.subheader("Gráfico de Pizza: Distribuição de Matrizes por Região")
+
+df_regioes = df[df['NOM_TERR'].isin(regioes)].copy()
+total_matrizes_por_regiao = df_regioes.groupby('NOM_TERR', as_index=False)['GAL_MATR'].sum()
+
+if total_matrizes_por_regiao.empty or total_matrizes_por_regiao['GAL_MATR'].sum() == 0:
+    st.warning("Não há dados de matrizes para as regiões no arquivo.")
+else:
+    total = total_matrizes_por_regiao['GAL_MATR'].sum()
+    total_matrizes_por_regiao['Proporcao'] = total_matrizes_por_regiao['GAL_MATR'] / total
+    st.dataframe(total_matrizes_por_regiao)
+    fig_pie, ax_pie = plt.subplots(figsize=(8, 8))
+    ax_pie.pie(
+        total_matrizes_por_regiao['Proporcao'],
+        labels=total_matrizes_por_regiao['NOM_TERR'],
+        autopct='%1.1f%%',
+        startangle=140,
+        colors=plt.cm.Paired.colors
+    )
+    ax_pie.set_title('Distribuição de Matrizes por Região')
+    ax_pie.axis('equal')
+    plt.tight_layout()
+    st.pyplot(fig_pie)
