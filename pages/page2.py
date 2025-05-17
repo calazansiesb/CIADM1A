@@ -3,8 +3,12 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-st.title("Página 2")
-st.write("Aqui estão outros gráficos ou conteúdos.")
+def app():
+    st.title("Página 2: Visualização de Gráficos")
+    st.write("Esta página exibe visualizações gráficas dos dados.")
+    
+#st.title("Página 2")
+#st.write("Aqui estão outros gráficos ou conteúdos.")
 
 st.title("Variação Temporal da Produção Avícola")
 
