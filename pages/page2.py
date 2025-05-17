@@ -17,12 +17,12 @@ if 'NOM_TERR' not in df.columns or 'GAL_MATR' not in df.columns or 'SIST_CRIA' n
     st.write("Colunas disponíveis:", df.columns.tolist())
     st.stop()
 
-# Normalizar nomes
+# Normalizar nomes e converter valores numéricos
 df['NOM_TERR'] = df['NOM_TERR'].astype(str).str.strip().str.title()
 df['GAL_MATR'] = pd.to_numeric(df['GAL_MATR'], errors='coerce')
-df['GAL_TOTAL'] = pd.to_numeric(df['GAL_TOTAL'], errors='coerce')  # Garantindo que seja numérico
+df['GAL_TOTAL'] = pd.to_numeric(df['GAL_TOTAL'], errors='coerce')
 
-# Remover valores NaN na coluna GAL_TOTAL
+# Remover valores NaN
 df = df.dropna(subset=['GAL_TOTAL'])
 
 # --------- GRÁFICO DE DENSIDADE: Aves por Sistema de Criação ---------
@@ -34,15 +34,22 @@ else:
     if df[['SIST_CRIA', 'GAL_TOTAL']].dropna().empty:
         st.warning("Não há dados suficientes para gerar o gráfico de densidade.")
     else:
-        fig, ax = plt.subplots(figsize=(10, 6))
+        fig, ax = plt.subplots(figsize=(12, 6))
         
-        # Criando o gráfico de densidade com ajustes para ficarem visíveis
-        sns.kdeplot(data=df, x='GAL_TOTAL', hue='SIST_CRIA', fill=True, linewidth=2, common_norm=False, palette="Set2", ax=ax)
+        # Criando o gráfico de densidade com melhorias visuais
+        sns.kdeplot(data=df, x='GAL_TOTAL', hue='SIST_CRIA', fill=True, 
+                    linewidth=2, common_norm=False, palette="Set2", ax=ax)
         
-        ax.set_title('Densidade de Aves por Sistema de Criação', fontsize=14)
-        ax.set_xlabel('Total de Aves (Cabeça)', fontsize=12)
-        ax.set_ylabel('Densidade', fontsize=12)
-        ax.legend(title="Sistema de Criação", fontsize=10)
+        ax.set_title('Densidade de Aves por Sistema de Criação', fontsize=16, fontweight='bold')
+        ax.set_xlabel('Total de Aves (Cabeça)', fontsize=14)
+        ax.set_ylabel('Densidade', fontsize=14)
+        ax.legend(title="Sistema de Criação", fontsize=12, title_fontsize='13')
+        
+        # Ajustando limites e escala do gráfico
+        ax.set_xlim(df['GAL_TOTAL'].min() * 0.9, df['GAL_TOTAL'].max() * 1.1)
+        ax.set_ylim(0, None)
+        
+        plt.grid(True, linestyle="--", alpha=0.5)
         plt.tight_layout()
         
         st.pyplot(fig)
