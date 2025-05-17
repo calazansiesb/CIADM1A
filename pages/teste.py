@@ -1,112 +1,108 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
 import plotly.express as px
 
-# Configuração da página
-st.set_page_config(
-    page_title="App de Múltiplas Páginas",
-    page_icon="📊",
-    layout="wide",
-    initial_sidebar_state="expanded",
+# Função para gerar gráfico de densidade interativo
+def gerar_grafico_densidade_aves_por_sistema(df):
+    st.subheader("Gráfico de Densidade: Aves por Sistema de Criação")
+
+    if 'SIST_CRIA' not in df.columns or 'GAL_TOTAL' not in df.columns:
+        st.warning("O DataFrame não contém as colunas 'SIST_CRIA' ou 'GAL_TOTAL'.")
+        return
+
+    df_plot = df[['SIST_CRIA', 'GAL_TOTAL']].dropna()
+    if df_plot.empty:
+        st.warning("Não há dados suficientes para gerar o gráfico de densidade.")
+        return
+
+    fig = px.histogram(df_plot, x="GAL_TOTAL", color="SIST_CRIA", histnorm="density",
+                       barmode="overlay", opacity=0.6, title="Densidade de Aves por Sistema de Criação",
+                       labels={"GAL_TOTAL": "Total de Aves", "SIST_CRIA": "Sistema de Criação"})
+    
+    st.plotly_chart(fig)
+
+# Função para gerar gráfico de distribuição interativo (aves ou ovos)
+def gerar_grafico_distribuicao_producao_por_sistema(df, tipo_producao='aves'):
+    if tipo_producao == 'aves':
+        coluna_producao = 'GAL_VEND'
+        rotulo_eixo_y = 'Quantidade de Aves Vendidas (Cabeça)'
+        titulo_grafico = 'Distribuição da Venda de Aves por Sistema de Criação'
+    elif tipo_producao == 'ovos':
+        coluna_producao = 'Q_DZ_PROD'
+        rotulo_eixo_y = 'Quantidade de Ovos Produzidos (Dúzia)'
+        titulo_grafico = 'Distribuição da Produção de Ovos por Sistema de Criação'
+    else:
+        st.warning("Tipo de produção inválido. Escolha 'aves' ou 'ovos'.")
+        return
+
+    if 'SIST_CRIA' not in df.columns or coluna_producao not in df.columns:
+        st.warning(f"O DataFrame não contém as colunas 'SIST_CRIA' ou '{coluna_producao}'.")
+        return
+
+    producao_por_sistema = df.groupby('SIST_CRIA')[coluna_producao].sum().reset_index()
+
+    st.subheader(titulo_grafico)
+    fig = px.bar(producao_por_sistema, x='SIST_CRIA', y=coluna_producao, color='SIST_CRIA', 
+                 title=titulo_grafico, labels={"SIST_CRIA": "Sistema de Criação", coluna_producao: rotulo_eixo_y},
+                 hover_data=[coluna_producao])
+    
+    st.plotly_chart(fig)
+
+# Função para gerar histograma interativo
+def gerar_histograma_aves_por_sistema(df):
+    st.subheader("Histograma de Aves por Sistema de Criação")
+
+    if 'SIST_CRIA' not in df.columns or 'GAL_TOTAL' not in df.columns:
+        st.warning("O DataFrame não contém as colunas 'SIST_CRIA' ou 'GAL_TOTAL'.")
+        return
+
+    df_plot = df[['SIST_CRIA', 'GAL_TOTAL']].dropna()
+    if df_plot.empty:
+        st.warning("Não há dados suficientes para gerar o histograma.")
+        return
+
+    fig = px.histogram(df_plot, x="GAL_TOTAL", color="SIST_CRIA", barmode="overlay", 
+                       title="Histograma de Aves por Sistema de Criação",
+                       labels={"GAL_TOTAL": "Total de Aves", "SIST_CRIA": "Sistema de Criação"},
+                       hover_data=["GAL_TOTAL"])
+    
+    st.plotly_chart(fig)
+
+# DataFrame de exemplo
+data = {
+    'SIST_CRIA': [
+        'Ovos para Consumo', 'Frangos de Corte', 'Ovos para Consumo', 'Outros',
+        'Frangos de Corte', 'Ovos para Incubação', 'Outros', 'Ovos para Consumo',
+        'Frangos de Corte', 'Ovos para Incubação'
+    ],
+    'GAL_TOTAL': [
+        10000, 12000, 11000, 5000,
+        13000, 14000, 6000, 9000,
+        11500, 12500
+    ],
+    'GAL_VEND': [
+        10000, 12000, 11000, 5000,
+        13000, 14000, 6000, 9000,
+        11500, 12500
+    ],
+    'Q_DZ_PROD': [
+        5000, 6000, 5500, 2000,
+        6500, 7000, 2500, 4500,
+        5750, 6250
+    ]
+}
+df = pd.DataFrame(data)
+
+# Gráfico 1: Densidade (Interativo)
+gerar_grafico_densidade_aves_por_sistema(df)
+
+# Gráfico 2: Distribuição da produção (usuário pode alternar entre aves/ovos)
+tipo = st.radio(
+    "Escolha o tipo de produção para visualizar por sistema de criação:",
+    ('aves', 'ovos'),
+    format_func=lambda x: "Aves vendidas" if x == "aves" else "Ovos produzidos"
 )
+gerar_grafico_distribuicao_producao_por_sistema(df, tipo_producao=tipo)
 
-st.title('Análise de Galináceos no Brasil')
-st.info("Use o menu lateral à esquerda para acessar as outras páginas.")
-
-# Função para limpar valores numéricos
-def clean_numeric_value(x):
-    if isinstance(x, str):
-        cleaned_value = ''.join(c for c in x if c.isdigit() or c == '.' or c == ',')
-        cleaned_value = cleaned_value.replace(',', '.', 1)
-        return cleaned_value
-    return x
-
-# Carregar o DataFrame
-try:
-    df = pd.read_csv("GALINACEOS.csv", sep=';')
-except FileNotFoundError:
-    st.error("Erro: Arquivo 'GALINACEOS.csv' não encontrado.")
-    st.stop()
-
-# Garantir que E_SUBS e E_COMERC são numéricos
-for col in ['E_SUBS', 'E_COMERC']:
-    if col in df.columns:
-        df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
-
-# Limpar a coluna 'GAL_TOTAL'
-if 'GAL_TOTAL' in df.columns:
-    df['GAL_TOTAL'] = df['GAL_TOTAL'].apply(clean_numeric_value)
-    df['GAL_TOTAL'] = df['GAL_TOTAL'].replace('', np.nan)
-    df['GAL_TOTAL'] = pd.to_numeric(df['GAL_TOTAL'], errors='coerce')
-
-# =======================
-# 1. Gráfico Interativo - Proporção dos Sistemas de Criação
-# =======================
-st.header('Proporção dos Sistemas de Criação')
-
-if 'SIST_CRIA' in df.columns:
-    freq_sistema_cria = df['SIST_CRIA'].value_counts()
-    prop_sistema_cria = df['SIST_CRIA'].value_counts(normalize=True) * 100
-
-    st.subheader('Frequência dos Sistemas de Criação')
-    st.dataframe(freq_sistema_cria)
-
-    fig_pie = px.pie(df, names="SIST_CRIA", title="Proporção dos Sistemas de Criação", hover_data=["SIST_CRIA"])
-    st.plotly_chart(fig_pie)
-
-# =======================
-# 2. Gráfico Interativo - Distribuição dos Sistemas de Criação por UF
-# =======================
-st.header('Distribuição dos Sistemas de Criação por UF')
-
-if 'NOM_TERR' in df.columns and 'SIST_CRIA' in df.columns:
-    dist_sistema_cria_por_uf = df.groupby('NOM_TERR')['SIST_CRIA'].value_counts(normalize=True).reset_index()
-    dist_sistema_cria_por_uf.columns = ['UF', 'SIST_CRIA', 'Proporção']
-
-    fig_bar = px.bar(
-        dist_sistema_cria_por_uf, x="UF", y="Proporção", color="SIST_CRIA", 
-        title="Distribuição dos Sistemas de Criação por UF", 
-        labels={"UF": "Unidade Federativa", "Proporção": "Percentual"},
-        hover_data=["SIST_CRIA", "Proporção"]
-    )
-
-    st.plotly_chart(fig_bar)
-
-# =======================
-# 3. Gráfico Interativo - Análise da Mão de Obra no Setor Avícola
-# =======================
-st.header('Análise da Mão de Obra no Setor Avícola')
-
-if 'N_TRAB_TOTAL' in df.columns and 'GAL_TOTAL' in df.columns:
-    df['N_TRAB_TOTAL'] = pd.to_numeric(df['N_TRAB_TOTAL'], errors='coerce')
-    df['GAL_TOTAL'] = pd.to_numeric(df['GAL_TOTAL'], errors='coerce')
-
-    fig_scatter = px.scatter(
-        df, x="GAL_TOTAL", y="N_TRAB_TOTAL", title="Tamanho do Estabelecimento vs. Número de Trabalhadores", 
-        labels={"GAL_TOTAL": "Total de Galináceos", "N_TRAB_TOTAL": "Número de Trabalhadores"},
-        hover_data=["GAL_TOTAL", "N_TRAB_TOTAL"]
-    )
-    
-    st.plotly_chart(fig_scatter)
-
-# =======================
-# 4. Gráfico Interativo - Média de GAL_TOTAL por Grupo de Tamanho
-# =======================
-st.header('Média de GAL_TOTAL por Grupo de Tamanho')
-
-if 'Q_DZ_PROD' in df.columns and 'GAL_TOTAL' in df.columns:
-    df['Q_DZ_PROD'] = pd.to_numeric(df['Q_DZ_PROD'], errors='coerce')
-    df['GAL_TOTAL'] = pd.to_numeric(df['GAL_TOTAL'], errors='coerce')
-
-    df.loc[df['Q_DZ_PROD'].notna(), 'TAMANHO_GRUPO'] = pd.qcut(df.loc[df['Q_DZ_PROD'].notna(), 'Q_DZ_PROD'], q=3, labels=['Pequeno', 'Médio', 'Grande'])
-
-    variavel_por_grupo = df.groupby('TAMANHO_GRUPO')['GAL_TOTAL'].mean().reset_index()
-    
-    fig_bar_size = px.bar(
-        variavel_por_grupo, x="TAMANHO_GRUPO", y="GAL_TOTAL", title="Média de GAL_TOTAL por Grupo de Tamanho",
-        labels={"TAMANHO_GRUPO": "Grupo de Tamanho", "GAL_TOTAL": "Média de Galináceos"},
-        hover_data=["GAL_TOTAL"]
-    )
-    
-    st.plotly_chart(fig_bar_size)
+# Gráfico 3: Histograma (Interativo)
+gerar_histograma_aves_por_sistema(df)
