@@ -1,44 +1,89 @@
+import streamlit as st
 import pandas as pd
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import mean_squared_error, r2_score
+import plotly.express as px
 
-# 1. Carregue seus dados
-df = pd.read_csv('GALINACEOS.csv')
+st.title("Matrizes por Unidade Territorial: Estados e Regiões")
 
-# DICA: Veja as colunas disponíveis (opcional, pode remover depois de testar)
-print(df.columns.tolist())
+# Carregar o DataFrame real do arquivo CSV
+try:
+    df = pd.read_csv("GALINACEOS.csv", sep=';')
+except FileNotFoundError:
+    st.error("Erro: Arquivo 'GALINACEOS.csv' não encontrado.")
+    st.stop()
 
-# 2. Defina a variável alvo (produção de ovos em dúzias)
-y = df['Q_DZ_PROD']
+# Verificar se todas as colunas necessárias estão presentes
+colunas_necessarias = ['NOM_TERR', 'GAL_MATR', 'SIST_CRIA', 'GAL_TOTAL']
+if not all(col in df.columns for col in colunas_necessarias):
+    st.error(f"O arquivo deve conter as colunas {colunas_necessarias}.")
+    st.write("Colunas disponíveis:", df.columns.tolist())
+    st.stop()
 
-# 3. Selecione variáveis preditoras relevantes
-features = [
-    'GAL_TOTAL', 'GAL_VEND', 'A_TOTAL', 'N_TRAB_TOTAL', 'SIST_CRIA',
-    'NIV_TERR', 'E_COMERC', 'E_AGRIFAM'
-]
-X = df[features]
+# Normalizar nomes e converter valores numéricos
+df['NOM_TERR'] = df['NOM_TERR'].astype(str).str.strip().str.title()
+df['GAL_MATR'] = pd.to_numeric(df['GAL_MATR'], errors='coerce')
+df['GAL_TOTAL'] = pd.to_numeric(df['GAL_TOTAL'], errors='coerce')
 
-# 4. Transforme variáveis categóricas em dummies
-X = pd.get_dummies(X, drop_first=True)
+# Remover valores NaN
+df = df.dropna(subset=['GAL_TOTAL'])
 
-# 5. Divida em treino e teste
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+# Listas de regiões e Brasil
+regioes = ['Norte', 'Nordeste', 'Sudeste', 'Sul', 'Centro-Oeste']
+brasil = ['Brasil']
 
-# 6. Treine o modelo Random Forest
-model = RandomForestRegressor(n_estimators=100, random_state=42)
-model.fit(X_train, y_train)
+# --------- GRÁFICO 1: BARRAS INTERATIVO - Apenas Estados ---------
+st.subheader("Gráfico de Barras: Total de Matrizes por Estado (Interativo)")
 
-# 7. Faça previsões
-y_pred = model.predict(X_test)
+df_estados = df[~df['NOM_TERR'].isin(regioes + brasil)].copy()
 
-# 8. Avalie o modelo
-rmse = mean_squared_error(y_test, y_pred, squared=False)
-r2 = r2_score(y_test, y_pred)
-print(f"RMSE: {rmse:.2f}")
-print(f"R2: {r2:.3f}")
+if df_estados.empty or df_estados['GAL_MATR'].sum() == 0:
+    st.warning("Não há dados de matrizes para os estados no arquivo.")
+else:
+    total_matrizes_por_estado = df_estados.groupby('NOM_TERR', as_index=False)['GAL_MATR'].sum().sort_values('GAL_MATR', ascending=False)
+    st.dataframe(total_matrizes_por_estado)
 
-# 9. Veja a importância das variáveis
-importances = pd.Series(model.feature_importances_, index=X.columns)
-print("Importância das variáveis:")
-print(importances.sort_values(ascending=False))
+    fig_estado = px.bar(
+        total_matrizes_por_estado, x="NOM_TERR", y="GAL_MATR", 
+        title="Total de Matrizes por Estado", labels={"NOM_TERR": "Estado", "GAL_MATR": "Total de Matrizes"},
+        color="GAL_MATR", hover_data=["GAL_MATR"]
+    )
+
+    st.plotly_chart(fig_estado)
+
+# --------- GRÁFICO 2: PIZZA INTERATIVO - Apenas Regiões ---------
+st.subheader("Gráfico de Pizza: Distribuição de Matrizes por Região (Interativo)")
+
+df_regioes = df[df['NOM_TERR'].isin(regioes)].copy()
+total_matrizes_por_regiao = df_regioes.groupby('NOM_TERR', as_index=False)['GAL_MATR'].sum()
+
+if total_matrizes_por_regiao.empty or total_matrizes_por_regiao['GAL_MATR'].sum() == 0:
+    st.warning("Não há dados de matrizes para as regiões no arquivo.")
+else:
+    total = total_matrizes_por_regiao['GAL_MATR'].sum()
+    total_matrizes_por_regiao['Proporcao'] = total_matrizes_por_regiao['GAL_MATR'] / total
+    st.dataframe(total_matrizes_por_regiao)
+
+    fig_pie = px.pie(
+        total_matrizes_por_regiao, values="GAL_MATR", names="NOM_TERR", 
+        title="Distribuição de Matrizes por Região", hover_data=["GAL_MATR"],
+        color="NOM_TERR"
+    )
+
+    st.plotly_chart(fig_pie)
+
+# --------- GRÁFICO 3: DENSIDADE INTERATIVO - Aves por Sistema de Criação ---------
+st.subheader("Gráfico de Densidade: Aves por Sistema de Criação (Interativo)")
+
+if 'SIST_CRIA' not in df.columns or 'GAL_TOTAL' not in df.columns:
+    st.warning("O DataFrame não contém as colunas 'SIST_CRIA' ou 'GAL_TOTAL'.")
+else:
+    if df[['SIST_CRIA', 'GAL_TOTAL']].dropna().empty:
+        st.warning("Não há dados suficientes para gerar o gráfico de densidade.")
+    else:
+        fig_densidade = px.histogram(
+            df, x="GAL_TOTAL", color="SIST_CRIA", marginal="box",
+            title="Densidade de Aves por Sistema de Criação",
+            labels={"GAL_TOTAL": "Total de Aves", "SIST_CRIA": "Sistema de Criação"},
+            hover_data=["GAL_TOTAL", "SIST_CRIA"]
+        )
+
+        st.plotly_chart(fig_densidade)
