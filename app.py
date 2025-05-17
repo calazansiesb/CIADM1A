@@ -147,3 +147,25 @@ else:
 # Exemplo dos dados filtrados
 st.header('Exemplo dos Dados das UF')
 st.dataframe(df_uf.head())
+# --- Gráfico: Média de GAL_TOTAL por grupo de tamanho de Q_DZ_PROD ---
+st.header('Média de GAL_TOTAL por Grupo de Tamanho de Q_DZ_PROD')
+
+if 'Q_DZ_PROD' in df.columns and 'GAL_TOTAL' in df.columns:
+    # Classificar os estabelecimentos em grupos (tercis)
+    df['TAMANHO_GRUPO'] = pd.qcut(df['Q_DZ_PROD'].dropna(), q=3, labels=['Pequeno', 'Médio', 'Grande'])
+    # Calcular média de GAL_TOTAL por grupo
+    variavel_por_grupo = df.groupby('TAMANHO_GRUPO')['GAL_TOTAL'].mean()
+    
+    st.write("Média de GAL_TOTAL por grupo de tamanho (baseado em Q_DZ_PROD):")
+    st.dataframe(variavel_por_grupo)
+
+    # Gráfico
+    fig, ax = plt.subplots(figsize=(8, 6))
+    sns.barplot(x=variavel_por_grupo.index, y=variavel_por_grupo.values, ax=ax)
+    ax.set_title('Média de GAL_TOTAL por Grupo de Tamanho (Q_DZ_PROD)')
+    ax.set_xlabel('Grupo de Tamanho')
+    ax.set_ylabel('Média de GAL_TOTAL')
+    plt.tight_layout()
+    st.pyplot(fig)
+else:
+    st.warning("Coluna 'Q_DZ_PROD' ou 'GAL_TOTAL' não encontrada no DataFrame.")
