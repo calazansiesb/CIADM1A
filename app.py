@@ -42,8 +42,19 @@ if 'GAL_TOTAL' in df.columns:
     df['GAL_TOTAL'] = pd.to_numeric(df['GAL_TOTAL'], errors='coerce')
 
 # =======================
+# 2. Barras empilhadas: Distribuição dos tipos de exploração por UF
+# =======================
+
+# Filtrar apenas as Unidades da Federação (UF)
+df_uf = df[df['NIV_TERR'] == 'UF']
+
+st.header('Distribuição dos Sistemas de Criação por UF')
+dist_sistema_cria_por_uf = df_uf.groupby('NOM_TERR')['SIST_CRIA'].value_counts(normalize=True).unstack(fill_value=0) * 100
+...
+# =======================
 # Análise da Mão de Obra no Setor Avícola
 # =======================
+
 
 st.header('Análise da Mão de Obra no Setor Avícola')
 
