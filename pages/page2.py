@@ -78,19 +78,10 @@ else:
     if df[['SIST_CRIA', 'GAL_TOTAL']].dropna().empty:
         st.warning("Não há dados suficientes para gerar o gráfico de densidade.")
     else:
-        fig = plt.figure(figsize=(10, 6))
-        sns.displot(
-            data=df,
-            x='GAL_TOTAL',
-            hue='SIST_CRIA',
-            kind='kde',
-            fill=True,
-            height=6,
-            aspect=1.5
-        )
-        plt.title('Densidade de Aves por Sistema de Criação')
-        plt.xlabel('Total de Aves (Cabeça)')
-        plt.ylabel('Densidade')
+        fig, ax = plt.subplots(figsize=(10, 6))
+        sns.kdeplot(data=df, x='GAL_TOTAL', hue='SIST_CRIA', fill=True, ax=ax)
+        ax.set_title('Densidade de Aves por Sistema de Criação')
+        ax.set_xlabel('Total de Aves (Cabeça)')
+        ax.set_ylabel('Densidade')
         plt.tight_layout()
-        st.pyplot(plt.gcf())
-        plt.close()
+        st.pyplot(fig)
