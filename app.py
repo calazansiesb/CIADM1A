@@ -21,6 +21,11 @@ except FileNotFoundError:
     st.error("Erro: Arquivo 'GALINACEOS.csv' não encontrado.")
     st.stop()
 
+# Garantir que E_SUBS e E_COMERC são numéricos
+for col in ['E_SUBS', 'E_COMERC']:
+    if col in df.columns:
+        df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
+
 # Limpar a coluna 'GAL_TOTAL'
 if 'GAL_TOTAL' in df.columns:
     df['GAL_TOTAL'] = df['GAL_TOTAL'].apply(clean_numeric_value)
@@ -68,6 +73,68 @@ if 'N_TRAB_TOTAL' in df.columns:
         st.warning("A coluna 'GAL_TOTAL' não foi encontrada no DataFrame.")
 else:
     st.warning("A coluna 'N_TRAB_TOTAL' não foi encontrada no DataFrame.")
+
+# =======================
+# Análise do Destino da Produção Avícola
+# =======================
+
+st.header('Destino da Produção Avícola')
+
+if 'E_SUBS' in df.columns and 'E_COMERC' in df.columns:
+    total_estabelecimentos = len(df)
+    estabelecimentos_consumo_proprio = df['E_SUBS'].sum()
+    estabelecimentos_comercializacao = df['E_COMERC'].sum()
+
+    prop_consumo_proprio = estabelecimentos_consumo_proprio / total_estabelecimentos if total_estabelecimentos else 0
+    prop_comercializacao = estabelecimentos_comercializacao / total_estabelecimentos if total_estabelecimentos else 0
+
+    st.subheader('Proporção de Estabelecimentos por Destino da Produção')
+    st.write(f"Proporção de estabelecimentos com finalidade de consumo próprio: {prop_consumo_proprio:.2f}")
+    st.write(f"Proporção de estabelecimentos com finalidade de comercialização: {prop_comercializacao:.2f}")
+
+    fig_destino, ax_destino = plt.subplots(figsize=(8, 5))
+    sns.barplot(x=['Consumo Próprio', 'Comercialização'], y=[prop_consumo_proprio, prop_comercializacao], ax=ax_destino)
+    ax_destino.set_title('Proporção de Estabelecimentos por Destino da Produção')
+    ax_destino.set_ylabel('Proporção')
+    st.pyplot(fig_destino)
+
+    # Etapa 2: Destino da produção por tipo de exploração
+    if 'SIST_CRIA' in df.columns:
+        tabela_cruzada_tipo_exploracao = pd.crosstab(df['SIST_CRIA'], [df['E_SUBS'], df['E_COMERC']])
+        tabela_cruzada_tipo_exploracao_prop = tabela_cruzada_tipo_exploracao.div(tabela_cruzada_tipo_exploracao.sum(axis=1), axis=0)
+
+        st.subheader('Destino da Produção por Tipo de Exploração (proporção)')
+        st.dataframe(tabela_cruzada_tipo_exploracao_prop)
+
+        fig_destino_tipo, ax_destino_tipo = plt.subplots(figsize=(10, 6))
+        tabela_cruzada_tipo_exploracao_prop.plot(kind='bar', stacked=True, ax=ax_destino_tipo)
+        ax_destino_tipo.set_title('Destino da Produção por Tipo de Exploração')
+        ax_destino_tipo.set_xlabel('Tipo de Exploração')
+        ax_destino_tipo.set_ylabel('Proporção')
+        plt.xticks(rotation=45, ha="right")
+        ax_destino_tipo.legend(title='(E_SUBS, E_COMERC)', bbox_to_anchor=(1.05, 1), loc='upper left')
+        plt.tight_layout()
+        st.pyplot(fig_destino_tipo)
+
+    # Etapa 3: Destino da produção por região
+    if 'NOM_TERR' in df.columns:
+        tabela_cruzada_regiao = pd.crosstab(df['NOM_TERR'], [df['E_SUBS'], df['E_COMERC']])
+        tabela_cruzada_regiao_prop = tabela_cruzada_regiao.div(tabela_cruzada_regiao.sum(axis=1), axis=0)
+
+        st.subheader('Destino da Produção por Região (proporção)')
+        st.dataframe(tabela_cruzada_regiao_prop)
+
+        fig_destino_regiao, ax_destino_regiao = plt.subplots(figsize=(10, 6))
+        tabela_cruzada_regiao_prop.plot(kind='bar', stacked=True, ax=ax_destino_regiao)
+        ax_destino_regiao.set_title('Destino da Produção por Região')
+        ax_destino_regiao.set_xlabel('Região')
+        ax_destino_regiao.set_ylabel('Proporção')
+        plt.xticks(rotation=45, ha="right")
+        ax_destino_regiao.legend(title='(E_SUBS, E_COMERC)', bbox_to_anchor=(1.05, 1), loc='upper left')
+        plt.tight_layout()
+        st.pyplot(fig_destino_regiao)
+else:
+    st.warning("Colunas 'E_SUBS' e/ou 'E_COMERC' não encontradas para análise do destino da produção.")
 
 # Filtrar apenas as Unidades da Federação (UF)
 df_uf = df[df['NIV_TERR'] == 'UF']
