@@ -21,6 +21,11 @@ except FileNotFoundError:
     st.error("Erro: Arquivo 'GALINACEOS.csv' não encontrado.")
     st.stop()
 
+# Garantir que E_SUBS e E_COMERC são numéricos
+for col in ['E_SUBS', 'E_COMERC']:
+    if col in df.columns:
+        df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
+
 # Limpar a coluna 'GAL_TOTAL'
 if 'GAL_TOTAL' in df.columns:
     df['GAL_TOTAL'] = df['GAL_TOTAL'].apply(clean_numeric_value)
@@ -28,7 +33,7 @@ if 'GAL_TOTAL' in df.columns:
     df['GAL_TOTAL'] = pd.to_numeric(df['GAL_TOTAL'], errors='coerce')
 
 # =======================
-# NOVO: Análise da Mão de Obra no Setor Avícola
+# Análise da Mão de Obra no Setor Avícola
 # =======================
 
 st.header('Análise da Mão de Obra no Setor Avícola')
@@ -70,7 +75,7 @@ else:
     st.warning("A coluna 'N_TRAB_TOTAL' não foi encontrada no DataFrame.")
 
 # =======================
-# NOVO: Análise do Destino da Produção Avícola
+# Análise do Destino da Produção Avícola
 # =======================
 
 st.header('Destino da Produção Avícola')
