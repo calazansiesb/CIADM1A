@@ -71,16 +71,43 @@ else:
     st.pyplot(fig_pie)
     #---------------------------------------
 
-st.subheader("Histograma: Todas as Criações Individuais")
+def gerar_grafico_densidade_aves_por_sistema(df):
+    """
+    Exibe no Streamlit um gráfico de densidade da distribuição do total de aves (GAL_TOTAL)
+    por sistema de criação (SIST_CRIA).
+    Args:
+        df (pd.DataFrame): DataFrame contendo os dados.
+    """
+    st.subheader("Gráfico de Densidade: Aves por Sistema de Criação")
 
-if df['GAL_MATR'].dropna().empty:
-    st.warning("Não há dados numéricos suficientes para gerar o histograma.")
-else:
-    fig_hist, ax_hist = plt.subplots(figsize=(10, 5))
-    ax_hist.hist(df['GAL_MATR'].dropna(), bins=30, color="skyblue", edgecolor="black")
-    ax_hist.set_title("Histograma das Matrizes (cada criação)")
-    ax_hist.set_xlabel("Total de Matrizes (Cabeça)")
-    ax_hist.set_ylabel("Frequência")
-    plt.tight_layout()
-    st.pyplot(fig_hist)
+    # 1. Verificar se as colunas necessárias existem
+    if 'SIST_CRIA' not in df.columns or 'GAL_TOTAL' not in df.columns:
+        st.warning("O DataFrame não contém as colunas 'SIST_CRIA' ou 'GAL_TOTAL'.")
+        return
+
+    # 2. Verificar se há dados válidos
+    if df[['SIST_CRIA', 'GAL_TOTAL']].dropna().empty:
+        st.warning("Não há dados suficientes para gerar o gráfico de densidade.")
+        return
+
+    # 3. Gerar o gráfico de densidade com Seaborn
+    try:
+        fig = plt.figure(figsize=(10, 6))
+        sns.displot(
+            data=df,
+            x='GAL_TOTAL',
+            hue='SIST_CRIA',
+            kind='kde',
+            fill=True,
+            height=6,
+            aspect=1.5
+        )
+        plt.title('Densidade de Aves por Sistema de Criação')
+        plt.xlabel('Total de Aves (Cabeça)')
+        plt.ylabel('Densidade')
+        plt.tight_layout()
+        st.pyplot(plt.gcf())
+        plt.close()
+    except Exception as e:
+        st.warning(f"Erro ao gerar o gráfico de densidade: {e}")
     #--------------------------------------------------
