@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 
-st.title("Distribuição de Matrizes por Unidade Territorial (Gráfico de Pizza)")
+st.title("Total de Matrizes por Unidade Territorial")
 
 # Carregar o DataFrame real do arquivo CSV
 try:
@@ -28,23 +28,35 @@ if 'NOM_TERR' not in df.columns or 'GAL_MATR' not in df.columns:
 # Agrupar os dados por 'NOM_TERR' e somar o total de 'GAL_MATR'
 total_matrizes_por_territorio = df.groupby('NOM_TERR')['GAL_MATR'].sum().reset_index()
 
+st.subheader("Tabela: Total de Matrizes por Unidade Territorial")
+st.dataframe(total_matrizes_por_territorio)
+
+# --- Gráfico de Barras ---
+st.subheader("Gráfico de Barras: Total de Matrizes por Unidade Territorial")
+fig_bar, ax_bar = plt.subplots(figsize=(12, 6))
+ax_bar.bar(total_matrizes_por_territorio['NOM_TERR'], total_matrizes_por_territorio['GAL_MATR'])
+ax_bar.set_title('Total de Matrizes por Unidade Territorial')
+ax_bar.set_xlabel('Unidade Territorial')
+ax_bar.set_ylabel('Total de Matrizes (Cabeça)')
+plt.xticks(rotation=45, ha="right", fontsize=8)
+plt.tight_layout()
+st.pyplot(fig_bar)
+
+# --- Gráfico de Pizza ---
+st.subheader("Gráfico de Pizza: Distribuição de Matrizes por Unidade Territorial")
 # Calcular a proporção de matrizes para cada território
 total_matrizes = total_matrizes_por_territorio['GAL_MATR'].sum()
 total_matrizes_por_territorio['Proporcao'] = total_matrizes_por_territorio['GAL_MATR'] / total_matrizes
 
-st.subheader("Tabela: Proporção de Matrizes por Unidade Territorial")
-st.dataframe(total_matrizes_por_territorio)
-
-# Criar o gráfico de pizza usando matplotlib e exibir no Streamlit
-fig, ax = plt.subplots(figsize=(8, 8))
-ax.pie(
+fig_pie, ax_pie = plt.subplots(figsize=(8, 8))
+ax_pie.pie(
     total_matrizes_por_territorio['Proporcao'],
     labels=total_matrizes_por_territorio['NOM_TERR'],
     autopct='%1.1f%%',
     startangle=140,
     colors=plt.cm.Paired.colors
 )
-ax.set_title('Distribuição de Matrizes por Unidade Territorial')
-ax.axis('equal')
+ax_pie.set_title('Distribuição de Matrizes por Unidade Territorial')
+ax_pie.axis('equal')
 plt.tight_layout()
-st.pyplot(fig)
+st.pyplot(fig_pie)
