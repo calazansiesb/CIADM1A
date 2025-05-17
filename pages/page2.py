@@ -1,83 +1,34 @@
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
-import seaborn as sns
 
-st.title("Variação Temporal da Produção Avícola")
+st.title("Total de Matrizes por Unidade Territorial")
 
-# Carregar o DataFrame (espera-se que o arquivo GALINACEOS.csv esteja na raiz do projeto)
+# Carregar o DataFrame real do arquivo CSV
 try:
     df = pd.read_csv("GALINACEOS.csv", sep=';')
 except FileNotFoundError:
     st.error("Erro: Arquivo 'GALINACEOS.csv' não encontrado.")
     st.stop()
 
-# --- Análise da Variação Temporal da Produção Avícola ---
-
-if 'ANO' not in df.columns:
-    st.error("Erro: A coluna 'ANO' não está presente no DataFrame.")
+# Verificar se as colunas necessárias existem
+if 'NOM_TERR' not in df.columns or 'GAL_MATR' not in df.columns:
+    st.error("O arquivo deve conter as colunas 'NOM_TERR' e 'GAL_MATR'.")
+    st.write("Colunas disponíveis:", df.columns.tolist())
     st.stop()
 
-anos = sorted(df['ANO'].unique())
-st.write(f"**Anos disponíveis:** {anos}")
+# 1. Agrupar os dados por 'NOM_TERR' e somar o total de 'GAL_MATR'
+total_matrizes_por_territorio = df.groupby('NOM_TERR')['GAL_MATR'].sum().reset_index()
 
-# Etapa 1: Preparar os Dados para Análise Temporal
-dados_por_ano = {}
-for ano in anos:
-    df_ano = df[df['ANO'] == ano]
-    total_estabelecimentos = df_ano['E_TEM_GAL'].sum() if 'E_TEM_GAL' in df_ano.columns else None
-    total_aves = df_ano['GAL_TOTAL'].sum() if 'GAL_TOTAL' in df_ano.columns else None
-    proporcoes_sist_cria = df_ano['SIST_CRIA'].value_counts(normalize=True) * 100 if 'SIST_CRIA' in df_ano.columns else None
+st.subheader("Tabela: Total de Matrizes por Unidade Territorial")
+st.dataframe(total_matrizes_por_territorio)
 
-    dados_por_ano[ano] = {
-        'Total Estabelecimentos': total_estabelecimentos,
-        'Total Aves': total_aves,
-        'Proporcoes SIST_CRIA': proporcoes_sist_cria
-    }
-
-df_temporal = pd.DataFrame(dados_por_ano).T
-df_temporal['ANO'] = df_temporal.index
-df_temporal = df_temporal.reset_index(drop=True)
-df_temporal[['Total Aves', 'Total Estabelecimentos']] = df_temporal[['Total Aves', 'Total Estabelecimentos']].apply(pd.to_numeric)
-
-st.subheader("Dados Agregados por Ano")
-st.dataframe(df_temporal[['ANO', 'Total Estabelecimentos', 'Total Aves']])
-
-# Etapa 2: Visualizar a Variação Temporal do Número de Estabelecimentos e Aves
-st.subheader("Evolução do Número de Estabelecimentos ao Longo do Tempo")
-fig, ax = plt.subplots(figsize=(10, 5))
-sns.lineplot(x='ANO', y='Total Estabelecimentos', data=df_temporal, marker="o", ax=ax)
-ax.set_title('Evolução do Número de Estabelecimentos')
-ax.set_xlabel('Ano')
-ax.set_ylabel('Total de Estabelecimentos')
-plt.xticks(rotation=45)
+# 2. Criar o gráfico de barras usando matplotlib e exibir no Streamlit
+fig, ax = plt.subplots(figsize=(12, 6))
+ax.bar(total_matrizes_por_territorio['NOM_TERR'], total_matrizes_por_territorio['GAL_MATR'])
+ax.set_title('Total de Matrizes por Unidade Territorial')
+ax.set_xlabel('Unidade Territorial')
+ax.set_ylabel('Total de Matrizes (Cabeça)')
+plt.xticks(rotation=45, ha="right", fontsize=8)
 plt.tight_layout()
 st.pyplot(fig)
-
-st.subheader("Evolução do Número de Aves ao Longo do Tempo")
-fig2, ax2 = plt.subplots(figsize=(10, 5))
-sns.lineplot(x='ANO', y='Total Aves', data=df_temporal, marker="o", ax=ax2)
-ax2.set_title('Evolução do Número de Aves')
-ax2.set_xlabel('Ano')
-ax2.set_ylabel('Total de Aves')
-plt.xticks(rotation=45)
-plt.tight_layout()
-st.pyplot(fig2)
-
-# Etapa 3: Visualizar a Variação Temporal dos Tipos de Exploração
-if 'SIST_CRIA' in df.columns:
-    st.subheader("Proporção dos Tipos de Exploração ao Longo do Tempo")
-    df_sist_cria = df.groupby(['ANO', 'SIST_CRIA']).size().unstack(fill_value=0)
-    df_sist_cria_prop = df_sist_cria.div(df_sist_cria.sum(axis=1), axis=0) * 100
-
-    fig3, ax3 = plt.subplots(figsize=(12, 6))
-    df_sist_cria_prop.plot(kind='bar', stacked=True, ax=ax3)
-    ax3.set_title('Proporção dos Tipos de Exploração ao Longo do Tempo')
-    ax3.set_xlabel('Ano')
-    ax3.set_ylabel('Proporção (%)')
-    plt.xticks(rotation=45)
-    ax3.legend(title='Tipo de Exploração', bbox_to_anchor=(1.05, 1), loc='upper left')
-    plt.tight_layout()
-    st.pyplot(fig3)
-else:
-    st.info("Coluna 'SIST_CRIA' não encontrada para análise temporal dos tipos de exploração.")
