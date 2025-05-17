@@ -72,29 +72,17 @@ else:
     #---------------------------------------
 
 def gerar_grafico_densidade_aves_por_sistema(df):
-    """
-    Exibe no Streamlit um gráfico de densidade da distribuição do total de aves (GAL_TOTAL)
-    por sistema de criação (SIST_CRIA).
-    Args:
-        df (pd.DataFrame): DataFrame contendo os dados.
-    """
     st.subheader("Gráfico de Densidade: Aves por Sistema de Criação")
-
-    # 1. Verificar se as colunas necessárias existem
     if 'SIST_CRIA' not in df.columns or 'GAL_TOTAL' not in df.columns:
         st.warning("O DataFrame não contém as colunas 'SIST_CRIA' ou 'GAL_TOTAL'.")
         return
-
-    # 2. Verificar se há dados válidos
-    if df[['SIST_CRIA', 'GAL_TOTAL']].dropna().empty:
+    df_plot = df[['SIST_CRIA', 'GAL_TOTAL']].dropna()
+    if df_plot.empty:
         st.warning("Não há dados suficientes para gerar o gráfico de densidade.")
         return
-
-    # 3. Gerar o gráfico de densidade com Seaborn
     try:
-        fig = plt.figure(figsize=(10, 6))
-        sns.displot(
-            data=df,
+        fig = sns.displot(
+            data=df_plot,
             x='GAL_TOTAL',
             hue='SIST_CRIA',
             kind='kde',
@@ -102,12 +90,10 @@ def gerar_grafico_densidade_aves_por_sistema(df):
             height=6,
             aspect=1.5
         )
-        plt.title('Densidade de Aves por Sistema de Criação')
-        plt.xlabel('Total de Aves (Cabeça)')
-        plt.ylabel('Densidade')
-        plt.tight_layout()
-        st.pyplot(plt.gcf())
-        plt.close()
+        fig.fig.suptitle('Densidade de Aves por Sistema de Criação')
+        fig.set_axis_labels('Total de Aves (Cabeça)', 'Densidade')
+        st.pyplot(fig.fig)
+        plt.close('all')
     except Exception as e:
         st.warning(f"Erro ao gerar o gráfico de densidade: {e}")
     #--------------------------------------------------
