@@ -68,3 +68,18 @@ else:
     ax_pie.axis('equal')
     plt.tight_layout()
     st.pyplot(fig_pie)
+    #---------------------------------------
+    # Gráfico de Densidade: Distribuição das Matrizes
+st.subheader("Gráfico de Densidade: Distribuição das Matrizes")
+
+if df['GAL_MATR'].dropna().empty:
+    st.warning("Não há dados numéricos suficientes para gerar o gráfico de densidade.")
+else:
+    fig_dens, ax_dens = plt.subplots(figsize=(10, 5))
+    sns.kdeplot(df['GAL_MATR'].dropna(), ax=ax_dens, fill=True, color="purple")
+    ax_dens.set_title("Densidade da Distribuição do Total de Matrizes")
+    ax_dens.set_xlabel("Total de Matrizes (Cabeça)")
+    ax_dens.set_ylabel("Densidade")
+    plt.tight_layout()
+    st.pyplot(fig_dens)
+    #--------------------------------------------------
