@@ -3,6 +3,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+st.title("Página 2")
+st.write("Aqui estão outros gráficos ou conteúdos.")
+
 st.title("Variação Temporal da Produção Avícola")
 
 def analisar_variacao_temporal(df):
