@@ -3,11 +3,11 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-
+# Multiplas paginas
 import streamlit as st
 
 st.title("Página Principal")
-st.write("Use o menu lateral para acessar outras páginas!")
+st.info("Para acessar as outras páginas, use o menu lateral à esquerda 👉")
 
 #codigo
 st.title('Análise de Galináceos no Brasil')
