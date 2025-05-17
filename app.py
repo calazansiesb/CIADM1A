@@ -4,16 +4,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 # Multiplas paginas
-import streamlit as st
-import sys
-import os
 
-# Adiciona o diretório 'paginas' ao caminho do Python
-sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)) + "/paginas")
-
-# Agora você pode importar seus módulos de página
-from pagina1 import app as pagina1_app
-from pagina2 import app as pagina2_app
+# Importa seus módulos de página
+import pages.page1
+import pages.page2
 
 # Configuração da página principal
 st.set_page_config(
@@ -27,9 +21,10 @@ st.sidebar.title("Navegação")
 pagina_selecionada = st.sidebar.radio("Selecione a Página", ["Página 1", "Página 2"])
 
 if pagina_selecionada == "Página 1":
-    pagina1_app()  # Chama a função principal da página 1
+    paginas.page1.app()
 elif pagina_selecionada == "Página 2":
-    pagina2_app()  # Chama a função principal da página 2
+    paginas.page2.app()
+```
 
 #codigo
 st.title('Análise de Galináceos no Brasil')
