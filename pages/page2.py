@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 
-st.title("Total de Matrizes por Unidade Territorial (Sem o Brasil)")
+st.title("Distribuição de Matrizes por Unidade Territorial (Gráfico de Pizza)")
 
 # Carregar o DataFrame real do arquivo CSV
 try:
@@ -25,18 +25,26 @@ if 'NOM_TERR' not in df.columns or 'GAL_MATR' not in df.columns:
     st.write("Colunas disponíveis:", df.columns.tolist())
     st.stop()
 
-# 1. Agrupar os dados por 'NOM_TERR' e somar o total de 'GAL_MATR'
+# Agrupar os dados por 'NOM_TERR' e somar o total de 'GAL_MATR'
 total_matrizes_por_territorio = df.groupby('NOM_TERR')['GAL_MATR'].sum().reset_index()
 
-st.subheader("Tabela: Total de Matrizes por Unidade Territorial")
+# Calcular a proporção de matrizes para cada território
+total_matrizes = total_matrizes_por_territorio['GAL_MATR'].sum()
+total_matrizes_por_territorio['Proporcao'] = total_matrizes_por_territorio['GAL_MATR'] / total_matrizes
+
+st.subheader("Tabela: Proporção de Matrizes por Unidade Territorial")
 st.dataframe(total_matrizes_por_territorio)
 
-# 2. Criar o gráfico de barras usando matplotlib e exibir no Streamlit
-fig, ax = plt.subplots(figsize=(12, 6))
-ax.bar(total_matrizes_por_territorio['NOM_TERR'], total_matrizes_por_territorio['GAL_MATR'])
-ax.set_title('Total de Matrizes por Unidade Territorial (Sem o Brasil)')
-ax.set_xlabel('Unidade Territorial')
-ax.set_ylabel('Total de Matrizes (Cabeça)')
-plt.xticks(rotation=45, ha="right", fontsize=8)
+# Criar o gráfico de pizza usando matplotlib e exibir no Streamlit
+fig, ax = plt.subplots(figsize=(8, 8))
+ax.pie(
+    total_matrizes_por_territorio['Proporcao'],
+    labels=total_matrizes_por_territorio['NOM_TERR'],
+    autopct='%1.1f%%',
+    startangle=140,
+    colors=plt.cm.Paired.colors
+)
+ax.set_title('Distribuição de Matrizes por Unidade Territorial')
+ax.axis('equal')
 plt.tight_layout()
 st.pyplot(fig)
