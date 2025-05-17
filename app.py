@@ -4,27 +4,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-from PIL import Image
+import streamlit as st
 
 st.title("Página Principal")
 
-# Adicione um ícone (pode ser uma imagem local ou de URL)
-icon = Image.open("icone.png")  # coloque um arquivo icone.png na mesma pasta do app.py
-
-# Crie um botão com o ícone para ir para a segunda página
-if st.button("Ir para Página 2"):
+if st.button("➡️ Ir para Página 2"):
     st.switch_page("pages/page2.py")
-
-# Ou use st.markdown para criar um link clicável com ícone:
-st.markdown(
-    f"""
-    <a href="/pages/page2" target="_self" style="text-decoration: none;">
-        <img src="icone.png" width="40"/>
-        <span style="font-size:20px; vertical-align:middle;"> Página 2</span>
-    </a>
-    """,
-    unsafe_allow_html=True,
-)
 st.title('Análise de Galináceos no Brasil')
 
 # Função para limpar valores numéricos
