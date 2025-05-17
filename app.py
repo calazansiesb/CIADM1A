@@ -4,7 +4,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-# Configuração da página principal
 st.set_page_config(
     page_title="App de Múltiplas Páginas",
     page_icon="📊",
@@ -12,8 +11,8 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# Importação das páginas
-from pages import page1, page2  # Certifique-se que os arquivos page1.py e page2.py existem na pasta `pages/`
+st.title('Análise de Galináceos no Brasil')
+st.info("Use o menu lateral para acessar as outras páginas!")
 
 # Menu de navegação
 st.sidebar.title("Navegação")
