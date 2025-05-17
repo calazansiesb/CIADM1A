@@ -12,8 +12,8 @@ except FileNotFoundError:
     st.error("Erro: Arquivo 'GALINACEOS.csv' não encontrado.")
     st.stop()
 
-if 'NOM_TERR' not in df.columns or 'GAL_MATR' not in df.columns:
-    st.error("O arquivo deve conter as colunas 'NOM_TERR' e 'GAL_MATR'.")
+if 'NOM_TERR' not in df.columns or 'GAL_MATR' not in df.columns or 'SIST_CRIA' not in df.columns or 'GAL_TOTAL' not in df.columns:
+    st.error("O arquivo deve conter as colunas 'NOM_TERR', 'GAL_MATR', 'SIST_CRIA' e 'GAL_TOTAL'.")
     st.write("Colunas disponíveis:", df.columns.tolist())
     st.stop()
 
@@ -28,7 +28,6 @@ brasil = ['Brasil']
 # --------- GRÁFICO 1: BARRAS - Apenas Estados (UFs) ---------
 st.subheader("Gráfico de Barras: Total de Matrizes por Estado (apenas UFs)")
 
-# Filtrar apenas estados: não estão nas regiões nem em "Brasil"
 df_estados = df[~df['NOM_TERR'].isin(regioes + brasil)].copy()
 
 if df_estados.empty or df_estados['GAL_MATR'].sum() == 0:
@@ -69,35 +68,29 @@ else:
     ax_pie.axis('equal')
     plt.tight_layout()
     st.pyplot(fig_pie)
-    #---------------------------------------
 
-def gerar_grafico_densidade_matrizes_por_territorio(df):
-    st.subheader("Gráfico de Densidade: Matrizes por Unidade Territorial")
+# --------- GRÁFICO 3: DENSIDADE - Aves por Sistema de Criação ---------
+st.subheader("Gráfico de Densidade: Aves por Sistema de Criação")
 
-    # Verifica se as colunas existem
-    if 'NOM_TERR' not in df.columns or 'GAL_MATR' not in df.columns:
-        st.warning("O DataFrame não contém as colunas 'NOM_TERR' ou 'GAL_MATR'.")
-        return
-
-    df_plot = df[['NOM_TERR', 'GAL_MATR']].dropna()
-    if df_plot.empty:
+if 'SIST_CRIA' not in df.columns or 'GAL_TOTAL' not in df.columns:
+    st.warning("O DataFrame não contém as colunas 'SIST_CRIA' ou 'GAL_TOTAL'.")
+else:
+    if df[['SIST_CRIA', 'GAL_TOTAL']].dropna().empty:
         st.warning("Não há dados suficientes para gerar o gráfico de densidade.")
-        return
-
-    try:
-        fig = sns.displot(
-            data=df_plot,
-            x='GAL_MATR',
-            hue='NOM_TERR',
+    else:
+        fig = plt.figure(figsize=(10, 6))
+        sns.displot(
+            data=df,
+            x='GAL_TOTAL',
+            hue='SIST_CRIA',
             kind='kde',
             fill=True,
             height=6,
-            aspect=2
+            aspect=1.5
         )
-        fig.fig.suptitle('Densidade de Matrizes por Unidade Territorial')
-        fig.set_axis_labels('Total de Matrizes (Cabeça)', 'Densidade')
-        st.pyplot(fig.fig)
-        plt.close('all')
-    except Exception as e:
-        st.warning(f"Erro ao gerar o gráfico de densidade: {e}")
-    #--------------------------------------------------
+        plt.title('Densidade de Aves por Sistema de Criação')
+        plt.xlabel('Total de Aves (Cabeça)')
+        plt.ylabel('Densidade')
+        plt.tight_layout()
+        st.pyplot(plt.gcf())
+        plt.close()
