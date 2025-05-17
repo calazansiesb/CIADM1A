@@ -71,21 +71,16 @@ else:
     st.pyplot(fig_pie)
     #---------------------------------------
 
-st.subheader("Gráfico de Densidade: Distribuição das Matrizes")
+st.subheader("Histograma: Todas as Criações Individuais")
 
 if df['GAL_MATR'].dropna().empty:
-    st.warning("Não há dados numéricos suficientes para gerar o gráfico de densidade.")
+    st.warning("Não há dados numéricos suficientes para gerar o histograma.")
 else:
-    fig_dens, ax_dens = plt.subplots(figsize=(10, 5))
-    try:
-        # Para Seaborn >= 0.11
-        sns.kdeplot(df['GAL_MATR'].dropna(), ax=ax_dens, fill=True, color="purple")
-    except TypeError:
-        # Para Seaborn < 0.11 (sem fill)
-        sns.kdeplot(df['GAL_MATR'].dropna(), ax=ax_dens, color="purple")
-    ax_dens.set_title("Densidade da Distribuição do Total de Matrizes")
-    ax_dens.set_xlabel("Total de Matrizes (Cabeça)")
-    ax_dens.set_ylabel("Densidade")
+    fig_hist, ax_hist = plt.subplots(figsize=(10, 5))
+    ax_hist.hist(df['GAL_MATR'].dropna(), bins=30, color="skyblue", edgecolor="black")
+    ax_hist.set_title("Histograma das Matrizes (cada criação)")
+    ax_hist.set_xlabel("Total de Matrizes (Cabeça)")
+    ax_hist.set_ylabel("Frequência")
     plt.tight_layout()
-    st.pyplot(fig_dens)
+    st.pyplot(fig_hist)
     #--------------------------------------------------
