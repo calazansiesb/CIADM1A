@@ -87,6 +87,4 @@ else:
     ax_dens.set_ylabel("Densidade")
     plt.tight_layout()
     st.pyplot(fig_dens)
-    st.pyplot(fig_dens)
-    
     #--------------------------------------------------
