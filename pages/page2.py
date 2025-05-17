@@ -20,6 +20,10 @@ if 'NOM_TERR' not in df.columns or 'GAL_MATR' not in df.columns or 'SIST_CRIA' n
 # Normalizar nomes
 df['NOM_TERR'] = df['NOM_TERR'].astype(str).str.strip().str.title()
 df['GAL_MATR'] = pd.to_numeric(df['GAL_MATR'], errors='coerce')
+df['GAL_TOTAL'] = pd.to_numeric(df['GAL_TOTAL'], errors='coerce')  # Garantindo que seja numérico
+
+# Remover valores NaN na coluna GAL_TOTAL
+df = df.dropna(subset=['GAL_TOTAL'])
 
 # Listas de regiões e Brasil
 regioes = ['Norte', 'Nordeste', 'Sudeste', 'Sul', 'Centro-Oeste']
