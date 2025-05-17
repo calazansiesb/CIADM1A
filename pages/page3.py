@@ -72,6 +72,31 @@ def gerar_grafico_distribuicao_producao_por_sistema(df, tipo_producao='aves'):
     st.pyplot(fig)
     plt.close(fig)
 
+def gerar_histograma_aves_por_sistema(df):
+    """
+    Exibe no Streamlit um histograma da distribuição do total de aves (GAL_TOTAL)
+    por sistema de criação (SIST_CRIA).
+    """
+    st.subheader("Histograma de Aves por Sistema de Criação")
+
+    if 'SIST_CRIA' not in df.columns or 'GAL_TOTAL' not in df.columns:
+        st.warning("O DataFrame não contém as colunas 'SIST_CRIA' ou 'GAL_TOTAL'.")
+        return
+
+    df_plot = df[['SIST_CRIA', 'GAL_TOTAL']].dropna()
+    if df_plot.empty:
+        st.warning("Não há dados suficientes para gerar o histograma.")
+        return
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+    sns.histplot(data=df_plot, x='GAL_TOTAL', hue='SIST_CRIA', multiple='stack', palette="Set2", ax=ax)
+    ax.set_title('Histograma de Aves por Sistema de Criação')
+    ax.set_xlabel('Total de Aves (Cabeça)')
+    ax.set_ylabel('Frequência')
+    plt.tight_layout()
+    st.pyplot(fig)
+    plt.close(fig)
+
 # DataFrame de exemplo
 data = {
     'SIST_CRIA': [
@@ -97,7 +122,7 @@ data = {
 }
 df = pd.DataFrame(data)
 
-# Gráfico 1: Densidade (igual à imagem fornecida)
+# Gráfico 1: Densidade
 gerar_grafico_densidade_aves_por_sistema(df)
 
 # Gráfico 2: Distribuição da produção (usuário pode alternar entre aves/ovos)
@@ -107,3 +132,6 @@ tipo = st.radio(
     format_func=lambda x: "Aves vendidas" if x=="aves" else "Ovos produzidos"
 )
 gerar_grafico_distribuicao_producao_por_sistema(df, tipo_producao=tipo)
+
+# Gráfico 3: Histograma
+gerar_histograma_aves_por_sistema(df)
