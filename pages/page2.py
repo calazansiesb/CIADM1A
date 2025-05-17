@@ -11,6 +11,10 @@ except FileNotFoundError:
     st.error("Erro: Arquivo 'GALINACEOS.csv' não encontrado.")
     st.stop()
 
+# Garantir que a coluna está numérica
+if 'GAL_MATR' in df.columns:
+    df['GAL_MATR'] = pd.to_numeric(df['GAL_MATR'], errors='coerce')
+
 # Verificar se as colunas necessárias existem
 if 'NOM_TERR' not in df.columns or 'GAL_MATR' not in df.columns:
     st.error("O arquivo deve conter as colunas 'NOM_TERR' e 'GAL_MATR'.")
