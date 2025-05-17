@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+# Configuração da página
 st.set_page_config(
     page_title="App de Múltiplas Páginas",
     page_icon="📊",
@@ -12,22 +13,7 @@ st.set_page_config(
 )
 
 st.title('Análise de Galináceos no Brasil')
-st.info("Use o menu lateral para acessar as outras páginas!")
-
-# Menu de navegação
-st.sidebar.title("Navegação")
-pagina_selecionada = st.sidebar.radio("Selecione a Página", ["Página 1", "Página 2"])
-
-# Redireciona para a página escolhida
-if pagina_selecionada == "Página 1":
-    page1.app()
-elif pagina_selecionada == "Página 2":
-    page2.app()
-app.py
-#------------------------------------------------------------------
-
-
-st.title('Análise de Galináceos no Brasil')
+st.info("Use o menu lateral à esquerda para acessar as outras páginas.")
 
 # Função para limpar valores numéricos
 def clean_numeric_value(x):
