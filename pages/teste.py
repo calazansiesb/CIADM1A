@@ -3,13 +3,16 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error, r2_score
 
-# 1. Carregue seus dados (certifique-se de que GALINACEOS.csv está no mesmo diretório)
+# 1. Carregue seus dados
 df = pd.read_csv('GALINACEOS.csv')
+
+# DICA: Veja as colunas disponíveis (opcional, pode remover depois de testar)
+print(df.columns.tolist())
 
 # 2. Defina a variável alvo (produção de ovos em dúzias)
 y = df['Q_DZ_PROD']
 
-# 3. Selecione variáveis preditoras relevantes (adapte conforme necessário)
+# 3. Selecione variáveis preditoras relevantes
 features = [
     'GAL_TOTAL', 'GAL_VEND', 'A_TOTAL', 'N_TRAB_TOTAL', 'SIST_CRIA',
     'NIV_TERR', 'E_COMERC', 'E_AGRIFAM'
