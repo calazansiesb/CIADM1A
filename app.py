@@ -26,5 +26,3 @@ if "NOM_TERR" in df_uf.columns:
 else:
     st.error("Coluna 'NOM_TERR' não encontrada no arquivo GALINACEOS.csv. Verifique o nome das colunas.")
 
-st.subheader('Exemplo dos Dados')
-st.dataframe(df_uf.head())
