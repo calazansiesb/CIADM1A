@@ -6,8 +6,8 @@ import seaborn as sns
 
 import streamlit as st
 
-st.title("Página Principal")
-st.write("Use o menu lateral para acessar outras páginas!")
+st.title("Página 2")
+st.write("Aqui estão outros gráficos ou conteúdos.")
 
 #codigo
 st.title('Análise de Galináceos no Brasil')
