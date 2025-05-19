@@ -4,7 +4,7 @@ import plotly.express as px
 
 # Função para gerar gráfico de densidade interativo
 def gerar_grafico_densidade_aves_por_sistema(df):
-    st.subheader("Gráfico de Densidade: Aves por Sistema de Criação")
+    st.subheader("Gráfico de Densidade: Aves por Sistema de Criação Teste com diego")
 
     if 'SIST_CRIA' not in df.columns or 'GAL_TOTAL' not in df.columns:
         st.warning("O DataFrame não contém as colunas 'SIST_CRIA' ou 'GAL_TOTAL'.")
