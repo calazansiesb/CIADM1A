@@ -130,13 +130,13 @@ if 'SIST_CRIA' in df.columns and not df_regioes.empty:
     
     st.info("""
     **🔍 Análise por Região — Sistemas de Criação**
-    
+
     📌 **Principais observações:**
-    - O sistema de produção de ovos para consumo (1-SIST_POC) é predominante no Centro-Oeste, Nordeste e Sul.
-    - O Nordeste apresenta a maior quantidade de matrizes, especialmente no sistema 1-SIST_POC, seguido por relevante participação do sistema de frangos de corte (3-SIST_PFC).
+    - O sistema de produção de ovos para consumo (Produtores de ovos para consumo) é predominante no Centro-Oeste, Nordeste e Sul.
+    - O Nordeste apresenta a maior quantidade de matrizes, especialmente no sistema Produtores de ovos para consumo, seguido por relevante participação do sistema Produtores de frangos de corte.
     - O Sudeste e o Norte possuem menor representatividade, com destaque para o Sudeste na produção de frangos de corte.
-    - Baixa expressão dos sistemas de incubação (2-SIST_POI) e outros (4-Outro) em todas as regiões.
-    
+    - Baixa expressão dos sistemas Produtores de ovos para incubação e Outros produtores em todas as regiões.
+
     💡 **Interpretação:**
     - Há especialização regional nos sistemas de criação, com o Centro-Oeste e Nordeste se destacando na produção de ovos e o Sudeste e Sul mostrando variações nos tipos de produção.
     - As diferenças refletem fatores como tradição produtiva, demanda de mercado e adequação das condições regionais.
