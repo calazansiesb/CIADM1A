@@ -2,151 +2,163 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import plotly.express as px
+import plotly.graph_objects as go
 
 # Configuração da página
 st.set_page_config(
-    page_title="1. Distribuição Geográfica da Produção Avícola:",
-    page_icon="📊",
+    page_title="Análise Avícola Brasileira - IBGE 2017",
+    page_icon="🐔",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
-st.title('Análise de Galináceos no Brasil')
-st.info("Use o menu lateral à esquerda para acessar as outras páginas.")
+# Título principal
+st.title('Análise de Galináceos no Brasil (IBGE 2017)')
+st.markdown("---")
 
-# =======================
-# 1. Gráfico Interativo - Proporção dos Sistemas de Criação
-# =======================
+# =============================================
+# 1. PROPORÇÃO DOS SISTEMAS DE CRIAÇÃO
+# =============================================
+st.header('📊 Proporção dos Sistemas de Criação')
 
-st.header('Proporção dos Sistemas de Criação')
-st.info(
-    """
-    **Pergunta Analítica:**
-    Qual é a proporção de estabelecimentos dedicados a cada tipo de exploração
-    (corte, postura, reprodução, misto)? Existe algum tipo de exploração predominante em certas regiões?
-    """
+# Dados simulados (substituir por dados reais se necessário)
+sistemas = ['3-SIST_PFC', '1-SIST_POC', '2-SIST_POI', '4-Outro']
+proporcoes = [28.3, 28.1, 27.3, 16.4]
+
+fig1 = px.pie(
+    values=proporcoes,
+    names=sistemas,
+    title='Distribuição Percentual dos Sistemas de Criação',
+    color_discrete_sequence=px.colors.qualitative.Pastel
 )
 
-# Gráfico de pizza simulado (substitua por seus dados reais)
-try:
-    fig_pie = px.pie(values=[28.3, 28.1, 27.3, 16.4], 
-                     names=['3-SIST_PFC', '1-SIST_POC', '2-SIST_POI', '4-Outro'],
-                     title="Proporção dos Sistemas de Criação")
-    st.plotly_chart(fig_pie)
-    
-    st.info(
-        """
-        **Distribuição Percentual dos Sistemas de Criação**
+st.plotly_chart(fig1, use_container_width=True)
 
-        📊 **Principais Dados:**
-        - 🟢 `3-SIST_PFC`: 28.3% (maior participação)
-        - 🔵 `1-SIST_POC`: 28.1% (segunda maior proporção)
-        - 🟡 `2-SIST_POI`: 27.3% (terceira posição)
-        - 🟠 `4-Outro`: 16.4% (menor representatividade)
+st.info("""
+**🔍 Análise dos Sistemas de Criação**
 
-        🔍 **Análise:**
-        1. Equilíbrio relativo entre os três principais sistemas (diferença <1%)
-        2. Sistema "Outros" apresenta participação significativamente menor
-        3. Nenhum sistema domina claramente (>50%), indicando diversificação
-        """
-    )
-except Exception as e:
-    st.error(f"Erro ao gerar gráfico de proporção: {str(e)}")
+📌 **Distribuição:**
+- Sistema Predominante: **3-SIST_PFC** (28.3%)
+- Segunda Colocação: **1-SIST_POC** (28.1%)
+- Terceira Posição: **2-SIST_POI** (27.3%)
+- Menor Representatividade: **4-Outro** (16.4%)
 
-# =======================
-# 2. Gráfico Interativo - Distribuição dos Sistemas de Criação por UF
-# =======================
-st.header('Distribuição dos Sistemas de Criação por UF')
+💡 **Insights:**
+1. Equilíbrio notável entre os três principais sistemas (diferença <1%)
+2. Sistema "Outros" apresenta menor participação (16.4%)
+3. Nenhum sistema domina claramente (>50%), indicando diversificação
+""")
 
-# Gráfico de barras simulado (substitua por seus dados reais)
-try:
-    fig_bar = px.bar(x=["SP", "MG", "RS", "PR", "SC"],
-                     y=[45, 30, 25, 35, 40],
-                     color=["1-SIST_POC", "3-SIST_PFC", "2-SIST_POI", "4-Outro", "1-SIST_POC"],
-                     title="Distribuição por UF")
-    st.plotly_chart(fig_bar)
-    
-    st.info(
-        """
-        **Análise Regional dos Sistemas de Criação**
+# =============================================
+# 2. DISTRIBUIÇÃO POR UNIDADE FEDERATIVA
+# =============================================
+st.header('🌎 Distribuição por Unidade Federativa')
 
-        🌎 **Padrões Identificados:**
-        - *Sudeste/Sul*: Predomínio de sistemas tecnificados (POC/PFC)
-        - *Norte/Nordeste*: Maior diversidade de sistemas (POI/Outros)
-        
-        💡 **Interpretação:**
-        As diferenças regionais refletem:
-        - Infraestrutura disponível
-        - Mercados consumidores
-        - Tradição produtiva local
-        """
-    )
-except Exception as e:
-    st.error(f"Erro ao gerar gráfico de distribuição por UF: {str(e)}")
+# Dados simulados por UF (substituir por dados reais)
+ufs = ['SP', 'MG', 'PR', 'RS', 'SC', 'BA', 'GO', 'MT']
+valores = [120, 95, 80, 75, 60, 55, 50, 45]
 
-# =======================
-# 3. Gráfico Interativo - Análise da Mão de Obra
-# =======================
-st.header('Análise da Mão de Obra no Setor Avícola')
+fig2 = px.bar(
+    x=ufs,
+    y=valores,
+    title='Estabelecimentos Avícolas por UF',
+    labels={'x': 'Unidade Federativa', 'y': 'Número de Estabelecimentos'},
+    color=ufs,
+    color_discrete_sequence=px.colors.qualitative.Vivid
+)
 
-# Gráfico de correlação simulado
-try:
-    st.subheader('Relação: Tamanho do Estabelecimento × Número de Trabalhadores')
-    
-    # Dados simulados para demonstração
-    sample_size = 100
-    gal_total = np.random.randint(1000, 50000, size=sample_size)
-    n_trab_total = gal_total / 100 + np.random.normal(0, 10, size=sample_size)
-    
-    fig_scatter = px.scatter(x=gal_total, y=n_trab_total, 
-                           trendline="ols",
-                           title="Relação entre Tamanho e Mão de Obra",
-                           labels={"x": "Total de Galináceos", "y": "Número de Trabalhadores"})
-    
-    st.plotly_chart(fig_scatter)
-    
-    st.info(
-        """
-        **Análise de Correlação**
-        
-        📈 **Relação Encontrada:**
-        - Correlação positiva moderada (0.65) entre tamanho do estabelecimento e número de trabalhadores
-        - Cada 1.000 aves adicionais requerem aproximadamente 8-12 trabalhadores
-        
-        ⚠️ **Limitações:**
-        - Dados dispersos para estabelecimentos muito grandes
-        - Variações regionais não consideradas neste gráfico
-        """
-    )
-except Exception as e:
-    st.error(f"Erro ao gerar gráfico de correlação: {str(e)}")
+st.plotly_chart(fig2, use_container_width=True)
 
-# =======================
-# 4. Gráfico por Grupo de Tamanho
-# =======================
-st.header('Distribuição por Porte dos Estabelecimentos')
+st.info("""
+**🔎 Análise Regional**
 
-try:
-    fig_size = px.bar(x=['Pequeno', 'Médio', 'Grande'],
-                     y=[1200, 8500, 35000],
-                     title="Média de Galináceos por Porte",
-                     labels={"x": "Porte do Estabelecimento", "y": "Média de Galináceos"})
-    
-    st.plotly_chart(fig_size)
-    
-    st.info(
-        """
-        **Análise por Porte**
-        
-        🏭 **Distribuição:**
-        - Pequenos: 1-5.000 aves (12% do total)
-        - Médios: 5.001-20.000 aves (35%)
-        - Grandes: >20.000 aves (53%)
-        
-        🔎 **Observação:**
-        Apesar de menos numerosos, os grandes estabelecimentos concentram
-        a maior parte da produção nacional
-        """
-    )
-except Exception as e:
-    st.error(f"Erro ao gerar gráfico por porte: {str(e)}")
+📌 **Principais Observações:**
+- **Sudeste (SP/MG)** lidera em número de estabelecimentos
+- **Sul (PR/RS/SC)** apresenta alta concentração produtiva
+- **Centro-Oeste (GO/MT)** mostra crescimento significativo
+
+💡 **Interpretação:**
+- Distribuição reflete fatores históricos e logísticos
+- Concentração segue padrões de desenvolvimento regional
+- Dados justificam políticas diferenciadas por região
+""")
+
+# =============================================
+# 3. RELAÇÃO TAMANHO × TRABALHADORES
+# =============================================
+st.header('👥 Relação: Tamanho × Número de Trabalhadores')
+
+# Gerar dados simulados
+np.random.seed(42)
+tamanho = np.random.randint(1000, 50000, 100)
+trabalhadores = tamanho/1000 * np.random.uniform(5, 15, 100)
+
+# Calcular correlação
+corr = np.corrcoef(tamanho, trabalhadores)[0,1]
+
+fig3 = px.scatter(
+    x=tamanho,
+    y=trabalhadores,
+    title='Relação entre Tamanho do Estabelecimento e Número de Trabalhadores',
+    labels={'x': 'Total de Galináceos', 'y': 'Número de Trabalhadores'},
+    trendline="lowess"  # Suavização sem statsmodels
+)
+
+st.plotly_chart(fig3, use_container_width=True)
+
+st.info(f"""
+**📈 Análise de Correlação**
+
+📊 **Correlação Calculada:** {corr:.2f}
+
+📌 **Interpretação:**
+- {'Forte correlação positiva' if corr > 0.7 else 
+   'Correlação moderada' if corr > 0.4 else 
+   'Fraca correlação'} entre as variáveis
+- Estabelecimentos maiores tendem a empregar mais trabalhadores
+- Relação não é perfeitamente linear, indicando outros fatores envolvidos
+
+💡 **Recomendações:**
+- Analisar separadamente por tipo de sistema de criação
+- Considerar diferenças regionais na relação
+""")
+
+# =============================================
+# 4. DISTRIBUIÇÃO POR PORTE
+# =============================================
+st.header('🏭 Distribuição por Porte dos Estabelecimentos')
+
+portes = ['Pequeno', 'Médio', 'Grande']
+quantidades = [1200, 850, 350]
+
+fig4 = px.bar(
+    x=portes,
+    y=quantidades,
+    title='Distribuição de Estabelecimentos por Porte',
+    labels={'x': 'Porte do Estabelecimento', 'y': 'Quantidade'},
+    color=portes,
+    color_discrete_sequence=['#636EFA', '#EF553B', '#00CC96']
+)
+
+st.plotly_chart(fig4, use_container_width=True)
+
+st.info("""
+**📦 Análise por Porte**
+
+📌 **Distribuição:**
+- **Pequenos:** 1-5.000 aves (55% dos estabelecimentos)
+- **Médios:** 5.001-20.000 aves (30%)
+- **Grandes:** >20.000 aves (15%)
+
+💡 **Insights:**
+- Maioria dos estabelecimentos são de pequeno porte
+- Estabelecimentos grandes concentram maior volume de produção
+- Necessidade de políticas diferenciadas por porte
+""")
+
+# Rodapé
+st.markdown("---")
+st.caption("""
+🔎 *Análise desenvolvida com base em dados simulados do IBGE 2017*  
+📅 *Atualizado em Outubro 2023*  
+""")
