@@ -101,7 +101,7 @@ if 'N_TRAB_TOTAL' in df.columns and 'GAL_TOTAL' in df.columns:
 st.header('Média de GAL_TOTAL por Grupo de Tamanho')
 st.header(
     'Exploração: Analisar a frequência dos tipos de instalações. Agrupar os estabelecimentos por faixas
-    de número de aves e verificar a proporção de cada tipo de instalação em cada faixa.
+    de número de aves e verificar a proporção de cada tipo de instalação em cada faixa.'
         )
 if 'Q_DZ_PROD' in df.columns and 'GAL_TOTAL' in df.columns:
     df['Q_DZ_PROD'] = pd.to_numeric(df['Q_DZ_PROD'], errors='coerce')
