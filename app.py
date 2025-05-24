@@ -56,6 +56,20 @@ if 'SIST_CRIA' in df.columns:
 else:
     st.warning("A coluna 'SIST_CRIA' não foi encontrada no dataset.")
 
+st.info("""
+    **📊 Análise dos Sistemas de Criação**
+    
+    📌 **Principais observações:**
+    - Os sistemas 3-SIST_PFC (28,3%) e 1-SIST_POC (28,1%) apresentam proporções muito semelhantes, sendo os mais representativos do total.
+    - A categoria 4-Outro (27,3%) também possui participação relevante, indicando diversidade e presença de outros sistemas além dos principais.
+    - O sistema 2-SIST_POI (16,4%) apresenta a menor fatia, mas ainda assim representa uma parcela considerável.
+
+    💡 **Interpretação:**
+    - O equilíbrio entre SIST_PFC e SIST_POC sugere concorrência ou complementaridade entre esses sistemas na criação.
+    - A expressiva participação da categoria "Outro" ressalta a existência de múltiplos sistemas alternativos, possivelmente personalizados ou regionais.
+    - A presença significativa do SIST_POI, mesmo sendo a menor, pode indicar nichos produtivos ou oportunidades para expansão.
+""")
+
 # =============================================
 # 🔹 3. Distribuição por Unidade Federativa
 # =============================================
