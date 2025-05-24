@@ -91,7 +91,7 @@ if not df_regioes.empty:
     fig2.update_traces(textposition='inside', textinfo='percent+label')
     st.plotly_chart(fig2, use_container_width=True)
     
- st.info("""
+    st.info("""
     **🔍 Análise por Região**
     
     📌 **Principais observações:**
