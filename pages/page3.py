@@ -1,17 +1,17 @@
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
+import plotly.express as px
+import plotly.graph_objects as go
 
 def gerar_grafico_densidade_aves_por_sistema(df):
     """
-    Exibe no Streamlit um gráfico de densidade da distribuição do total de aves (GAL_TOTAL)
-    por sistema de criação (SIST_CRIA).
+    Exibe no Streamlit um gráfico de densidade interativo da distribuição do total de aves (GAL_TOTAL)
+    por sistema de criação (SIST_CRIA) usando Plotly.
     """
-    st.subheader("Gráfico de Densidade: Aves por Sistema de Criação")
+    st.subheader("📊 Densidade de Aves por Sistema de Criação")
 
     if 'SIST_CRIA' not in df.columns or 'GAL_TOTAL' not in df.columns:
-        st.warning("O DataFrame não contém as colunas 'SIST_CRIA' ou 'GAL_TOTAL'.")
+        st.warning("O DataFrame não contém as colunas necessárias ('SIST_CRIA' ou 'GAL_TOTAL').")
         return
 
     df_plot = df[['SIST_CRIA', 'GAL_TOTAL']].dropna()
@@ -19,68 +19,95 @@ def gerar_grafico_densidade_aves_por_sistema(df):
         st.warning("Não há dados suficientes para gerar o gráfico de densidade.")
         return
 
-    fig, ax = plt.subplots(figsize=(10, 6))
-    sistemas = df_plot['SIST_CRIA'].unique()
-    cores = sns.color_palette("Set2", len(sistemas))
-    for cor, sist in zip(cores, sistemas):
-        sns.kdeplot(
-            data=df_plot[df_plot['SIST_CRIA'] == sist],
-            x='GAL_TOTAL',
-            fill=True,
-            label=sist,
-            alpha=0.5,
-            ax=ax,
-            color=cor
-        )
-    ax.set_title('Densidade de Aves por Sistema de Criação')
-    ax.set_xlabel('Total de Aves (Cabeça)')
-    ax.set_ylabel('Densidade')
-    ax.legend(title='SIST_CRIA')
-    st.pyplot(fig)
-    plt.close(fig)
+    # Gráfico de densidade interativo com Plotly
+    fig = px.density_heatmap(
+        df_plot,
+        x='GAL_TOTAL',
+        y='SIST_CRIA',
+        title='Distribuição de Densidade de Aves por Sistema de Criação',
+        labels={'GAL_TOTAL': 'Total de Aves (Cabeça)', 'SIST_CRIA': 'Sistema de Criação'},
+        color_continuous_scale='Oranges',
+        nbinsx=20,
+        height=500
+    )
+    
+    st.plotly_chart(fig, use_container_width=True)
+    
+    st.info("""
+    **🔍 Análise de Densidade**
+    
+    📌 **Principais observações:**
+    - Distribuição das quantidades de aves por sistema de criação
+    - Identificação de concentrações e padrões de produção
+    - Comparação visual da densidade entre diferentes sistemas
+    
+    💡 **Interpretação:**
+    - Sistemas com maior densidade indicam padrões de produção mais comuns
+    - Áreas de alta densidade podem representar modelos de produção predominantes
+    - Variações na distribuição podem sugerir diferentes escalas de produção por sistema
+    """)
 
 def gerar_grafico_distribuicao_producao_por_sistema(df, tipo_producao='aves'):
     """
-    Exibe no Streamlit um gráfico da distribuição da produção (aves ou ovos) por sistema de criação.
+    Exibe no Streamlit um gráfico interativo da distribuição da produção (aves ou ovos) por sistema de criação.
     """
     if tipo_producao == 'aves':
         coluna_producao = 'GAL_VEND'
         rotulo_eixo_y = 'Quantidade de Aves Vendidas (Cabeça)'
-        titulo_grafico = 'Distribuição da Venda de Aves por Sistema de Criação'
+        titulo_grafico = '📈 Distribuição da Venda de Aves por Sistema de Criação'
     elif tipo_producao == 'ovos':
         coluna_producao = 'Q_DZ_PROD'
         rotulo_eixo_y = 'Quantidade de Ovos Produzidos (Dúzia)'
-        titulo_grafico = 'Distribuição da Produção de Ovos por Sistema de Criação'
+        titulo_grafico = '🥚 Distribuição da Produção de Ovos por Sistema de Criação'
     else:
         st.warning("Tipo de produção inválido. Escolha 'aves' ou 'ovos'.")
         return
 
     if 'SIST_CRIA' not in df.columns or coluna_producao not in df.columns:
-        st.warning(f"O DataFrame não contém as colunas 'SIST_CRIA' ou '{coluna_producao}'.")
+        st.warning(f"O DataFrame não contém as colunas necessárias ('SIST_CRIA' ou '{coluna_producao}').")
         return
 
     producao_por_sistema = df.groupby('SIST_CRIA')[coluna_producao].sum().reset_index()
 
-    st.subheader(titulo_grafico)
-    fig, ax = plt.subplots(figsize=(10, 6))
-    sns.barplot(x='SIST_CRIA', y=coluna_producao, data=producao_por_sistema, palette="Set2", ax=ax)
-    ax.set_title(titulo_grafico)
-    ax.set_xlabel('Sistema de Criação')
-    ax.set_ylabel(rotulo_eixo_y)
-    plt.xticks(rotation=45, ha="right")
-    plt.tight_layout()
-    st.pyplot(fig)
-    plt.close(fig)
+    # Gráfico de barras interativo com Plotly
+    fig = px.bar(
+        producao_por_sistema,
+        x='SIST_CRIA',
+        y=coluna_producao,
+        title=titulo_grafico,
+        labels={'SIST_CRIA': 'Sistema de Criação', coluna_producao: rotulo_eixo_y},
+        color='SIST_CRIA',
+        color_discrete_sequence=px.colors.sequential.Oranges,
+        text=coluna_producao
+    )
+    
+    fig.update_traces(texttemplate='%{text:,.0f}', textposition='outside')
+    fig.update_layout(xaxis_tickangle=-45)
+    st.plotly_chart(fig, use_container_width=True)
+    
+    st.info(f"""
+    **🔍 Análise de Produção ({'Aves' if tipo_producao == 'aves' else 'Ovos'})**
+    
+    📌 **Principais observações:**
+    - Comparação da produção entre diferentes sistemas de criação
+    - Identificação dos sistemas mais produtivos
+    - Proporção relativa entre os sistemas
+    
+    💡 **Interpretação:**
+    - Sistemas com maiores volumes indicam especializações ou demandas de mercado
+    - Diferenças significativas podem refletir vantagens competitivas de certos sistemas
+    - Padrões de produção podem sugerir tendências do setor
+    """)
 
 def gerar_histograma_aves_por_sistema(df):
     """
-    Exibe no Streamlit um histograma da distribuição do total de aves (GAL_TOTAL)
-    por sistema de criação (SIST_CRIA).
+    Exibe no Streamlit um histograma interativo da distribuição do total de aves (GAL_TOTAL)
+    por sistema de criação (SIST_CRIA) usando Plotly.
     """
-    st.subheader("Histograma de Aves por Sistema de Criação")
+    st.subheader("📊 Histograma de Distribuição de Aves por Sistema")
 
     if 'SIST_CRIA' not in df.columns or 'GAL_TOTAL' not in df.columns:
-        st.warning("O DataFrame não contém as colunas 'SIST_CRIA' ou 'GAL_TOTAL'.")
+        st.warning("O DataFrame não contém as colunas necessárias ('SIST_CRIA' ou 'GAL_TOTAL').")
         return
 
     df_plot = df[['SIST_CRIA', 'GAL_TOTAL']].dropna()
@@ -88,16 +115,48 @@ def gerar_histograma_aves_por_sistema(df):
         st.warning("Não há dados suficientes para gerar o histograma.")
         return
 
-    fig, ax = plt.subplots(figsize=(10, 6))
-    sns.histplot(data=df_plot, x='GAL_TOTAL', hue='SIST_CRIA', multiple='stack', palette="Set2", ax=ax)
-    ax.set_title('Histograma de Aves por Sistema de Criação')
-    ax.set_xlabel('Total de Aves (Cabeça)')
-    ax.set_ylabel('Frequência')
-    plt.tight_layout()
-    st.pyplot(fig)
-    plt.close(fig)
+    # Histograma interativo com Plotly
+    fig = px.histogram(
+        df_plot,
+        x='GAL_TOTAL',
+        color='SIST_CRIA',
+        title='Distribuição de Aves por Sistema de Criação',
+        labels={'GAL_TOTAL': 'Total de Aves (Cabeça)', 'SIST_CRIA': 'Sistema de Criação'},
+        color_discrete_sequence=px.colors.sequential.Oranges,
+        nbins=20,
+        barmode='stack',
+        opacity=0.7
+    )
+    
+    st.plotly_chart(fig, use_container_width=True)
+    
+    st.info("""
+    **🔍 Análise de Distribuição**
+    
+    📌 **Principais observações:**
+    - Frequência de diferentes faixas de quantidade de aves
+    - Padrões de distribuição por sistema de criação
+    - Concentração de produções em determinadas escalas
+    
+    💡 **Interpretação:**
+    - Picos no histograma indicam escalas de produção mais comuns
+    - Sistemas com distribuição mais ampla podem ter maior variação nos tamanhos dos produtores
+    - Concentrações em faixas específicas podem refletir modelos de negócio padronizados
+    """)
 
-# DataFrame de exemplo
+# Configuração da página
+st.set_page_config(
+    page_title="Análise Avícola - Sistemas de Criação",
+    page_icon="🐔",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
+
+# Título principal
+st.title('Análise de Sistemas de Criação Avícola')
+st.markdown("---")
+
+# DataFrame de exemplo (substituir por carregamento real de dados)
 data = {
     'SIST_CRIA': [
         'Ovos para Consumo', 'Frangos de Corte', 'Ovos para Consumo', 'Outros',
@@ -110,9 +169,9 @@ data = {
         11500, 12500
     ],
     'GAL_VEND': [
-        10000, 12000, 11000, 5000,
-        13000, 14000, 6000, 9000,
-        11500, 12500
+        8000, 11000, 9500, 4500,
+        12000, 13000, 5500, 8500,
+        10500, 11500
     ],
     'Q_DZ_PROD': [
         5000, 6000, 5500, 2000,
@@ -122,16 +181,25 @@ data = {
 }
 df = pd.DataFrame(data)
 
-# Gráfico 1: Densidade
-gerar_grafico_densidade_aves_por_sistema(df)
+# Seção de gráficos
+col1, col2 = st.columns([3, 1])
+with col1:
+    gerar_grafico_densidade_aves_por_sistema(df)
+    
+with col2:
+    tipo = st.radio(
+        "Tipo de produção:",
+        ('aves', 'ovos'),
+        format_func=lambda x: "Aves vendidas" if x=="aves" else "Ovos produzidos",
+        key='tipo_producao'
+    )
 
-# Gráfico 2: Distribuição da produção (usuário pode alternar entre aves/ovos)
-tipo = st.radio(
-    "Escolha o tipo de produção para visualizar por sistema de criação:",
-    ('aves', 'ovos'),
-    format_func=lambda x: "Aves vendidas" if x=="aves" else "Ovos produzidos"
-)
 gerar_grafico_distribuicao_producao_por_sistema(df, tipo_producao=tipo)
-
-# Gráfico 3: Histograma
 gerar_histograma_aves_por_sistema(df)
+
+# Rodapé
+st.markdown("---")
+st.caption("""
+🔎 *Análise desenvolvida com base em dados de produção avícola*  
+📅 *Atualizado em Outubro 2023*  
+""")
