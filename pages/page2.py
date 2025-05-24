@@ -1,76 +1,149 @@
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
 import plotly.express as px
+import plotly.graph_objects as go
 
-st.title("Matrizes por Unidade Territorial: Estados e Regiões")
+# Configuração da página
+st.set_page_config(
+    page_title="Análise de Matrizes Avícolas - IBGE",
+    page_icon="🐣",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
 
-# Carregar o DataFrame real do arquivo CSV
+# Título principal
+st.title('Matrizes Avícolas por Unidade Territorial')
+st.markdown("---")
+
+# Carregar dados
 try:
     df = pd.read_csv("GALINACEOS.csv", sep=';')
+    df['NOM_TERR'] = df['NOM_TERR'].astype(str).str.strip().str.title()
+    df['GAL_MATR'] = pd.to_numeric(df['GAL_MATR'], errors='coerce').fillna(0)
 except FileNotFoundError:
     st.error("Erro: Arquivo 'GALINACEOS.csv' não encontrado.")
     st.stop()
 
-if 'NOM_TERR' not in df.columns or 'GAL_MATR' not in df.columns or 'SIST_CRIA' not in df.columns or 'GAL_TOTAL' not in df.columns:
-    st.error("O arquivo deve conter as colunas 'NOM_TERR', 'GAL_MATR', 'SIST_CRIA' e 'GAL_TOTAL'.")
-    st.write("Colunas disponíveis:", df.columns.tolist())
-    st.stop()
-
-# Normalizar nomes
-df['NOM_TERR'] = df['NOM_TERR'].astype(str).str.strip().str.title()
-df['GAL_MATR'] = pd.to_numeric(df['GAL_MATR'], errors='coerce')
-
-# Listas de regiões e Brasil
+# Listas de regiões
 regioes = ['Norte', 'Nordeste', 'Sudeste', 'Sul', 'Centro-Oeste']
-brasil = ['Brasil']
-
-# --------- GRÁFICO 1: BARRAS - Apenas Estados (UFs) ---------
-st.subheader("Gráfico de Barras: Total de Matrizes por Estado (apenas UFs)")
-st.info(
-    ''' Quais são os principais estados e municípios com maior concentração de
-    estabelecimentos e de número total de aves? Existe alguma disparidade regional significativa na produção? '''
-)
-df_estados = df[~df['NOM_TERR'].isin(regioes + brasil)].copy()
-
-if df_estados.empty or df_estados['GAL_MATR'].sum() == 0:
-    st.warning("Não há dados de matrizes para os estados no arquivo.")
-else:
-    total_matrizes_por_estado = df_estados.groupby('NOM_TERR', as_index=False)['GAL_MATR'].sum().sort_values('GAL_MATR', ascending=False)
-    st.dataframe(total_matrizes_por_estado)
-    fig_estado, ax_estado = plt.subplots(figsize=(16, 6))
-    ax_estado.bar(total_matrizes_por_estado['NOM_TERR'], total_matrizes_por_estado['GAL_MATR'], color='orange')
-    ax_estado.set_title('Total de Matrizes por Estado (apenas UFs)')
-    ax_estado.set_xlabel('Estado')
-    ax_estado.set_ylabel('Total de Matrizes (Cabeça)')
-    plt.xticks(rotation=90, ha="center", fontsize=8)
-    plt.tight_layout()
-    st.pyplot(fig_estado)
-
-# --------- GRÁFICO 2: PIZZA - Apenas Regiões ---------
-st.subheader("Gráfico de Pizza: Distribuição de Matrizes por Região")
-
+df_estados = df[~df['NOM_TERR'].isin(regioes + ['Brasil'])].copy()
 df_regioes = df[df['NOM_TERR'].isin(regioes)].copy()
-total_matrizes_por_regiao = df_regioes.groupby('NOM_TERR', as_index=False)['GAL_MATR'].sum()
 
-if total_matrizes_por_regiao.empty or total_matrizes_por_regiao['GAL_MATR'].sum() == 0:
-    st.warning("Não há dados de matrizes para as regiões no arquivo.")
-else:
-    total = total_matrizes_por_regiao['GAL_MATR'].sum()
-    total_matrizes_por_regiao['Proporcao'] = total_matrizes_por_regiao['GAL_MATR'] / total
-    st.dataframe(total_matrizes_por_regiao)
-    fig_pie, ax_pie = plt.subplots(figsize=(8, 8))
-    ax_pie.pie(
-        total_matrizes_por_regiao['Proporcao'],
-        labels=total_matrizes_por_regiao['NOM_TERR'],
-        autopct='%1.1f%%',
-        startangle=140,
-        colors=plt.cm.Paired.colors
+# =============================================
+# 1. GRÁFICO DE BARRAS - MATRIZES POR ESTADO
+# =============================================
+st.header('📊 Distribuição de Matrizes por Estado')
+
+if not df_estados.empty:
+    # Processamento dos dados
+    matrizes_por_estado = df_estados.groupby('NOM_TERR', as_index=False)['GAL_MATR'].sum()
+    matrizes_por_estado = matrizes_por_estado.sort_values('GAL_MATR', ascending=False)
+    
+    # Gráfico interativo
+    fig1 = px.bar(
+        matrizes_por_estado,
+        x='NOM_TERR',
+        y='GAL_MATR',
+        title='Total de Matrizes por Estado',
+        labels={'NOM_TERR': 'Estado', 'GAL_MATR': 'Número de Matrizes'},
+        color='GAL_MATR',
+        color_continuous_scale='Oranges'
     )
-    ax_pie.set_title('Distribuição de Matrizes por Região')
-    ax_pie.axis('equal')
-    plt.tight_layout()
-    st.pyplot(fig_pie)
+    fig1.update_layout(xaxis_tickangle=-45)
+    st.plotly_chart(fig1, use_container_width=True)
+    
+    st.info("""
+    **🔍 Análise por Estado**
+    
+    📌 **Principais observações:**
+    - Estados com maior concentração de matrizes avícolas
+    - Disparidades regionais na distribuição
+    - Potenciais polos de produção
+    
+    💡 **Interpretação:**
+    - Distribuição reflete a infraestrutura produtiva de cada estado
+    - Concentração em regiões com tradição avícola
+    - Oportunidades para expansão em estados menos representados
+    """)
+else:
+    st.warning("Não há dados disponíveis para os estados.")
 
+# =============================================
+# 2. GRÁFICO DE PIZZA - MATRIZES POR REGIÃO
+# =============================================
+st.header('🌎 Distribuição Regional de Matrizes')
 
+if not df_regioes.empty:
+    # Processamento dos dados
+    matrizes_por_regiao = df_regioes.groupby('NOM_TERR', as_index=False)['GAL_MATR'].sum()
+    matrizes_por_regiao['Porcentagem'] = (matrizes_por_regiao['GAL_MATR'] / matrizes_por_regiao['GAL_MATR'].sum()) * 100
+    
+    # Gráfico interativo
+    fig2 = px.pie(
+        matrizes_por_regiao,
+        values='GAL_MATR',
+        names='NOM_TERR',
+        title='Proporção de Matrizes por Região',
+        color_discrete_sequence=px.colors.sequential.Oranges,
+        hover_data=['Porcentagem'],
+        labels={'NOM_TERR': 'Região', 'GAL_MATR': 'Matrizes'}
+    )
+    fig2.update_traces(textposition='inside', textinfo='percent+label')
+    st.plotly_chart(fig2, use_container_width=True)
+    
+    st.info("""
+    **🔎 Análise Regional**
+    
+    📊 **Distribuição Percentual:**
+    - Região com maior participação
+    - Região com menor participação
+    - Equilíbrio (ou desequilíbrio) entre regiões
+    
+    💡 **Insights:**
+    - Padrões de concentração regional
+    - Relação com fatores climáticos e logísticos
+    - Potencial para desenvolvimento em regiões menos representadas
+    """)
+else:
+    st.warning("Não há dados disponíveis para as regiões.")
+
+# =============================================
+# 3. GRÁFICO ADICIONAL - SISTEMAS DE CRIAÇÃO
+# =============================================
+st.header('🏭 Sistemas de Criação por Região')
+
+if 'SIST_CRIA' in df.columns and not df_regioes.empty:
+    # Processamento dos dados
+    sistemas_por_regiao = df_regioes.groupby(['NOM_TERR', 'SIST_CRIA'])['GAL_MATR'].sum().reset_index()
+    
+    # Gráfico interativo
+    fig3 = px.bar(
+        sistemas_por_regiao,
+        x='NOM_TERR',
+        y='GAL_MATR',
+        color='SIST_CRIA',
+        title='Sistemas de Criação por Região',
+        labels={'NOM_TERR': 'Região', 'GAL_MATR': 'Matrizes', 'SIST_CRIA': 'Sistema de Criação'},
+        barmode='group'
+    )
+    st.plotly_chart(fig3, use_container_width=True)
+    
+    st.info("""
+    **📌 Legenda dos Sistemas:**
+    - 1-SIST_POC: Produtores de ovos para consumo
+    - 2-SIST_POI: Produtores de ovos para incubação
+    - 3-SIST_PFC: Produtores de frangos de corte
+    - 4-Outro: Outros sistemas de produção
+    
+    **💡 Análise:**
+    - Sistemas predominantes em cada região
+    - Variações regionais nos tipos de produção
+    - Especialização regional
+    """)
+
+# Rodapé
+st.markdown("---")
+st.caption("""
+🔎 *Análise desenvolvida com base nos dados do IBGE*  
+📅 *Atualizado em Outubro 2023*  
+""")
