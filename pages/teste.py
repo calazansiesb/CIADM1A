@@ -1,232 +1,216 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.model_selection import train_test_split
+import matplotlib.pyplot as plt
 import plotly.express as px
-import plotly.graph_objects as go
 
 # Configuração da página
 st.set_page_config(
-    page_title="Análise Avícola Brasileira - IBGE 2017",
+    page_title="Modelo de Regressão Avícola - IBGE 2017",
     page_icon="🐔",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
 # Título principal
-st.title('Análise de Galináceos no Brasil (IBGE 2017)')
+st.title('Modelo de Regressão para Produção Avícola (IBGE 2017)')
 st.markdown("---")
 
-# =============================================
-# 1. PROPORÇÃO DOS SISTEMAS DE CRIAÇÃO
-# =============================================
-st.header('📊 Proporção dos Sistemas de Criação')
+# Carregar dados fictícios (substituir por dados reais)
+np.random.seed(42)
+df = pd.DataFrame({
+    'PRODUCAO_TOTAL': np.random.randint(1000, 50000, 100),
+    'GALINACEOS': np.random.randint(500, 25000, 100),
+    'AREA_TOTAL': np.random.uniform(1, 50, 100),
+    'TRABALHADORES': np.random.randint(1, 20, 100),
+    'GALINHAS_VENDIDAS': np.random.randint(300, 15000, 100),
+    'OVOS_PRODUZIDOS': np.random.randint(100, 10000, 100),
+    'COMERCIALIZACAO': np.random.randint(0, 2, 100),
+    'AGRICULTURA_FAMILIAR': np.random.randint(0, 2, 100),
+    'SISTEMA_CRIACAO': np.random.choice(['3-SIST_PFC', '1-SIST_POC', '2-SIST_POI', '4-Outro'], 100),
+    'REGIAO': np.random.choice(['Norte', 'Nordeste', 'Sudeste', 'Sul', 'Centro-Oeste'], 100),
+})
 
-# Dados simulados (substituir por dados reais se necessário)
-sistemas = ['3-SIST_PFC', '1-SIST_POC', '2-SIST_POI', '4-Outro']
-proporcoes = [28.3, 28.1, 27.3, 16.4]
+# Definir variáveis
+target = 'PRODUCAO_TOTAL'
+features = [
+    'GALINACEOS', 'AREA_TOTAL', 'TRABALHADORES', 'GALINHAS_VENDIDAS', 
+    'OVOS_PRODUZIDOS', 'COMERCIALIZACAO', 'AGRICULTURA_FAMILIAR',
+    'SISTEMA_CRIACAO', 'REGIAO'
+]
 
-# Sidebar para seleção de dados
-st.sidebar.header("Configurações da Análise")
+# =============================================
+# SIDEBAR - CONFIGURAÇÕES DO MODELO
+# =============================================
+st.sidebar.header("Configurações do Modelo")
+
+# Seleção de variáveis
+selected_features = st.sidebar.multiselect(
+    "Variáveis explicativas:",
+    features,
+    default=features[:5]
+)
+
+# Parâmetros do modelo
+test_size = st.sidebar.slider(
+    "Tamanho do conjunto de teste (%):",
+    min_value=10, max_value=40, value=20
+)
+
 show_raw_data = st.sidebar.checkbox("Mostrar dados brutos", False)
+show_correlations = st.sidebar.checkbox("Mostrar matriz de correlação", True)
 
+# =============================================
+# ANÁLISE EXPLORATÓRIA
+# =============================================
 if show_raw_data:
     st.subheader("Dados Brutos")
-    df_sistemas = pd.DataFrame({
-        'Sistema': sistemas,
-        'Proporção (%)': proporcoes
-    })
-    st.dataframe(df_sistemas)
+    st.dataframe(df)
 
-fig1 = px.pie(
-    values=proporcoes,
-    names=sistemas,
-    title='Distribuição Percentual dos Sistemas de Criação',
-    color_discrete_sequence=px.colors.qualitative.Pastel
-)
-
-st.plotly_chart(fig1, use_container_width=True)
-
-# Análise expandível
-with st.expander("🔍 Análise dos Sistemas de Criação"):
-    st.markdown("""
-    **📌 Distribuição:**
-    - Sistema Predominante: **Produtores de frangos de corte (3-SIST_PFC)** - 28.3%
-    - Segunda Colocação: **Produtores de ovos para consumo (1-SIST_POC)** - 28.1%
-    - Terceira Posição: **Produtores de ovos para incubação (2-SIST_POI)** - 27.3%
-    - Menor Representatividade: **Outros produtores (4-Outro)** - 16.4%
-
-    **💡 Insights:**
-    1. Equilíbrio notável entre os três principais sistemas produtivos (diferença <1%)
-    2. Sistemas alternativos ("Outros produtores") apresentam menor participação (16.4%)
-    3. Nenhum sistema domina claramente (>50% do total), indicando:
-       - Diversificação da produção avícola nacional
-       - Pluralidade de modelos de criação
-       - Oportunidades para nichos específicos
-    """)
+if show_correlations:
+    st.subheader("Matriz de Correlação")
+    numeric_cols = df.select_dtypes(include=[np.number]).columns
+    corr_matrix = df[numeric_cols].corr()
+    
+    fig_corr = px.imshow(
+        corr_matrix,
+        text_auto=True,
+        color_continuous_scale='Blues',
+        title='Matriz de Correlação entre Variáveis Numéricas'
+    )
+    st.plotly_chart(fig_corr, use_container_width=True)
 
 # =============================================
-# 2. DISTRIBUIÇÃO POR UNIDADE FEDERATIVA
+# PREPARAÇÃO DOS DADOS
 # =============================================
-st.header('🌎 Distribuição por Unidade Federativa')
+st.subheader("Preparação dos Dados")
 
-# Dados simulados por UF (substituir por dados reais)
-ufs = ['SP', 'MG', 'PR', 'RS', 'SC', 'BA', 'GO', 'MT']
-valores = [120, 95, 80, 75, 60, 55, 50, 45]
+# One-hot encoding para variáveis categóricas
+categorical = [col for col in selected_features if df[col].dtype == 'object']
+df_model = df[[target] + selected_features].copy()
 
-# Widget de seleção de visualização
-vis_type = st.sidebar.radio(
-    "Tipo de visualização para UFs:",
-    ("Barras", "Pizza", "Treemap")
-)
-
-if vis_type == "Barras":
-    fig2 = px.bar(
-        x=ufs,
-        y=valores,
-        title='Estabelecimentos Avícolas por UF',
-        labels={'x': 'Unidade Federativa', 'y': 'Número de Estabelecimentos'},
-        color=ufs,
-        color_discrete_sequence=px.colors.qualitative.Vivid
-    )
-elif vis_type == "Pizza":
-    fig2 = px.pie(
-        values=valores,
-        names=ufs,
-        title='Distribuição Percentual por UF'
-    )
+if categorical:
+    df_model = pd.get_dummies(df_model, columns=categorical, drop_first=True)
+    st.write("Variáveis categóricas transformadas (one-hot encoding):")
+    st.dataframe(df_model.head())
 else:
-    fig2 = px.treemap(
-        names=ufs,
-        parents=['']*len(ufs),
-        values=valores,
-        title='Distribuição Hierárquica por UF'
-    )
+    st.write("Nenhuma variável categórica selecionada.")
 
-st.plotly_chart(fig2, use_container_width=True)
+# Separação em X e y
+X = df_model.drop(columns=[target])
+y = df_model[target]
 
-# Análise expandível
-with st.expander("🔎 Análise Regional"):
-    st.markdown("""
-    **📌 Principais Observações:**
-    - **Sudeste (SP/MG)** lidera em número de estabelecimentos
-    - **Sul (PR/RS/SC)** apresenta alta concentração produtiva
-    - **Centro-Oeste (GO/MT)** mostra crescimento significativo
-
-    **💡 Interpretação:**
-    - Distribuição reflete fatores históricos e logísticos
-    - Concentração segue padrões de desenvolvimento regional
-    - Dados justificam políticas diferenciadas por região
-    """)
-
-# =============================================
-# 3. RELAÇÃO TAMANHO × TRABALHADORES
-# =============================================
-st.header('👥 Relação: Tamanho × Número de Trabalhadores')
-
-# Gerar dados simulados
-np.random.seed(42)
-tamanho = np.random.randint(1000, 50000, 100)
-trabalhadores = tamanho/1000 * np.random.uniform(5, 15, 100)
-
-# Widget para selecionar tipo de gráfico
-scatter_type = st.sidebar.selectbox(
-    "Tipo de visualização para correlação:",
-    ("Scatter Plot", "Linha", "Área")
+# Divisão treino-teste
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, 
+    test_size=test_size/100, 
+    random_state=42
 )
 
-if scatter_type == "Scatter Plot":
-    fig3 = px.scatter(
-        x=tamanho,
-        y=trabalhadores,
-        title='Relação entre Tamanho do Estabelecimento e Número de Trabalhadores',
-        labels={'x': 'Total de Galináceos', 'y': 'Número de Trabalhadores'},
-        trendline="lowess"
-    )
-elif scatter_type == "Linha":
-    fig3 = px.line(
-        x=tamanho,
-        y=trabalhadores,
-        title='Relação entre Tamanho do Estabelecimento e Número de Trabalhadores',
-        labels={'x': 'Total de Galináceos', 'y': 'Número de Trabalhadores'}
-    )
-else:
-    fig3 = px.area(
-        x=tamanho,
-        y=trabalhadores,
-        title='Relação entre Tamanho do Estabelecimento e Número de Trabalhadores',
-        labels={'x': 'Total de Galináceos', 'y': 'Número de Trabalhadores'}
-    )
-
-st.plotly_chart(fig3, use_container_width=True)
-
-# Cálculo da correlação
-corr = np.corrcoef(tamanho, trabalhadores)[0,1]
-
-# Análise expandível
-with st.expander("📈 Análise de Correlação"):
-    st.markdown(f"""
-    **📊 Correlação Calculada:** {corr:.2f}
-
-    **📌 Interpretação:**
-    - {'Forte correlação positiva' if corr > 0.7 else 
-       'Correlação moderada' if corr > 0.4 else 
-       'Fraca correlação'} entre as variáveis
-    - Estabelecimentos maiores tendem a empregar mais trabalhadores
-    - Relação não é perfeitamente linear, indicando outros fatores envolvidos
-
-    **💡 Recomendações:**
-    - Analisar separadamente por tipo de sistema de criação
-    - Considerar diferenças regionais na relação
-    """)
+st.write(f"Divisão dos dados: {100-test_size}% treino, {test_size}% teste")
 
 # =============================================
-# 4. DISTRIBUIÇÃO POR PORTE
+# TREINAMENTO DO MODELO
 # =============================================
-st.header('🏭 Distribuição por Porte dos Estabelecimentos')
+st.subheader("Treinamento do Modelo")
 
-portes = ['Pequeno', 'Médio', 'Grande']
-quantidades = [1200, 850, 350]
+model = LinearRegression()
+model.fit(X_train, y_train)
 
-# Widget para selecionar cores
-color_scheme = st.sidebar.selectbox(
-    "Esquema de cores para portes:",
-    ("Padrão", "Vermelho/Verde/Azul", "Pastel")
+# Predição e métricas
+y_pred = model.predict(X_test)
+mse = mean_squared_error(y_test, y_pred)
+rmse = np.sqrt(mse)
+r2 = r2_score(y_test, y_pred)
+
+# Exibir métricas em colunas
+col1, col2, col3 = st.columns(3)
+col1.metric("RMSE", f"{rmse:.2f}")
+col2.metric("R²", f"{r2:.3f}")
+col3.metric("Amostras de Teste", len(y_test))
+
+# =============================================
+# RESULTADOS DO MODELO
+# =============================================
+st.subheader("Importância das Variáveis (Coeficientes)")
+
+coef_df = pd.DataFrame({
+    'Variável': X.columns,
+    'Coeficiente': model.coef_,
+    'Absoluto': np.abs(model.coef_)
+}).sort_values(by='Absoluto', ascending=False)
+
+# Gráfico de importância
+fig_coef = px.bar(
+    coef_df,
+    x='Variável',
+    y='Coeficiente',
+    color='Coeficiente',
+    color_continuous_scale='RdBu',
+    title='Coeficientes do Modelo de Regressão'
+)
+st.plotly_chart(fig_coef, use_container_width=True)
+
+# Tabela de coeficientes
+st.dataframe(coef_df.drop(columns=['Absoluto']))
+
+# =============================================
+# VISUALIZAÇÃO DE RESULTADOS
+# =============================================
+st.subheader("Valores Observados vs. Preditos")
+
+# Gráfico scatter plot com Plotly
+fig_scatter = px.scatter(
+    x=y_test,
+    y=y_pred,
+    labels={'x': 'Valores Observados', 'y': 'Valores Preditos'},
+    title='Comparação entre Valores Observados e Preditos',
+    trendline="lowess"
 )
 
-if color_scheme == "Padrão":
-    colors = ['#636EFA', '#EF553B', '#00CC96']
-elif color_scheme == "Vermelho/Verde/Azul":
-    colors = ['#FF0000', '#00FF00', '#0000FF']
-else:
-    colors = px.colors.qualitative.Pastel[:3]
-
-fig4 = px.bar(
-    x=portes,
-    y=quantidades,
-    title='Distribuição de Estabelecimentos por Porte',
-    labels={'x': 'Porte do Estabelecimento', 'y': 'Quantidade'},
-    color=portes,
-    color_discrete_sequence=colors
+# Adicionar linha de referência
+fig_scatter.add_shape(
+    type="line",
+    x0=y_test.min(), y0=y_test.min(),
+    x1=y_test.max(), y1=y_test.max(),
+    line=dict(color="Red", dash="dash")
 )
 
-st.plotly_chart(fig4, use_container_width=True)
+st.plotly_chart(fig_scatter, use_container_width=True)
 
-# Análise expandível
-with st.expander("📦 Análise por Porte"):
-    st.markdown("""
-    **📌 Distribuição:**
-    - **Pequenos:** 1-5.000 aves (55% dos estabelecimentos)
-    - **Médios:** 5.001-20.000 aves (30%)
-    - **Grandes:** >20.000 aves (15%)
+# =============================================
+# ANÁLISE RESIDUAL
+# =============================================
+st.subheader("Análise de Resíduos")
 
-    **💡 Insights:**
-    - Maioria dos estabelecimentos são de pequeno porte
-    - Estabelecimentos grandes concentram maior volume de produção
-    - Necessidade de políticas diferenciadas por porte
-    """)
+residuals = y_test - y_pred
+
+fig_residuals = px.scatter(
+    x=y_pred,
+    y=residuals,
+    labels={'x': 'Valores Preditos', 'y': 'Resíduos'},
+    title='Gráfico de Resíduos'
+)
+fig_residuals.add_hline(y=0, line_dash="dash", line_color="red")
+
+st.plotly_chart(fig_residuals, use_container_width=True)
+
+# =============================================
+# DOWNLOAD DO MODELO
+# =============================================
+st.markdown("---")
+st.download_button(
+    label="Download dos Resultados (CSV)",
+    data=coef_df.to_csv(index=False).encode('utf-8'),
+    file_name='resultados_regressao_avicola.csv',
+    mime='text/csv'
+)
 
 # Rodapé
-st.markdown("---")
 st.caption("""
 🔎 *Análise desenvolvida com base em dados simulados do IBGE 2017*  
 📅 *Atualizado em Outubro 2023*  
