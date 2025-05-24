@@ -15,7 +15,7 @@ st.title('Análise de Sistemas de Criação Avícola')
 st.markdown("---")
 
 # Caminho RAW do GitHub correto
-URL = "https://raw.githubusercontent.com/CIADM1A/CIADM1A/main/GALINACEOS.csv"
+URL = "https://raw.githubusercontent.com/CIADM1A/main/GALINACEOS.csv"
 try:
     df = pd.read_csv(URL, sep=';')
 except Exception as e:
