@@ -13,7 +13,7 @@ st.set_page_config(
 
 st.title('Análise de Galináceos no Brasil')
 st.info("Use o menu lateral à esquerda para acessar as outras páginas.")
-st.info("Pergunta: Qual é a proporção de estabelecimentos dedicados a cada tipo de exploração (corte, postura, reprodução, misto)? Existe algum tipo de exploração predominante em certas regiões?")
+
 # Função para limpar valores numéricos
 def clean_numeric_value(x):
     if isinstance(x, str):
@@ -43,17 +43,20 @@ if 'GAL_TOTAL' in df.columns:
 # =======================
 # 1. Gráfico Interativo - Proporção dos Sistemas de Criação
 # =======================
+
 st.header('Proporção dos Sistemas de Criação')
+st.info('Pergunta: Qual é a proporção de estabelecimentos dedicados a cada tipo de exploração (corte, postura, 
+reprodução, misto)? Existe algum tipo de exploração predominante em certas regiões?')
 
-if 'SIST_CRIA' in df.columns:
-    freq_sistema_cria = df['SIST_CRIA'].value_counts()
-    prop_sistema_cria = df['SIST_CRIA'].value_counts(normalize=True) * 100
+#if 'SIST_CRIA' in df.columns:
+    #freq_sistema_cria = df['SIST_CRIA'].value_counts()
+   # prop_sistema_cria = df['SIST_CRIA'].value_counts(normalize=True) * 100
 
-    st.subheader('Frequência dos Sistemas de Criação')
-    st.dataframe(freq_sistema_cria)
+    #st.subheader('Frequência dos Sistemas de Criação')
+    #st.dataframe(freq_sistema_cria)
 
-    fig_pie = px.pie(df, names="SIST_CRIA", title="Proporção dos Sistemas de Criação", hover_data=["SIST_CRIA"])
-    st.plotly_chart(fig_pie)
+    #fig_pie = px.pie(df, names="SIST_CRIA", title="Proporção dos Sistemas de Criação", hover_data=["SIST_CRIA"])
+    #st.plotly_chart(fig_pie)
 
 # =======================
 # 2. Gráfico Interativo - Distribuição dos Sistemas de Criação por UF
