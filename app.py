@@ -49,8 +49,8 @@ st.info('Pergunta: Qual é a proporção de estabelecimentos dedicados a cada ti
 st.info('(corte, postura, reprodução, misto)? Existe algum tipo de exploração predominante em certas regiões?')
 
 if 'SIST_CRIA' in df.columns:
-   freq_sistema_cria = df['SIST_CRIA'].value_counts()
-   prop_sistema_cria = df['SIST_CRIA'].value_counts(normalize=True) * 100
+    freq_sistema_cria = df['SIST_CRIA'].value_counts()
+    prop_sistema_cria = df['SIST_CRIA'].value_counts(normalize=True) * 100
 
     st.subheader('Frequência dos Sistemas de Criação')
     st.dataframe(freq_sistema_cria)
