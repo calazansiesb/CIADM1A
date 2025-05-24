@@ -78,21 +78,23 @@ if 'NOM_TERR' in df.columns and 'SIST_CRIA' in df.columns:
 
     st.plotly_chart(fig_bar)
 
+
 # =======================
 # 3. Gráfico Interativo - Análise da Mão de Obra no Setor Avícola
 # =======================
 st.header('Análise da Mão de Obra no Setor Avícola')
-st.header('Estatísticas Descritivas dos Trabalhadores')
-if 'N_TRAB_PERM' in df.columns and 'N_TRAB_TEMP' in df.columns:
-    st.subheader('Trabalhadores Permanentes')
-    st.write(df['N_TRAB_PERM'].describe())
-    st.subheader('Trabalhadores Temporários')
-    st.write(df['N_TRAB_TEMP'].describe())
-    if 'N_TRAB_TOTAL' in df.columns:
-        st.subheader('Total de Trabalhadores')
-        st.write(df['N_TRAB_TOTAL'].describe())
 
-st.header('Correlação entre Tamanho do Estabelecimento e Número de Trabalhadores')
+st.subheader('Estatísticas Descritivas dos Trabalhadores')
+if 'N_TRAB_PERM' in df.columns and 'N_TRAB_TEMP' in df.columns:
+    st.markdown('**Trabalhadores Permanentes**')
+    st.write(df['N_TRAB_PERM'].describe())
+    st.markdown('**Trabalhadores Temporários**')
+    st.write(df['N_TRAB_TEMP'].describe())
+if 'N_TRAB_TOTAL' in df.columns:
+    st.markdown('**Total de Trabalhadores**')
+    st.write(df['N_TRAB_TOTAL'].describe())
+
+st.subheader('Correlação entre Tamanho do Estabelecimento e Número de Trabalhadores')
 if 'GAL_TOTAL' in df.columns and 'N_TRAB_TOTAL' in df.columns:
     # Garantir que as colunas são numéricas
     df['GAL_TOTAL'] = pd.to_numeric(df['GAL_TOTAL'], errors='coerce')
@@ -100,26 +102,15 @@ if 'GAL_TOTAL' in df.columns and 'N_TRAB_TOTAL' in df.columns:
     cor = df[['GAL_TOTAL', 'N_TRAB_TOTAL']].corr().loc['GAL_TOTAL', 'N_TRAB_TOTAL']
     st.write(f'A correlação entre número total de aves e número de trabalhadores é: **{cor:.2f}**')
 
-    # Visualização
+    # Visualização única, com linha de tendência
     fig = px.scatter(
-        df, x='GAL_TOTAL', y='N_TRAB_TOTAL',
-        labels={'GAL_TOTAL': 'Total de Aves', 'N_TRAB_TOTAL': 'Total de Trabalhadores'},
-        title='Relação entre Tamanho do Estabelecimento e Número de Trabalhadores',
-        trendline="ols"  # Adiciona linha de tendência
+        df, x="GAL_TOTAL", y="N_TRAB_TOTAL", 
+        title="Tamanho do Estabelecimento vs. Número de Trabalhadores", 
+        labels={"GAL_TOTAL": "Total de Galináceos", "N_TRAB_TOTAL": "Número de Trabalhadores"},
+        hover_data=["GAL_TOTAL", "N_TRAB_TOTAL"],
+        trendline="ols"
     )
     st.plotly_chart(fig)
-
-if 'N_TRAB_TOTAL' in df.columns and 'GAL_TOTAL' in df.columns:
-    df['N_TRAB_TOTAL'] = pd.to_numeric(df['N_TRAB_TOTAL'], errors='coerce')
-    df['GAL_TOTAL'] = pd.to_numeric(df['GAL_TOTAL'], errors='coerce')
-
-    fig_scatter = px.scatter(
-        df, x="GAL_TOTAL", y="N_TRAB_TOTAL", title="Tamanho do Estabelecimento vs. Número de Trabalhadores", 
-        labels={"GAL_TOTAL": "Total de Galináceos", "N_TRAB_TOTAL": "Número de Trabalhadores"},
-        hover_data=["GAL_TOTAL", "N_TRAB_TOTAL"]
-    )
-    
-    st.plotly_chart(fig_scatter)
 
 # =======================
 # 4. Gráfico Interativo - Média de GAL_TOTAL por Grupo de Tamanho
