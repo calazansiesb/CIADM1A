@@ -34,17 +34,17 @@ def gerar_grafico_densidade_aves_por_sistema(df):
     st.plotly_chart(fig, use_container_width=True)
     
     st.info("""
-    **🔍 Análise de Densidade**
-    
+     **🔍 Análise da Distribuição de Densidade de Aves por Sistema de Criação**
+
     📌 **Principais observações:**
-    - Distribuição das quantidades de aves por sistema de criação
-    - Identificação de concentrações e padrões de produção
-    - Comparação visual da densidade entre diferentes sistemas
-    
+    - O sistema "Outros" apresenta concentração de estabelecimentos com menor número total de aves, predominantemente entre 6.000 e 7.000 cabeças.
+    - "Ovos para Consumo" e "Frangos de Corte" mostram maior dispersão, com a maioria dos registros entre 9.000 e 12.000 aves por estabelecimento.
+    - "Ovos para Incubação" destaca-se por concentrar-se nas faixas mais elevadas, acima de 13.000 aves.
+
     💡 **Interpretação:**
-    - Sistemas com maior densidade indicam padrões de produção mais comuns
-    - Áreas de alta densidade podem representar modelos de produção predominantes
-    - Variações na distribuição podem sugerir diferentes escalas de produção por sistema
+    - O gráfico evidencia diferentes perfis produtivos: sistemas voltados para incubação tendem a operar com plantéis mais numerosos, enquanto sistemas classificados como "Outros" concentram-se em pequenas criações.
+    - A variação na densidade sugere especialização e segmentação claras entre os sistemas de criação, refletindo demandas produtivas e estratégias distintas.
+    - As informações são úteis para orientar políticas de apoio e estratégias de crescimento conforme o perfil predominante de cada sistema.
     """)
 
 def gerar_grafico_distribuicao_producao_por_sistema(df, tipo_producao='aves'):
