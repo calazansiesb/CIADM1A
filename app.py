@@ -52,8 +52,8 @@ st.info('(corte, postura, reprodução, misto)? Existe algum tipo de exploraçã
    freq_sistema_cria = df['SIST_CRIA'].value_counts()
    prop_sistema_cria = df['SIST_CRIA'].value_counts(normalize=True) * 100
 
-    #st.subheader('Frequência dos Sistemas de Criação')
-    #st.dataframe(freq_sistema_cria)
+    st.subheader('Frequência dos Sistemas de Criação')
+    st.dataframe(freq_sistema_cria)
 
     fig_pie = px.pie(df, names="SIST_CRIA", title="Proporção dos Sistemas de Criação", hover_data=["SIST_CRIA"])
     st.plotly_chart(fig_pie)
