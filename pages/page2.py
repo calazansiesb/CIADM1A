@@ -129,16 +129,18 @@ if 'SIST_CRIA' in df.columns and not df_regioes.empty:
     st.plotly_chart(fig3, use_container_width=True)
     
     st.info("""
-    **📌 Legenda dos Sistemas:**
-    - 1-SIST_POC: Produtores de ovos para consumo
-    - 2-SIST_POI: Produtores de ovos para incubação
-    - 3-SIST_PFC: Produtores de frangos de corte
-    - 4-Outro: Outros sistemas de produção
+    **🔍 Análise por Região — Sistemas de Criação**
     
-    **💡 Análise:**
-    - Sistemas predominantes em cada região
-    - Variações regionais nos tipos de produção
-    - Especialização regional
+    📌 **Principais observações:**
+    - O sistema de produção de ovos para consumo (1-SIST_POC) é predominante no Centro-Oeste, Nordeste e Sul.
+    - O Nordeste apresenta a maior quantidade de matrizes, especialmente no sistema 1-SIST_POC, seguido por relevante participação do sistema de frangos de corte (3-SIST_PFC).
+    - O Sudeste e o Norte possuem menor representatividade, com destaque para o Sudeste na produção de frangos de corte.
+    - Baixa expressão dos sistemas de incubação (2-SIST_POI) e outros (4-Outro) em todas as regiões.
+    
+    💡 **Interpretação:**
+    - Há especialização regional nos sistemas de criação, com o Centro-Oeste e Nordeste se destacando na produção de ovos e o Sudeste e Sul mostrando variações nos tipos de produção.
+    - As diferenças refletem fatores como tradição produtiva, demanda de mercado e adequação das condições regionais.
+    - Resultados indicam a necessidade de estratégias regionais para aprimorar a competitividade e a sustentabilidade do setor avícola.
     """)
 
 # Rodapé
