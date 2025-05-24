@@ -8,6 +8,45 @@ from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 import plotly.express as px
 
+# ============================================================
+# EXPLICAÇÃO SOBRE A MATRIZ DE CORRELAÇÃO E INTERPRETAÇÃO
+# ============================================================
+st.info("""
+**🔍 Análise da Distribuição de Densidade de Aves por Sistema de Criação**
+
+📌 **Principais observações:**
+- O sistema "Outros" apresenta concentração de estabelecimentos com menor número total de aves, predominantemente entre 6.000 e 7.000 cabeças.
+- "Ovos para Consumo" e "Frangos de Corte" mostram maior dispersão, com a maioria dos registros entre 9.000 e 12.000 aves por estabelecimento.
+- "Ovos para Incubação" destaca-se por concentrar-se nas faixas mais elevadas, acima de 13.000 aves.
+
+💡 **Interpretação:**
+- O gráfico evidencia diferentes perfis produtivos: sistemas voltados para incubação tendem a operar com plantéis mais numerosos, enquanto sistemas classificados como "Outros" concentram-se em pequenas criações.
+- A variação na densidade sugere especialização e segmentação claras entre os sistemas de criação, refletindo demandas produtivas e estratégias distintas.
+- As informações são úteis para orientar políticas de apoio e estratégias de crescimento conforme o perfil predominante de cada sistema.
+
+---
+
+### Análise da Matriz de Correlação entre Variáveis Numéricas
+
+A matriz de correlação apresentada permite identificar o grau de associação linear entre as principais variáveis envolvidas na produção avícola. 
+
+**Principais Observações:**
+- **Fortes correlações positivas**:
+  - Entre `PRODUCAO_TOTAL` e `OVOS_PRODUZIDOS`, indicando que o aumento da produção total está fortemente relacionado ao aumento da produção de ovos.
+  - Entre `GALINHAS_VENDIDAS` e `COMERCIALIZACAO`, sugerindo que a venda de galinhas acompanha diretamente o volume comercializado.
+  - Entre `TRABALHADORES` e variáveis como `PRODUCAO_TOTAL` e `GALINHAS_VENDIDAS`, o que sugere que estabelecimentos maiores (em produção ou comercialização) demandam mais mão de obra.
+
+- **Correlação baixa ou negativa**:
+  - `AGRICULTURA_FAMILIAR` apresenta correlação baixa ou negativa com a maioria das variáveis produtivas, indicando que os estabelecimentos classificados como agricultura familiar tendem a operar em menor escala, com menor produção e comercialização.
+  - `AREA_TOTAL` possui correlação relativamente baixa com variáveis produtivas, sugerindo que o tamanho físico do estabelecimento não é o principal determinante do volume produtivo, provavelmente porque há intensificação em áreas menores.
+
+**Interpretação:**
+- **Especialização e Segmentação**: Assim como observado na análise da densidade de aves por sistema de criação, a matriz de correlação reforça a existência de diferentes perfis produtivos. Sistemas voltados à incubação e produção de ovos tendem a ser mais intensivos e menos familiares, enquanto sistemas menores e familiares apresentam menor produção e comercialização.
+- **Políticas Públicas**: A compreensão dessas correlações é fundamental para orientar políticas públicas adequadas ao perfil de cada segmento. Por exemplo, incentivos para mecanização e capacitação podem ser mais úteis para grandes produtores, enquanto apoio técnico e acesso a mercados podem beneficiar pequenas produções familiares.
+
+**Resumo**: A matriz de correlação evidencia que o aumento da produção está mais relacionado à intensificação do uso de mão de obra e ao perfil do sistema produtivo do que ao tamanho da área utilizada. Esta análise, em conjunto com a distribuição de densidade de aves, oferece uma visão abrangente dos fatores que diferenciam os sistemas de criação avícola no contexto analisado.
+""")
+
 # Configuração da página
 st.set_page_config(
     page_title="Modelo de Regressão Avícola - IBGE 2017",
