@@ -152,50 +152,6 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# Título principal
-st.title('Análise de Sistemas de Criação Avícola')
-st.markdown("---")
-
-# DataFrame de exemplo (substituir por carregamento real de dados)
-data = {
-    'SIST_CRIA': [
-        'Ovos para Consumo', 'Frangos de Corte', 'Ovos para Consumo', 'Outros',
-        'Frangos de Corte', 'Ovos para Incubação', 'Outros', 'Ovos para Consumo',
-        'Frangos de Corte', 'Ovos para Incubação'
-    ],
-    'GAL_TOTAL': [
-        10000, 12000, 11000, 5000,
-        13000, 14000, 6000, 9000,
-        11500, 12500
-    ],
-    'GAL_VEND': [
-        8000, 11000, 9500, 4500,
-        12000, 13000, 5500, 8500,
-        10500, 11500
-    ],
-    'Q_DZ_PROD': [
-        5000, 6000, 5500, 2000,
-        6500, 7000, 2500, 4500,
-        5750, 6250
-    ]
-}
-df = pd.DataFrame(data)
-
-# Seção de gráficos
-col1, col2 = st.columns([3, 1])
-with col1:
-    gerar_grafico_densidade_aves_por_sistema(df)
-    
-with col2:
-    tipo = st.radio(
-        "Tipo de produção:",
-        ('aves', 'ovos'),
-        format_func=lambda x: "Aves vendidas" if x=="aves" else "Ovos produzidos",
-        key='tipo_producao'
-    )
-
-gerar_grafico_distribuicao_producao_por_sistema(df, tipo_producao=tipo)
-gerar_histograma_aves_por_sistema(df)
 
 # Rodapé
 st.markdown("---")
