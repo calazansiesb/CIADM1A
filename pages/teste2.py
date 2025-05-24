@@ -14,10 +14,9 @@ st.set_page_config(
 st.title('Análise de Sistemas de Criação Avícola')
 st.markdown("---")
 
-# Caminho RAW do GitHub correto
-URL = "https://raw.githubusercontent.com/CIADM1A/main/GALINACEOS.csv"
+# Carregamento do arquivo local
 try:
-    df = pd.read_csv(URL, sep=';')
+    df = pd.read_csv("GALINACEOS.csv", sep=';')
 except Exception as e:
     st.error(f"Erro ao carregar o arquivo GALINACEOS.csv: {e}")
     st.stop()
