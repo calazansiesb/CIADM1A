@@ -45,8 +45,8 @@ if 'GAL_TOTAL' in df.columns:
 # =======================
 
 st.header('Proporção dos Sistemas de Criação')
-st.info('Pergunta: Qual é a proporção de estabelecimentos dedicados a cada tipo de exploração (corte, postura, 
-reprodução, misto)? Existe algum tipo de exploração predominante em certas regiões?')
+st.info('Pergunta: Qual é a proporção de estabelecimentos dedicados a cada tipo de exploração') 
+st.info('(corte, postura, reprodução, misto)? Existe algum tipo de exploração predominante em certas regiões?')
 
 #if 'SIST_CRIA' in df.columns:
     #freq_sistema_cria = df['SIST_CRIA'].value_counts()
