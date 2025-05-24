@@ -88,6 +88,20 @@ if 'NOM_TERR' in df.columns:
 else:
     st.warning("A coluna 'NOM_TERR' não foi encontrada no dataset.")
 
+st.info("""
+    **🌎 Análise da Distribuição por Unidade Federativa**
+    
+    📌 **Principais observações:**
+    - Os maiores valores de estabelecimentos estão concentrados nas regiões Sul, Sudeste e Nordeste, com estados como Paraná, Santa Catarina, Bahia, Pernambuco e Rio Grande do Sul entre os primeiros colocados.
+    - O número de estabelecimentos por UF apresenta uma distribuição relativamente homogênea nos estados líderes, com leve declínio nos estados das regiões Norte e Centro-Oeste.
+    - Estados como Acre, Amapá, Roraima e Amazonas estão entre os que apresentam menor quantidade de estabelecimentos.
+
+    💡 **Interpretação:**
+    - A forte presença de estabelecimentos nas regiões Sul, Sudeste e Nordeste pode estar relacionada à infraestrutura mais desenvolvida, tradição produtiva e maior demanda de mercado.
+    - A menor concentração de estabelecimentos em estados do Norte e parte do Centro-Oeste pode indicar desafios logísticos, menor densidade populacional ou potencial para expansão do setor.
+    - A análise sugere oportunidades de investimento e crescimento nas regiões menos representadas, promovendo maior equilíbrio nacional na distribuição de estabelecimentos.
+""")
+
 # =============================================
 # 🔹 4. Relação: Tamanho × Trabalhadores
 # =============================================
