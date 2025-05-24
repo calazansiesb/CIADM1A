@@ -86,17 +86,17 @@ def gerar_grafico_distribuicao_producao_por_sistema(df, tipo_producao='aves'):
     st.plotly_chart(fig, use_container_width=True)
     
     st.info(f"""
-    **🔍 Análise de Produção ({'Aves' if tipo_producao == 'aves' else 'Ovos'})**
-    
+    **🔍 Análise da Distribuição da Venda de Aves por Sistema de Criação**
+
     📌 **Principais observações:**
-    - Comparação da produção entre diferentes sistemas de criação
-    - Identificação dos sistemas mais produtivos
-    - Proporção relativa entre os sistemas
-    
+    - O sistema "Frangos de Corte" lidera as vendas, com 33.500 aves vendidas, destacando-se como o principal responsável pelo volume comercializado.
+    - Os sistemas "Ovos para Consumo" (26.000) e "Ovos para Incubação" (24.500) também apresentam volumes elevados, evidenciando a importância dos sistemas voltados à produção de ovos tanto para consumo direto quanto para incubação.
+    - O grupo "Outros" registra o menor volume de vendas, com apenas 10.000 aves, indicando baixa participação desse segmento no mercado.
+
     💡 **Interpretação:**
-    - Sistemas com maiores volumes indicam especializações ou demandas de mercado
-    - Diferenças significativas podem refletir vantagens competitivas de certos sistemas
-    - Padrões de produção podem sugerir tendências do setor
+    - O destaque do sistema de frangos de corte reforça o papel central da avicultura de corte na cadeia produtiva e comercial.
+    - A significativa participação dos sistemas de ovos para consumo e incubação revela a diversificação da produção e a relevância desses segmentos no abastecimento do mercado.
+    - A baixa representatividade do grupo "Outros" pode indicar oportunidades para o desenvolvimento de nichos ou sistemas alternativos, caso haja demanda específica.
     """)
 
 def gerar_histograma_aves_por_sistema(df):
