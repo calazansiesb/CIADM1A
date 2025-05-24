@@ -96,13 +96,24 @@ trabalhadores = tamanho/1000 * np.random.uniform(5, 15, 100)
 # Calcular correlação
 corr = np.corrcoef(tamanho, trabalhadores)[0,1]
 
-fig3 = px.scatter(
-    x=tamanho,
-    y=trabalhadores,
-    title='Relação entre Tamanho do Estabelecimento e Número de Trabalhadores',
-    labels={'x': 'Total de Galináceos', 'y': 'Número de Trabalhadores'},
-    trendline="lowess"  # Suavização sem statsmodels
-)
+# Tentar adicionar trendline, mas se não houver statsmodels, mostrar sem trendline
+try:
+    import statsmodels.api as sm
+    fig3 = px.scatter(
+        x=tamanho,
+        y=trabalhadores,
+        title='Relação entre Tamanho do Estabelecimento e Número de Trabalhadores',
+        labels={'x': 'Total de Galináceos', 'y': 'Número de Trabalhadores'},
+        trendline="lowess"
+    )
+except ModuleNotFoundError:
+    st.warning("statsmodels não instalado. O gráfico será exibido sem linha de tendência (trendline).")
+    fig3 = px.scatter(
+        x=tamanho,
+        y=trabalhadores,
+        title='Relação entre Tamanho do Estabelecimento e Número de Trabalhadores',
+        labels={'x': 'Total de Galináceos', 'y': 'Número de Trabalhadores'}
+    )
 
 st.plotly_chart(fig3, use_container_width=True)
 
