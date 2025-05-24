@@ -151,8 +151,21 @@ if 'Q_DZ_PROD' in df.columns:
     df['Q_DZ_PROD'] = pd.to_numeric(df['Q_DZ_PROD'], errors='coerce')
     df.dropna(subset=['Q_DZ_PROD'], inplace=True)
 
-    df['Porte'] = pd.cut(df['Q_DZ_PROD'], bins=[0, 5000, 20000, np.inf], labels=['Pequeno', 'Médio', 'Grande'])
-    freq_portes = df['Porte'].value_counts()
+    # Ajustando os bins para incluir também valores zero e negativos, caso existam,
+    # e adaptando os limites conforme a distribuição real pode exigir.
+    # Sugestão: confira o describe() dos dados para ajustar melhor os limites, se necessário.
+    bins = [-float('inf'), 5000, 20000, float('inf')]
+    labels = ['Pequeno', 'Médio', 'Grande']
+
+    df['Porte'] = pd.cut(
+        df['Q_DZ_PROD'],
+        bins=bins,
+        labels=labels,
+        include_lowest=True,  # Inclui o valor mínimo no primeiro bin
+        right=True            # Inclui o lado direito do intervalo (padrão)
+    )
+
+    freq_portes = df['Porte'].value_counts().reindex(labels, fill_value=0)
 
     fig4 = px.bar(
         x=freq_portes.index,
