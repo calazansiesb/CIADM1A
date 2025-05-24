@@ -2,6 +2,29 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
+# Configuração da página
+st.set_page_config(
+    page_title="Análise Avícola - Sistemas de Criação",
+    page_icon="🐔",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
+
+# Título principal
+st.title('Análise de Sistemas de Criação Avícola')
+st.markdown("---")
+
+# Carregue os dados reais do GitHub (ajuste o branch se necessário)
+URL = "https://raw.githubusercontent.com/CIADM1A/GALINACEOS/main/GALINACEOS.csv"
+try:
+    df = pd.read_csv(URL, sep=';')
+except Exception as e:
+    st.error(f"Erro ao carregar o arquivo GALINACEOS.csv: {e}")
+    st.stop()
+
+# Opcional: Mostre as primeiras linhas para o usuário conferir
+# st.write(df.head())
+
 def gerar_grafico_densidade_aves_por_sistema(df):
     st.subheader("📊 Densidade de Aves por Sistema de Criação")
     if 'SIST_CRIA' not in df.columns or 'GAL_TOTAL' not in df.columns:
@@ -66,9 +89,9 @@ def gerar_grafico_distribuicao_producao_por_sistema(df, tipo_producao='aves'):
     st.info(f"""
     **🔍 Análise da Distribuição da Venda de Aves por Sistema de Criação**
     📌 **Principais observações:**
-    - O sistema "Frangos de Corte" lidera as vendas, com 33.500 aves vendidas, destacando-se como o principal responsável pelo volume comercializado.
-    - Os sistemas "Ovos para Consumo" (26.000) e "Ovos para Incubação" (24.500) também apresentam volumes elevados, evidenciando a importância dos sistemas voltados à produção de ovos tanto para consumo direto quanto para incubação.
-    - O grupo "Outros" registra o menor volume de vendas, com apenas 10.000 aves, indicando baixa participação desse segmento no mercado.
+    - O sistema "Frangos de Corte" lidera as vendas, com maior volume comercializado.
+    - Os sistemas "Ovos para Consumo" e "Ovos para Incubação" também apresentam volumes elevados, evidenciando a importância dos sistemas voltados à produção de ovos tanto para consumo direto quanto para incubação.
+    - O grupo "Outros" registra o menor volume de vendas, indicando baixa participação desse segmento no mercado.
     💡 **Interpretação:**
     - O destaque do sistema de frangos de corte reforça o papel central da avicultura de corte na cadeia produtiva e comercial.
     - A significativa participação dos sistemas de ovos para consumo e incubação revela a diversificação da produção e a relevância desses segmentos no abastecimento do mercado.
@@ -108,24 +131,6 @@ def gerar_histograma_aves_por_sistema(df):
     - A presença de sistemas de incubação em diferentes faixas pode indicar estratégias produtivas distintas, enquanto os demais sistemas tendem a se concentrar em faixas médias e altas de produção.
     - Essas informações são relevantes para o planejamento do setor, permitindo identificar oportunidades de apoio e desenvolvimento conforme o perfil produtivo predominante em cada sistema.
     """)
-
-# Configuração da página
-st.set_page_config(
-    page_title="Análise Avícola - Sistemas de Criação",
-    page_icon="🐔",
-    layout="wide",
-    initial_sidebar_state="expanded",
-)
-
-# Título principal
-st.title('Análise de Sistemas de Criação Avícola')
-st.markdown("---")
-
-# Carregue os dados reais substituindo por seu caminho de arquivo (exemplo: 'dados_avicola.csv')
-# df = pd.read_csv('seuarquivo.csv', sep=';')
-
-# Para testar, use o DataFrame de exemplo:
-# df = pd.DataFrame(data)
 
 # Seção de gráficos
 col1, col2 = st.columns([3, 1])
