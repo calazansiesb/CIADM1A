@@ -65,6 +65,22 @@ if 'SIST_CRIA' in df.columns:
 # =======================
 st.header('Distribuição dos Sistemas de Criação por UF')
 
+st.info(
+    ''' O gráfico acima apresenta a distribuição percentual dos diferentes sistemas de criação de galináceos por Unidade Federativa
+    (UF) no Brasil, com base nos dados do IBGE de 2017.
+    Observa-se que há uma variação significativa na predominância dos sistemas de criação entre os estados brasileiros.
+
+Os sistemas de criação estão representados por diferentes cores e categorias, sendo eles: SIST_POC, SIST_PFC, SIST_POI e Outros. 
+A análise mostra que, em muitos estados, há uma predominância do sistema "1-SIST_POC", seguido pelo "3-SIST_PFC". No entanto, é possível notar que alguns estados apresentam uma participação mais expressiva das categorias "2-SIST_POI" e "4-Outro".
+
+O padrão de distribuição indica que fatores regionais, como clima, tradição produtiva e estrutura do setor,
+influenciam diretamente a escolha do sistema de criação adotado em cada localidade. Regiões como Norte e Nordeste, por exemplo,
+tendem a apresentar uma maior diversidade na composição dos sistemas, enquanto estados do Sul e Sudeste concentram-se nos sistemas mais tecnificados.
+
+Essas diferenças refletem as características e necessidades específicas de cada região, possibilitando compreender melhor a dinâmica 
+da avicultura nacional e subsidiando políticas públicas e estratégias de desenvolvimento mais adequadas para o setor. '''
+)
+
 if 'NOM_TERR' in df.columns and 'SIST_CRIA' in df.columns:
     dist_sistema_cria_por_uf = df.groupby('NOM_TERR')['SIST_CRIA'].value_counts(normalize=True).reset_index()
     dist_sistema_cria_por_uf.columns = ['UF', 'SIST_CRIA', 'Proporção']
