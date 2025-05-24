@@ -13,7 +13,7 @@ st.set_page_config(
 
 st.title('Análise de Galináceos no Brasil')
 st.info("Use o menu lateral à esquerda para acessar as outras páginas.")
-st.info("Pergunta: Quais são os principais estados e municípios com maior concentração de estabelecimentos e de número total de aves? Existe alguma disparidade regional significativa na produção?")
+st.info("Pergunta: Qual é a proporção de estabelecimentos dedicados a cada tipo de exploração (corte, postura, reprodução, misto)? Existe algum tipo de exploração predominante em certas regiões?")
 # Função para limpar valores numéricos
 def clean_numeric_value(x):
     if isinstance(x, str):
