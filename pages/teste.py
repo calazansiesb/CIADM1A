@@ -1,77 +1,233 @@
+import streamlit as st
 import pandas as pd
 import numpy as np
+import plotly.express as px
+import plotly.graph_objects as go
 
-# Criando dados fictícios com base nas colunas fornecidas
+# Configuração da página
+st.set_page_config(
+    page_title="Análise Avícola Brasileira - IBGE 2017",
+    page_icon="🐔",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
+
+# Título principal
+st.title('Análise de Galináceos no Brasil (IBGE 2017)')
+st.markdown("---")
+
+# =============================================
+# 1. PROPORÇÃO DOS SISTEMAS DE CRIAÇÃO
+# =============================================
+st.header('📊 Proporção dos Sistemas de Criação')
+
+# Dados simulados (substituir por dados reais se necessário)
+sistemas = ['3-SIST_PFC', '1-SIST_POC', '2-SIST_POI', '4-Outro']
+proporcoes = [28.3, 28.1, 27.3, 16.4]
+
+# Sidebar para seleção de dados
+st.sidebar.header("Configurações da Análise")
+show_raw_data = st.sidebar.checkbox("Mostrar dados brutos", False)
+
+if show_raw_data:
+    st.subheader("Dados Brutos")
+    df_sistemas = pd.DataFrame({
+        'Sistema': sistemas,
+        'Proporção (%)': proporcoes
+    })
+    st.dataframe(df_sistemas)
+
+fig1 = px.pie(
+    values=proporcoes,
+    names=sistemas,
+    title='Distribuição Percentual dos Sistemas de Criação',
+    color_discrete_sequence=px.colors.qualitative.Pastel
+)
+
+st.plotly_chart(fig1, use_container_width=True)
+
+# Análise expandível
+with st.expander("🔍 Análise dos Sistemas de Criação"):
+    st.markdown("""
+    **📌 Distribuição:**
+    - Sistema Predominante: **Produtores de frangos de corte (3-SIST_PFC)** - 28.3%
+    - Segunda Colocação: **Produtores de ovos para consumo (1-SIST_POC)** - 28.1%
+    - Terceira Posição: **Produtores de ovos para incubação (2-SIST_POI)** - 27.3%
+    - Menor Representatividade: **Outros produtores (4-Outro)** - 16.4%
+
+    **💡 Insights:**
+    1. Equilíbrio notável entre os três principais sistemas produtivos (diferença <1%)
+    2. Sistemas alternativos ("Outros produtores") apresentam menor participação (16.4%)
+    3. Nenhum sistema domina claramente (>50% do total), indicando:
+       - Diversificação da produção avícola nacional
+       - Pluralidade de modelos de criação
+       - Oportunidades para nichos específicos
+    """)
+
+# =============================================
+# 2. DISTRIBUIÇÃO POR UNIDADE FEDERATIVA
+# =============================================
+st.header('🌎 Distribuição por Unidade Federativa')
+
+# Dados simulados por UF (substituir por dados reais)
+ufs = ['SP', 'MG', 'PR', 'RS', 'SC', 'BA', 'GO', 'MT']
+valores = [120, 95, 80, 75, 60, 55, 50, 45]
+
+# Widget de seleção de visualização
+vis_type = st.sidebar.radio(
+    "Tipo de visualização para UFs:",
+    ("Barras", "Pizza", "Treemap")
+)
+
+if vis_type == "Barras":
+    fig2 = px.bar(
+        x=ufs,
+        y=valores,
+        title='Estabelecimentos Avícolas por UF',
+        labels={'x': 'Unidade Federativa', 'y': 'Número de Estabelecimentos'},
+        color=ufs,
+        color_discrete_sequence=px.colors.qualitative.Vivid
+    )
+elif vis_type == "Pizza":
+    fig2 = px.pie(
+        values=valores,
+        names=ufs,
+        title='Distribuição Percentual por UF'
+    )
+else:
+    fig2 = px.treemap(
+        names=ufs,
+        parents=['']*len(ufs),
+        values=valores,
+        title='Distribuição Hierárquica por UF'
+    )
+
+st.plotly_chart(fig2, use_container_width=True)
+
+# Análise expandível
+with st.expander("🔎 Análise Regional"):
+    st.markdown("""
+    **📌 Principais Observações:**
+    - **Sudeste (SP/MG)** lidera em número de estabelecimentos
+    - **Sul (PR/RS/SC)** apresenta alta concentração produtiva
+    - **Centro-Oeste (GO/MT)** mostra crescimento significativo
+
+    **💡 Interpretação:**
+    - Distribuição reflete fatores históricos e logísticos
+    - Concentração segue padrões de desenvolvimento regional
+    - Dados justificam políticas diferenciadas por região
+    """)
+
+# =============================================
+# 3. RELAÇÃO TAMANHO × TRABALHADORES
+# =============================================
+st.header('👥 Relação: Tamanho × Número de Trabalhadores')
+
+# Gerar dados simulados
 np.random.seed(42)
-num_rows = 100
+tamanho = np.random.randint(1000, 50000, 100)
+trabalhadores = tamanho/1000 * np.random.uniform(5, 15, 100)
 
-data = {
-    'SIST_CRIA': np.random.choice(['Ovos para Consumo', 'Frangos de Corte', 'Ovos para Incubação', 'Outros'], size=num_rows),
-    'NIV_TERR': np.random.choice([1, 2, 3], size=num_rows, p=[0.7, 0.2, 0.1]),
-    'COD_TERR': [f'{np.random.randint(10, 99):02d}' for _ in range(num_rows)],
-    'NOM_TERR': np.random.choice(['São Paulo', 'Minas Gerais', 'Rio Grande do Sul', 'Paraná', 'Santa Catarina', 
-                                'Goiás', 'Mato Grosso', 'Bahia', 'Pernambuco', 'Ceará'], size=num_rows),
-    'CL_GAL': np.random.randint(1, 5, size=num_rows),
-    'NOM_CL_GAL': np.random.choice(['Pequeno', 'Médio', 'Grande', 'Industrial'], size=num_rows),
-    'GAL_TOTAL': np.random.randint(1000, 50000, size=num_rows),
-    'GAL_ENG': np.random.randint(0, 10000, size=num_rows),
-    'GAL_GALOS': np.random.randint(0, 5000, size=num_rows),
-    'GAL_POED': np.random.randint(0, 30000, size=num_rows),
-    'GAL_MATR': np.random.randint(0, 10000, size=num_rows),
-    'GAL_VEND': np.random.randint(0, 40000, size=num_rows),
-    'V_GAL_VEND': np.random.uniform(1000, 50000, size=num_rows).round(2),
-    'Q_DZ_PROD': np.random.randint(0, 10000, size=num_rows),
-    'Q_DZ_VEND': np.random.randint(0, 9000, size=num_rows),
-    'V_Q_DZ_PROD': np.random.uniform(500, 20000, size=num_rows).round(2),
-    'V_Q_DZ_VEND': np.random.uniform(500, 18000, size=num_rows).round(2),
-    'A_TOTAL': np.random.uniform(1, 100, size=num_rows).round(2),
-    'A_PAST_PLANT': np.random.uniform(0, 50, size=num_rows).round(2),
-    'A_LAV_PERM': np.random.uniform(0, 30, size=num_rows).round(2),
-    'A_LAV_TEMP': np.random.uniform(0, 40, size=num_rows).round(2),
-    'A_APPRL': np.random.uniform(0, 20, size=num_rows).round(2),
-    'N_TRAB_TOTAL': np.random.randint(1, 20, size=num_rows),
-    'N_TRAB_LACOS': np.random.randint(0, 10, size=num_rows)
-}
+# Widget para selecionar tipo de gráfico
+scatter_type = st.sidebar.selectbox(
+    "Tipo de visualização para correlação:",
+    ("Scatter Plot", "Linha", "Área")
+)
 
-# Adicionando colunas binárias (0 ou 1) para as colunas que começam com "E_"
-prefixos_E = ['CRIA_GAL', 'TEM_GAL', 'GAL_VEND', 'OVOS_PROD', 'OVOS_VEND', 'SUBS', 'COMERC', 
-              'RECEBE_ORI', 'ORI_GOV', 'ORI_PROPRIA', 'ORI_COOP', 'ORI_EMP_INT', 'ORI_EMP_PRIV',
-              'ORI_ONG', 'ORI_SIST_S', 'ORI_OUTRA', 'GAL_ENG', 'GAL_GALOS', 'GAL_POED', 'GAL_MATR',
-              'ASSOC_COOP', 'FINANC', 'FINANC_COOP', 'FINANC_INTEG', 'DAP', 'AGRIFAM', 'N_AGRIFAM',
-              'PRODUTOR', 'COOPERATIVA', 'SA_LDTA', 'CNPJ']
+if scatter_type == "Scatter Plot":
+    fig3 = px.scatter(
+        x=tamanho,
+        y=trabalhadores,
+        title='Relação entre Tamanho do Estabelecimento e Número de Trabalhadores',
+        labels={'x': 'Total de Galináceos', 'y': 'Número de Trabalhadores'},
+        trendline="lowess"
+    )
+elif scatter_type == "Linha":
+    fig3 = px.line(
+        x=tamanho,
+        y=trabalhadores,
+        title='Relação entre Tamanho do Estabelecimento e Número de Trabalhadores',
+        labels={'x': 'Total de Galináceos', 'y': 'Número de Trabalhadores'}
+    )
+else:
+    fig3 = px.area(
+        x=tamanho,
+        y=trabalhadores,
+        title='Relação entre Tamanho do Estabelecimento e Número de Trabalhadores',
+        labels={'x': 'Total de Galináceos', 'y': 'Número de Trabalhadores'}
+    )
 
-for prefix in prefixos_E:
-    col_name = f'E_{prefix}'
-    data[col_name] = np.random.choice([0, 1], size=num_rows, p=[0.3, 0.7])
+st.plotly_chart(fig3, use_container_width=True)
 
-# Criando o DataFrame
-df = pd.DataFrame(data)
+# Cálculo da correlação
+corr = np.corrcoef(tamanho, trabalhadores)[0,1]
 
-# Adicionando alguns valores nulos para simular dados reais
-for col in df.columns:
-    if np.random.rand() > 0.8:  # 20% de chance de adicionar nulos em cada coluna
-        idx = np.random.choice(df.index, size=int(num_rows*0.1), replace=False)  # 10% dos valores
-        df.loc[idx, col] = np.nan
+# Análise expandível
+with st.expander("📈 Análise de Correlação"):
+    st.markdown(f"""
+    **📊 Correlação Calculada:** {corr:.2f}
 
-# Ordenando as colunas para manter a mesma ordem do seu DataFrame original
-col_order = [
-    'SIST_CRIA', 'NIV_TERR', 'COD_TERR', 'NOM_TERR', 'CL_GAL', 'NOM_CL_GAL',
-    'E_CRIA_GAL', 'E_TEM_GAL', 'E_GAL_VEND', 'E_OVOS_PROD', 'E_OVOS_VEND', 'E_SUBS',
-    'E_COMERC', 'E_RECEBE_ORI', 'E_ORI_GOV', 'E_ORI_PROPRIA', 'E_ORI_COOP',
-    'E_ORI_EMP_INT', 'E_ORI_EMP_PRIV', 'E_ORI_ONG', 'E_ORI_SIST_S', 'E_ORI_OUTRA',
-    'E_GAL_ENG', 'E_GAL_GALOS', 'E_GAL_POED', 'E_GAL_MATR', 'E_ASSOC_COOP',
-    'E_FINANC', 'E_FINANC_COOP', 'E_FINANC_INTEG', 'E_DAP', 'E_AGRIFAM',
-    'E_N_AGRIFAM', 'E_PRODUTOR', 'E_COOPERATIVA', 'E_SA_LDTA', 'E_CNPJ',
-    'GAL_TOTAL', 'GAL_ENG', 'GAL_GALOS', 'GAL_POED', 'GAL_MATR', 'GAL_VEND',
-    'V_GAL_VEND', 'Q_DZ_PROD', 'Q_DZ_VEND', 'V_Q_DZ_PROD', 'V_Q_DZ_VEND',
-    'A_TOTAL', 'A_PAST_PLANT', 'A_LAV_PERM', 'A_LAV_TEMP', 'A_APPRL',
-    'VTP_AGRO', 'RECT_AGRO', 'N_TRAB_TOTAL', 'N_TRAB_LACOS'
-]
+    **📌 Interpretação:**
+    - {'Forte correlação positiva' if corr > 0.7 else 
+       'Correlação moderada' if corr > 0.4 else 
+       'Fraca correlação'} entre as variáveis
+    - Estabelecimentos maiores tendem a empregar mais trabalhadores
+    - Relação não é perfeitamente linear, indicando outros fatores envolvidos
 
-# Mantendo apenas as colunas que temos dados (algumas não foram simuladas)
-available_cols = [col for col in col_order if col in df.columns]
-df = df[available_cols]
+    **💡 Recomendações:**
+    - Analisar separadamente por tipo de sistema de criação
+    - Considerar diferenças regionais na relação
+    """)
 
-# Exibindo informações do DataFrame
-print(f"DataFrame criado com {len(df)} linhas e {len(df.columns)} colunas")
-print("Colunas disponíveis:", df.columns.tolist())
+# =============================================
+# 4. DISTRIBUIÇÃO POR PORTE
+# =============================================
+st.header('🏭 Distribuição por Porte dos Estabelecimentos')
+
+portes = ['Pequeno', 'Médio', 'Grande']
+quantidades = [1200, 850, 350]
+
+# Widget para selecionar cores
+color_scheme = st.sidebar.selectbox(
+    "Esquema de cores para portes:",
+    ("Padrão", "Vermelho/Verde/Azul", "Pastel")
+)
+
+if color_scheme == "Padrão":
+    colors = ['#636EFA', '#EF553B', '#00CC96']
+elif color_scheme == "Vermelho/Verde/Azul":
+    colors = ['#FF0000', '#00FF00', '#0000FF']
+else:
+    colors = px.colors.qualitative.Pastel[:3]
+
+fig4 = px.bar(
+    x=portes,
+    y=quantidades,
+    title='Distribuição de Estabelecimentos por Porte',
+    labels={'x': 'Porte do Estabelecimento', 'y': 'Quantidade'},
+    color=portes,
+    color_discrete_sequence=colors
+)
+
+st.plotly_chart(fig4, use_container_width=True)
+
+# Análise expandível
+with st.expander("📦 Análise por Porte"):
+    st.markdown("""
+    **📌 Distribuição:**
+    - **Pequenos:** 1-5.000 aves (55% dos estabelecimentos)
+    - **Médios:** 5.001-20.000 aves (30%)
+    - **Grandes:** >20.000 aves (15%)
+
+    **💡 Insights:**
+    - Maioria dos estabelecimentos são de pequeno porte
+    - Estabelecimentos grandes concentram maior volume de produção
+    - Necessidade de políticas diferenciadas por porte
+    """)
+
+# Rodapé
+st.markdown("---")
+st.caption("""
+🔎 *Análise desenvolvida com base em dados simulados do IBGE 2017*  
+📅 *Atualizado em Outubro 2023*  
+""")
