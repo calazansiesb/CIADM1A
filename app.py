@@ -4,6 +4,7 @@ import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
 
+
 # Configuração da página
 st.set_page_config(
     page_title="Análise Avícola Brasileira - IBGE 2017",
@@ -38,15 +39,18 @@ st.info("""
 **🔍 Análise dos Sistemas de Criação**
 
 📌 **Distribuição:**
-- Sistema Predominante: **3-SIST_PFC** (28.3%)
-- Segunda Colocação: **1-SIST_POC** (28.1%)
-- Terceira Posição: **2-SIST_POI** (27.3%)
-- Menor Representatividade: **4-Outro** (16.4%)
+- Sistema Predominante: **Produtores de frangos de corte (3-SIST_PFC)** - 28.3%
+- Segunda Colocação: **Produtores de ovos para consumo (1-SIST_POC)** - 28.1%
+- Terceira Posição: **Produtores de ovos para incubação (2-SIST_POI)** - 27.3%
+- Menor Representatividade: **Outros produtores (4-Outro)** - 16.4%
 
 💡 **Insights:**
-1. Equilíbrio notável entre os três principais sistemas (diferença <1%)
-2. Sistema "Outros" apresenta menor participação (16.4%)
-3. Nenhum sistema domina claramente (>50%), indicando diversificação
+1. Equilíbrio notável entre os três principais sistemas produtivos (diferença <1%)
+2. Sistemas alternativos ("Outros produtores") apresentam menor participação (16.4%)
+3. Nenhum sistema domina claramente (>50% do total), indicando:
+   - Diversificação da produção avícola nacional
+   - Pluralidade de modelos de criação
+   - Oportunidades para nichos específicos
 """)
 
 # =============================================
