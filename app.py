@@ -123,10 +123,8 @@ if 'GAL_TOTAL' in df.columns and 'N_TRAB_TOTAL' in df.columns:
     st.plotly_chart(fig3, use_container_width=True)
 
     st.info(f"**Correlação Calculada:** {corr:.2f}")
-else:
-    st.warning("As colunas 'GAL_TOTAL' ou 'N_TRAB_TOTAL' não foram encontradas no dataset.")
-    
-    st.info("""
+
+st.info("""
     **👥 Análise da Relação entre Tamanho do Estabelecimento e Número de Trabalhadores**
 
     📌 **Principais observações:**
@@ -140,6 +138,10 @@ else:
     - Estabelecimentos maiores tendem a otimizar o uso da força de trabalho, possivelmente refletindo maior eficiência operacional.
 """)
 
+else:
+    st.warning("As colunas 'GAL_TOTAL' ou 'N_TRAB_TOTAL' não foram encontradas no dataset.")
+    
+    
 # =============================================
 # 🔹 5. Distribuição por Porte dos Estabelecimentos
 # =============================================
