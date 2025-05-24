@@ -125,6 +125,7 @@ if 'GAL_TOTAL' in df.columns and 'N_TRAB_TOTAL' in df.columns:
     st.info(f"**Correlação Calculada:** {corr:.2f}")
 else:
     st.warning("As colunas 'GAL_TOTAL' ou 'N_TRAB_TOTAL' não foram encontradas no dataset.")
+    
     st.info("""
     **👥 Análise da Relação entre Tamanho do Estabelecimento e Número de Trabalhadores**
 
