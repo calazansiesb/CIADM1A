@@ -28,7 +28,10 @@ brasil = ['Brasil']
 
 # --------- GRÁFICO 1: BARRAS - Apenas Estados (UFs) ---------
 st.subheader("Gráfico de Barras: Total de Matrizes por Estado (apenas UFs)")
-
+st.info(
+    ''' Quais são os principais estados e municípios com maior concentração de
+    estabelecimentos e de número total de aves? Existe alguma disparidade regional significativa na produção? '''
+)
 df_estados = df[~df['NOM_TERR'].isin(regioes + brasil)].copy()
 
 if df_estados.empty or df_estados['GAL_MATR'].sum() == 0:
