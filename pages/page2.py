@@ -91,18 +91,18 @@ if not df_regioes.empty:
     fig2.update_traces(textposition='inside', textinfo='percent+label')
     st.plotly_chart(fig2, use_container_width=True)
     
-    st.info("""
-    **🔎 Análise Regional**
+ st.info("""
+    **🔍 Análise por Região**
     
-    📊 **Distribuição Percentual:**
-    - Região com maior participação
-    - Região com menor participação
-    - Equilíbrio (ou desequilíbrio) entre regiões
+    📌 **Principais observações:**
+    - Nordeste lidera com 40,2% das matrizes avícolas do Brasil
+    - Centro-Oeste é o segundo maior polo, com 30,7%
+    - Sul, Norte e Sudeste têm participações menores (11,4%, 9,89% e 7,95%)
     
-    💡 **Insights:**
-    - Padrões de concentração regional
-    - Relação com fatores climáticos e logísticos
-    - Potencial para desenvolvimento em regiões menos representadas
+    💡 **Interpretação:**
+    - Forte concentração da produção de matrizes nas regiões Nordeste e Centro-Oeste
+    - Distribuição pode estar relacionada à disponibilidade de áreas, clima e incentivos regionais
+    - Indica necessidade de estratégias regionais para o desenvolvimento do setor
     """)
 else:
     st.warning("Não há dados disponíveis para as regiões.")
