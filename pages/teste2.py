@@ -14,16 +14,13 @@ st.set_page_config(
 st.title('Análise de Sistemas de Criação Avícola')
 st.markdown("---")
 
-# Carregue os dados reais do GitHub (ajuste o branch se necessário)
-URL = "https://raw.githubusercontent.com/CIADM1A/GALINACEOS/main/GALINACEOS.csv"
+# Caminho RAW do GitHub correto
+URL = "https://raw.githubusercontent.com/CIADM1A/CIADM1A/main/GALINACEOS.csv"
 try:
     df = pd.read_csv(URL, sep=';')
 except Exception as e:
     st.error(f"Erro ao carregar o arquivo GALINACEOS.csv: {e}")
     st.stop()
-
-# Opcional: Mostre as primeiras linhas para o usuário conferir
-# st.write(df.head())
 
 def gerar_grafico_densidade_aves_por_sistema(df):
     st.subheader("📊 Densidade de Aves por Sistema de Criação")
