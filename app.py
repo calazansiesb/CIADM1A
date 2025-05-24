@@ -124,19 +124,19 @@ if 'GAL_TOTAL' in df.columns and 'N_TRAB_TOTAL' in df.columns:
 
     st.info(f"**Correlação Calculada:** {corr:.2f}")
 
-st.info("""
-    **👥 Análise da Relação entre Tamanho do Estabelecimento e Número de Trabalhadores**
+    st.info("""
+        **👥 Análise da Relação entre Tamanho do Estabelecimento e Número de Trabalhadores**
 
-    📌 **Principais observações:**
-    - A maior parte dos estabelecimentos concentra-se nos menores valores de total de galináceos, apresentando alta dispersão no número de trabalhadores.
-    - Mesmo entre estabelecimentos de pequeno porte, há casos com grande número de funcionários, indicando diferenças operacionais ou de modelo de gestão.
-    - À medida que o tamanho do estabelecimento aumenta, observa-se uma tendência de diminuição da variação no número de trabalhadores, com a maioria das unidades maiores empregando até cerca de 200 pessoas.
+        📌 **Principais observações:**
+        - A maior parte dos estabelecimentos concentra-se nos menores valores de total de galináceos, apresentando alta dispersão no número de trabalhadores.
+        - Mesmo entre estabelecimentos de pequeno porte, há casos com grande número de funcionários, indicando diferenças operacionais ou de modelo de gestão.
+        - À medida que o tamanho do estabelecimento aumenta, observa-se uma tendência de diminuição da variação no número de trabalhadores, com a maioria das unidades maiores empregando até cerca de 200 pessoas.
 
-    💡 **Interpretação:**
-    - A dispersão sugere que fatores além do tamanho físico, como tecnologia, automação, tipo de produção e especialização, influenciam fortemente a necessidade de mão de obra.
-    - Pequenos estabelecimentos podem demandar mais trabalhadores proporcionalmente, possivelmente devido a processos menos mecanizados ou maior diversificação de atividades.
-    - Estabelecimentos maiores tendem a otimizar o uso da força de trabalho, possivelmente refletindo maior eficiência operacional.
-""")
+        💡 **Interpretação:**
+        - A dispersão sugere que fatores além do tamanho físico, como tecnologia, automação, tipo de produção e especialização, influenciam fortemente a necessidade de mão de obra.
+        - Pequenos estabelecimentos podem demandar mais trabalhadores proporcionalmente, possivelmente devido a processos menos mecanizados ou maior diversificação de atividades.
+        - Estabelecimentos maiores tendem a otimizar o uso da força de trabalho, possivelmente refletindo maior eficiência operacional.
+    """)
 
 else:
     st.warning("As colunas 'GAL_TOTAL' ou 'N_TRAB_TOTAL' não foram encontradas no dataset.")
