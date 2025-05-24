@@ -82,6 +82,32 @@ if 'NOM_TERR' in df.columns and 'SIST_CRIA' in df.columns:
 # 3. Gráfico Interativo - Análise da Mão de Obra no Setor Avícola
 # =======================
 st.header('Análise da Mão de Obra no Setor Avícola')
+st.header('Estatísticas Descritivas dos Trabalhadores')
+if 'N_TRAB_PERM' in df.columns and 'N_TRAB_TEMP' in df.columns:
+    st.subheader('Trabalhadores Permanentes')
+    st.write(df['N_TRAB_PERM'].describe())
+    st.subheader('Trabalhadores Temporários')
+    st.write(df['N_TRAB_TEMP'].describe())
+    if 'N_TRAB_TOTAL' in df.columns:
+        st.subheader('Total de Trabalhadores')
+        st.write(df['N_TRAB_TOTAL'].describe())
+
+st.header('Correlação entre Tamanho do Estabelecimento e Número de Trabalhadores')
+if 'GAL_TOTAL' in df.columns and 'N_TRAB_TOTAL' in df.columns:
+    # Garantir que as colunas são numéricas
+    df['GAL_TOTAL'] = pd.to_numeric(df['GAL_TOTAL'], errors='coerce')
+    df['N_TRAB_TOTAL'] = pd.to_numeric(df['N_TRAB_TOTAL'], errors='coerce')
+    cor = df[['GAL_TOTAL', 'N_TRAB_TOTAL']].corr().loc['GAL_TOTAL', 'N_TRAB_TOTAL']
+    st.write(f'A correlação entre número total de aves e número de trabalhadores é: **{cor:.2f}**')
+
+    # Visualização
+    fig = px.scatter(
+        df, x='GAL_TOTAL', y='N_TRAB_TOTAL',
+        labels={'GAL_TOTAL': 'Total de Aves', 'N_TRAB_TOTAL': 'Total de Trabalhadores'},
+        title='Relação entre Tamanho do Estabelecimento e Número de Trabalhadores',
+        trendline="ols"  # Adiciona linha de tendência
+    )
+    st.plotly_chart(fig)
 
 if 'N_TRAB_TOTAL' in df.columns and 'GAL_TOTAL' in df.columns:
     df['N_TRAB_TOTAL'] = pd.to_numeric(df['N_TRAB_TOTAL'], errors='coerce')
