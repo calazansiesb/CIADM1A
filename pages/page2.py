@@ -56,14 +56,14 @@ if not df_estados.empty:
     **🔍 Análise por Estado**
     
     📌 **Principais observações:**
-    - Estados com maior concentração de matrizes avícolas
-    - Disparidades regionais na distribuição
-    - Potenciais polos de produção
+    - Mato Grosso do Sul e Pernambuco lideram em número absoluto de matrizes avícolas
+    - Distrito Federal e Pará também apresentam valores expressivos, compondo o grupo dos quatro estados com maior concentração
+    - A distribuição é bastante desigual, com alguns estados apresentando números significativamente mais baixos
     
     💡 **Interpretação:**
-    - Distribuição reflete a infraestrutura produtiva de cada estado
-    - Concentração em regiões com tradição avícola
-    - Oportunidades para expansão em estados menos representados
+    - Concentração de matrizes em poucos estados pode refletir fatores como infraestrutura, tradição produtiva e incentivos regionais
+    - Estados do Centro-Oeste e Nordeste se destacam como polos importantes na produção de matrizes
+    - Estados com menor número de matrizes podem representar oportunidades para crescimento e investimento no setor avícola
     """)
 else:
     st.warning("Não há dados disponíveis para os estados.")
