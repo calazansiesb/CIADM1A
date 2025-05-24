@@ -59,6 +59,34 @@ if 'SIST_CRIA' in df.columns:
 
     fig_pie = px.pie(df, names="SIST_CRIA", title="Proporção dos Sistemas de Criação", hover_data=["SIST_CRIA"])
     st.plotly_chart(fig_pie)
+    st.info(
+    """
+    **Distribuição Percentual dos Sistemas de Criação (Dados IBGE)**
+
+    O gráfico apresenta a proporção dos diferentes sistemas de criação de galináceos:
+
+    📊 **Distribuição Percentual:**
+    - 🟢 `3-SIST_PFC`: 28.3% (maior participação)
+    - 🔵 `1-SIST_POC`: 28.1% (segunda maior proporção)
+    - 🟡 `2-SIST_POI`: 27.3% (terceira posição)
+    - 🟠 `4-Outro`: 16.4% (menor representatividade)
+
+    🔍 **Principais insights:**
+    1. Equilíbrio relativo entre os três principais sistemas (diferença <1% entre eles)
+    2. Sistema "Outros" apresenta participação significativamente menor
+    3. Nenhum sistema domina claramente (>50%), indicando diversificação
+
+    ⚖️ **Interpretação técnica:**
+    - Os três sistemas principais (PFC, POC, POI) têm pesos similares na produção nacional
+    - A categoria "Outros" pode representar sistemas alternativos ou nichos específicos
+    - Distribuição sugere pluralidade de métodos de criação no país
+
+    📌 **Implicações:**
+    - Necessidade de políticas que contemplem múltiplos sistemas
+    - Pesquisa pode focar nas diferenças entre os três sistemas principais
+    - Dados justificam análises regionais para entender variações locais
+    """
+)
 
 # =======================
 # 2. Gráfico Interativo - Distribuição dos Sistemas de Criação por UF
