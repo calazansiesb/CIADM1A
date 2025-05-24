@@ -9,6 +9,16 @@ import matplotlib.pyplot as plt
 import plotly.express as px
 
 # ============================================================
+# A configuração da página DEVE ser o primeiro comando Streamlit
+# ============================================================
+st.set_page_config(
+    page_title="Modelo de Regressão Avícola - IBGE 2017",
+    page_icon="🐔",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
+
+# ============================================================
 # EXPLICAÇÃO SOBRE A MATRIZ DE CORRELAÇÃO E INTERPRETAÇÃO
 # ============================================================
 st.info("""
@@ -46,14 +56,6 @@ A matriz de correlação apresentada permite identificar o grau de associação 
 
 **Resumo**: A matriz de correlação evidencia que o aumento da produção está mais relacionado à intensificação do uso de mão de obra e ao perfil do sistema produtivo do que ao tamanho da área utilizada. Esta análise, em conjunto com a distribuição de densidade de aves, oferece uma visão abrangente dos fatores que diferenciam os sistemas de criação avícola no contexto analisado.
 """)
-
-# Configuração da página
-st.set_page_config(
-    page_title="Modelo de Regressão Avícola - IBGE 2017",
-    page_icon="🐔",
-    layout="wide",
-    initial_sidebar_state="expanded",
-)
 
 # Título principal
 st.title('Modelo de Regressão para Produção Avícola (IBGE 2017)')
