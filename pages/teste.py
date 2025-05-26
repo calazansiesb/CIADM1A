@@ -21,6 +21,7 @@ try:
     df['GAL_TOTAL'] = pd.to_numeric(df['GAL_TOTAL'], errors='coerce').fillna(0)
     df['GAL_VEND'] = pd.to_numeric(df['GAL_VEND'], errors='coerce').fillna(0)
     df['Q_DZ_PROD'] = pd.to_numeric(df['Q_DZ_PROD'], errors='coerce').fillna(0)
+    df['N_TRAB_TOTAL'] = pd.to_numeric(df['N_TRAB_TOTAL'], errors='coerce').fillna(0) # Adicionar N_TRAB_TOTAL para o 3D
     # Convertendo 'SIST_CRIA' para string e removendo espaços
     df['SIST_CRIA'] = df['SIST_CRIA'].astype(str).str.strip()
 
@@ -38,7 +39,7 @@ try:
         
         # Aplicar o mapeamento
         df['SIST_CRIA'] = df['SIST_CRIA'].replace(mapeamento_sistemas)
-        
+        st.info("Colunas de 'SIST_CRIA' mapeadas para descrições completas para melhor legibilidade.")
     else:
         st.warning("A coluna 'SIST_CRIA' não foi encontrada no dataset. Gráficos dependentes dela podem não funcionar corretamente.")
 
@@ -64,16 +65,16 @@ def gerar_grafico_densidade_aves_por_sistema(df):
     fig = px.density_heatmap(
         df_plot,
         x='GAL_TOTAL',
-        y='SIST_CRIA', # Agora com os nomes completos
+        y='SIST_CRIA',
         title='Distribuição de Densidade de Aves por Sistema de Criação',
         labels={'GAL_TOTAL': 'Total de Aves (Cabeça)', 'SIST_CRIA': 'Sistema de Criação'},
-        color_continuous_scale='Oranges',
+        color_continuous_scale='Plasma',
         nbinsx=20,
         height=500
     )
     st.plotly_chart(fig, use_container_width=True)
     
-    with st.expander("💡 Interpretação do Gráfico de Densidade"): # Adicionado st.expander
+    with st.expander("💡 Interpretação do Gráfico de Densidade"):
         st.info("""
         **🔍 Análise da Distribuição de Densidade de Aves por Sistema de Criação**
         📌 **Principais observações:**
@@ -110,19 +111,19 @@ def gerar_grafico_distribuicao_producao_por_sistema(df, tipo_producao='aves'):
     
     fig = px.bar(
         producao_por_sistema,
-        x='SIST_CRIA', # Agora com os nomes completos
+        x='SIST_CRIA',
         y=coluna_producao,
         title=titulo_grafico,
         labels={'SIST_CRIA': 'Sistema de Criação', coluna_producao: rotulo_eixo_y},
-        color='SIST_CRIA', # Agora com os nomes completos
-        color_discrete_sequence=px.colors.sequential.Oranges,
+        color='SIST_CRIA',
+        color_discrete_sequence=px.colors.qualitative.Plotly, # MUDANÇA AQUI: Cores discretas mais vivas
         text=coluna_producao
     )
     fig.update_traces(texttemplate='%{text:,.0f}', textposition='outside')
     fig.update_layout(xaxis_tickangle=-45)
     st.plotly_chart(fig, use_container_width=True)
     
-    with st.expander(f"💡 Interpretação do Gráfico de {('Venda de Aves' if tipo_producao == 'aves' else 'Produção de Ovos')}"): # Adicionado st.expander
+    with st.expander(f"💡 Interpretação do Gráfico de {('Venda de Aves' if tipo_producao == 'aves' else 'Produção de Ovos')}"):
         st.info(f"""
         **🔍 Análise da Distribuição da {'Venda de Aves' if tipo_producao == 'aves' else 'Produção de Ovos'} por Sistema de Criação**
         📌 **Principais observações:**
@@ -152,17 +153,17 @@ def gerar_histograma_aves_por_sistema(df):
     fig = px.histogram(
         df_plot,
         x='GAL_TOTAL',
-        color='SIST_CRIA', # Agora com os nomes completos
+        color='SIST_CRIA',
         title='Distribuição de Aves por Sistema de Criação',
         labels={'GAL_TOTAL': 'Total de Aves (Cabeça)', 'SIST_CRIA': 'Sistema de Criação'},
-        color_discrete_sequence=px.colors.sequential.Oranges,
+        color_discrete_sequence=px.colors.qualitative.Bold, # MUDANÇA AQUI: Cores discretas mais vivas
         nbins=20,
         barmode='stack',
         opacity=0.7
     )
     st.plotly_chart(fig, use_container_width=True)
     
-    with st.expander("💡 Interpretação do Histograma"): # Adicionado st.expander
+    with st.expander("💡 Interpretação do Histograma"):
         st.info("""
         **🔍 Análise do Histograma de Distribuição de Aves por Sistema**
         📌 **Principais observações:**
@@ -175,6 +176,62 @@ def gerar_histograma_aves_por_sistema(df):
         - A presença de sistemas de incubação em diferentes faixas pode indicar estratégias produtivas distintas, enquanto os demais sistemas tendem a se concentrar em faixas médias e altas de produção.
         - Essas informações são relevantes para o planejamento do setor, permitindo identificar oportunidades de apoio e desenvolvimento conforme o perfil produtivo predominante em cada sistema.
         """)
+
+# ---
+## NOVO: Gráfico de Dispersão 3D
+# ---
+def gerar_grafico_dispersao_3d(df):
+    st.header('✨ Relação 3D: Aves, Trabalhadores e Produção de Ovos')
+    
+    # Garantir que as colunas existam e sejam numéricas
+    cols_3d = ['GAL_TOTAL', 'N_TRAB_TOTAL', 'Q_DZ_PROD', 'SIST_CRIA']
+    if not all(col in df.columns for col in cols_3d):
+        st.warning("O DataFrame não contém todas as colunas necessárias para o gráfico 3D ('GAL_TOTAL', 'N_TRAB_TOTAL', 'Q_DZ_PROD', 'SIST_CRIA').")
+        return
+    
+    # Remover linhas com NaN nas colunas relevantes para o gráfico 3D
+    df_plot_3d = df.dropna(subset=['GAL_TOTAL', 'N_TRAB_TOTAL', 'Q_DZ_PROD', 'SIST_CRIA']).copy()
+
+    if df_plot_3d.empty:
+        st.warning("Não há dados suficientes para gerar o gráfico 3D após a remoção de valores ausentes.")
+        return
+
+    # Usar GAL_TOTAL, N_TRAB_TOTAL e Q_DZ_PROD como eixos
+    # Colorir os pontos pelo SIST_CRIA
+    fig = px.scatter_3d(
+        df_plot_3d,
+        x='GAL_TOTAL',
+        y='N_TRAB_TOTAL',
+        z='Q_DZ_PROD',
+        color='SIST_CRIA', # Colorir por Sistema de Criação
+        title='Relação entre Aves, Trabalhadores e Produção de Ovos por Sistema de Criação',
+        labels={
+            'GAL_TOTAL': 'Total de Aves',
+            'N_TRAB_TOTAL': 'Total de Trabalhadores',
+            'Q_DZ_PROD': 'Produção de Ovos (Dúzia)',
+            'SIST_CRIA': 'Sistema de Criação'
+        },
+        color_discrete_sequence=px.colors.qualitative.Vivid, # Cores mais vivas para o 3D
+        height=700
+    )
+    
+    st.plotly_chart(fig, use_container_width=True)
+
+    with st.expander("💡 Interpretação do Gráfico de Dispersão 3D"):
+        st.info("""
+        **🔍 Análise da Relação 3D: Aves, Trabalhadores e Produção de Ovos por Sistema de Criação**
+
+        📌 **Principais observações:**
+        - Este gráfico permite visualizar a relação simultânea entre o total de aves, o número de trabalhadores e a produção de dúzias de ovos, segmentado pelo sistema de criação.
+        - Observe como os agrupamentos de cores (sistemas de criação) se distribuem no espaço 3D, indicando se certos sistemas tendem a ter mais aves, mais trabalhadores ou maior produção de ovos.
+        - É possível identificar clusters de pontos que representam estabelecimentos com características semelhantes em termos de escala de produção e mão de obra.
+
+        💡 **Interpretação:**
+        - Uma nuvem de pontos densa em uma área específica pode indicar um padrão comum de operação para aquele sistema de criação.
+        - A separação entre as cores pode mostrar que diferentes sistemas de criação têm modelos operacionais distintos, com variações significativas em sua força de trabalho e capacidade produtiva.
+        - Este gráfico é excelente para identificar outliers ou estabelecimentos que fogem do padrão comum, possibilitando investigações mais aprofundadas.
+        """)
+
 
 # Seção de gráficos
 col1, col2 = st.columns([3, 1])
@@ -192,6 +249,8 @@ with col2:
 gerar_grafico_distribuicao_producao_por_sistema(df, tipo_producao=tipo)
 gerar_histograma_aves_por_sistema(df)
 
+# Chamar o novo gráfico 3D
+gerar_grafico_dispersao_3d(df)
 
 # Rodapé
 st.markdown("---")
