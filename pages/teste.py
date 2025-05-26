@@ -49,23 +49,14 @@ if 'SIST_CRIA' in df.columns:
         '3-SIST_PFC': 'Produtores de frangos de corte',
         '4-Outro': 'Outros produtores'
     }
-    
     # Aplicar o mapeamento
     df['SIST_CRIA'] = df['SIST_CRIA'].replace(mapeamento_sistemas)
-    st.info("Colunas de 'SIST_CRIA' mapeadas para descrições completas para melhor legibilidade.")
+    
 
-# Mostrar um preview dos dados (após o mapeamento, se aplicável)
+# Mostrar registros aleatórios do conjunto de dados)
 st.subheader("Visualização dos Dados")
-st.dataframe(df.head())
-
-# =============================================
-# ✨ NOVIDADE: Amostra Aleatória dos Dados em um Expander
-# =============================================
-with st.expander("🎲 Ver Amostra Aleatória dos Dados"):
-    st.dataframe(df.sample(n=10)) # Exibe 10 linhas aleatórias por padrão
-    st.caption("Esta é uma amostra de 10 linhas aleatórias do conjunto de dados.")
-
-st.markdown("---") # Para separar visualmente
+with st.expander("🔎 Ver registros aleatórios do conjunto de dados"):
+    st.dataframe(df.sample(5))  # Exibe 5 linhas aleatórias
 
 # =============================================
 # 🔹 2. Proporção dos Sistemas de Criação
@@ -76,17 +67,16 @@ if 'SIST_CRIA' in df.columns:
     freq_sistemas = df['SIST_CRIA'].value_counts(normalize=True) * 100
     fig1 = px.pie(
         values=freq_sistemas.values,
-        names=freq_sistemas.index, # Agora 'names' usará as descrições completas
+        names=freq_sistemas.index,
         title='Distribuição Percentual dos Sistemas de Criação',
         color_discrete_sequence=px.colors.qualitative.Pastel
     )
     st.plotly_chart(fig1, use_container_width=True)
 
-    # Adicionado st.expander para a interpretação do gráfico de sistemas de criação
     with st.expander("💡 Interpretação do Gráfico de Proporção dos Sistemas de Criação"):
         st.info("""
         **📊 Análise dos Sistemas de Criação**
-        
+
         📌 **Principais observações:**
         - Os sistemas **Produtores de frangos de corte** (28,3%) e **Produtores de ovos para consumo** (28,1%) apresentam proporções muito semelhantes, sendo os mais representativos do total.
         - A categoria **Outros produtores** (27,3%) também possui participação relevante, indicando diversidade e presença de outros sistemas além dos principais.
@@ -116,11 +106,10 @@ if 'NOM_TERR' in df.columns:
     )
     st.plotly_chart(fig2, use_container_width=True)
 
-    # Adicionado st.expander para a interpretação do gráfico de distribuição por UF
     with st.expander("💡 Interpretação do Gráfico de Distribuição por Unidade Federativa"):
         st.info("""
         **🌎 Análise da Distribuição por Unidade Federativa**
-        
+
         📌 **Principais observações:**
         - Os maiores valores de estabelecimentos estão concentrados nas regiões **Sul, Sudeste e Nordeste**, com estados como **Paraná, Santa Catarina, Bahia, Pernambuco e Rio Grande do Sul** entre os primeiros colocados.
         - O número de estabelecimentos por UF apresenta uma distribuição relativamente homogênea nos estados líderes, com leve declínio nos estados das regiões Norte e Centro-Oeste.
@@ -140,26 +129,21 @@ else:
 st.header('👥 Relação entre Tamanho do Estabelecimento e Número de Trabalhadores')
 
 if 'GAL_TOTAL' in df.columns and 'N_TRAB_TOTAL' in df.columns:
-    # Conversão de tipos de dados (feito aqui para garantir que 'df' esteja atualizado com as descrições de SIST_CRIA)
     df['GAL_TOTAL'] = pd.to_numeric(df['GAL_TOTAL'], errors='coerce')
     df['N_TRAB_TOTAL'] = pd.to_numeric(df['N_TRAB_TOTAL'], errors='coerce')
-    
     corr = df['GAL_TOTAL'].corr(df['N_TRAB_TOTAL'])
-    
     fig3 = px.scatter(
-        df, # Passa o DataFrame completo para que Plotly possa usar outras colunas
+        df,
         x='GAL_TOTAL',
         y='N_TRAB_TOTAL',
         title='Relação entre Tamanho do Estabelecimento e Número de Trabalhadores',
         labels={'GAL_TOTAL': 'Total de Galináceos', 'N_TRAB_TOTAL': 'Número de Trabalhadores'},
         trendline="ols",
-        color='SIST_CRIA' # Adicionando cor pelo sistema de criação para melhor visualização
+        color='SIST_CRIA'
     )
     st.plotly_chart(fig3, use_container_width=True)
-
     st.info(f"**Correlação Calculada:** {corr:.2f}")
 
-    # Conteúdo da análise resumida para o gráfico de dispersão
     with st.expander("💡 Interpretação do Gráfico de Relação entre Tamanho e Trabalhadores"):
         st.info("""
         **👥 Análise da Relação entre Tamanho do Estabelecimento e Número de Trabalhadores**
@@ -176,51 +160,53 @@ if 'GAL_TOTAL' in df.columns and 'N_TRAB_TOTAL' in df.columns:
         - Sistemas como **frangos de corte** podem se beneficiar mais de **automação em larga escala**, enquanto a **produção de ovos** pode ter uma necessidade de mão de obra mais **constante** por unidade produzida.
         - As diferenças observadas indicam que o setor avícola possui **perfis operacionais diversos**, que dependem não apenas do tamanho, mas também da especialização do estabelecimento.
         """)
-
 else:
     st.warning("As colunas 'GAL_TOTAL' ou 'N_TRAB_TOTAL' não foram encontradas no dataset.")
-    
+
 # =============================================
-# 🔹 5. Distribuição por Porte dos Estabelecimentos
+# 🔹 5. Distribuição por Porte dos Estabelecimentos (CORRIGIDO + ANÁLISE DO GRÁFICO)
 # =============================================
 st.header('🏭 Distribuição por Porte dos Estabelecimentos')
 
-if 'Q_DZ_PROD' in df.columns:
+if 'NOM_CL_GAL' in df.columns:
+    freq_portes = df['NOM_CL_GAL'].value_counts().sort_index()
+    fig4 = px.bar(
+        x=freq_portes.index,
+        y=freq_portes.values,
+        title='Distribuição de Estabelecimentos por Porte (Faixas IBGE)',
+        labels={'x': 'Porte do Estabelecimento', 'y': 'Quantidade'},
+        color_discrete_sequence=['#636EFA', '#EF553B', '#00CC96', '#AB63FA', '#FFA15A']
+    )
+    st.plotly_chart(fig4, use_container_width=True)
+
+    with st.expander("💡 Interpretação do Gráfico de Distribuição por Porte dos Estabelecimentos"):
+        st.info("""
+        **🏭 Análise da Distribuição por Porte dos Estabelecimentos**
+
+        O gráfico mostra a quantidade de estabelecimentos distribuídos por diferentes faixas de porte (definidas pelo IBGE):
+
+        - As faixas intermediárias, especialmente entre **201 e 5.000 aves**, concentram os maiores números de estabelecimentos, sugerindo predominância de produtores de médio porte no setor.
+        - Pequenos produtores ("De 1 a 100" e "De 101 a 200") também são numerosos, mas em menor quantidade que as faixas intermediárias.
+        - Faixas extremas ("De 100.001 e mais" e "Sem galináceos em 30.09.2017") apresentam participação reduzida, indicando que grandes produtores e estabelecimentos temporariamente inativos são minoria.
+        - A categoria "Total" pode representar registros agregados ou casos não classificados nas demais faixas, devendo ser analisada com cautela.
+        - A presença de estabelecimentos "Sem galináceos" reforça a importância de considerar sazonalidade ou inatividade temporária.
+
+        **Conclusão:** 
+        - O perfil da produção avícola brasileira é fortemente marcado pela presença de estabelecimentos de porte intermediário, com pequena participação de grandes produtores e um contingente relevante de pequenos estabelecimentos. Isso tem implicações para políticas públicas, estratégias de mercado e apoio ao setor.
+        """)
+elif 'Q_DZ_PROD' in df.columns:
     df['Q_DZ_PROD'] = pd.to_numeric(df['Q_DZ_PROD'], errors='coerce')
-    # Use .copy() to avoid SettingWithCopyWarning if df is a slice
-    df_filtered = df.dropna(subset=['Q_DZ_PROD']).copy() 
+    df_filtered = df.dropna(subset=['Q_DZ_PROD']).copy()
 
     if df_filtered.empty:
         st.warning("Não há dados válidos para a produção de ovos para categorizar por porte após a remoção de valores ausentes.")
     else:
-        # Define the number of desired bins
-        num_bins = 3 # You want at least 3 groups
+        num_bins = 3
 
-        # Calculate quantiles to define dynamic bins
-        # Ensure unique quantiles, as pd.cut fails with duplicate bin edges
-        # Adding a small epsilon to the max to ensure it's always included in the last bin
         if df_filtered['Q_DZ_PROD'].nunique() < num_bins:
-            # If there are fewer unique values than desired bins,
-            # we might not be able to create all bins dynamically.
-            # In this case, use a fixed set of bins that are likely to work or
-            # adjust the number of bins.
             st.warning(f"Atenção: A coluna 'Q_DZ_PROD' tem apenas {df_filtered['Q_DZ_PROD'].nunique()} valores únicos. Pode não ser possível criar {num_bins} grupos distintos. Exibindo grupos existentes.")
-            # Fallback to a simpler, more robust binning if data is too sparse
-            # Changed the binning strategy for extremely sparse data
-            bins = [0]
-            # Try to infer some breakpoints if values are extremely small
-            if df_filtered['Q_DZ_PROD'].max() < 10: # If max is very small
-                bins.extend([1, 5, df_filtered['Q_DZ_PROD'].max() + 1])
-                labels = ['Zero', 'Muito Pequeno', 'Pequeno', 'Médio']
-            else: # Use more standard small breaks if max is larger but still small
-                bins.extend([100, 500, 1000, df_filtered['Q_DZ_PROD'].max() + 1])
-                labels = ['Zero', 'Muito Pequeno', 'Pequeno', 'Médio', 'Grande']
-
-            # Remove duplicates from bins, keep unique and sorted
-            bins = sorted(list(set(bins)))
-            # Adjust labels to match actual number of bins
-            labels = [f'Porte {i}' for i in range(len(bins) - 1)]
-
+            bins = [0, 1, 1000, 5000, float('inf')]
+            labels = ['Nulo (0)', 'Muito Pequeno (0-1k)', 'Pequeno (1k-5k)', 'Médio-Grande (>5k)']
             df_filtered['Porte'] = pd.cut(
                 df_filtered['Q_DZ_PROD'],
                 bins=bins,
@@ -228,52 +214,38 @@ if 'Q_DZ_PROD' in df.columns:
                 include_lowest=True,
                 right=False
             )
-            # Filter out categories that are empty to avoid issues with plotly if reindex tries to plot them
             freq_portes = df_filtered['Porte'].value_counts()
-            # Only reindex with labels that actually have data
             labels_with_data = [label for label in labels if label in freq_portes.index]
             freq_portes = freq_portes.reindex(labels_with_data, fill_value=0)
-
         else:
-            # Use qcut for more evenly distributed groups if there are enough unique values
-            # This creates groups with approximately equal number of observations
-            # Add a small value to the upper limit to ensure max value is included
             bins = pd.qcut(
                 df_filtered['Q_DZ_PROD'],
                 q=num_bins,
-                duplicates='drop', # Drop duplicate bin edges that can occur with sparse data
-                retbins=True # Return the actual bin edges
+                duplicates='drop',
+                retbins=True
             )[1]
-
-            # Adjust the first bin edge if it's not 0 or negative
             if bins[0] > 0:
-                bins[0] = 0 # Ensure the first bin starts at 0 for practical count
-
-            # Adjust the last bin to ensure it covers the absolute max value
-            # Only if the last bin is not already float('inf') or already covers the max
+                bins[0] = 0
             if bins[-1] < df_filtered['Q_DZ_PROD'].max():
-                bins[-1] = df_filtered['Q_DZ_PROD'].max() + 1e-9 # Add tiny epsilon
+                bins[-1] = df_filtered['Q_DZ_PROD'].max() + 1e-9
 
-            labels = [f'Grupo {i+1}' for i in range(len(bins)-1)]
-            # You can make these labels more descriptive, e.g., based on the bin ranges
-            if len(bins) == 4: # If 3 distinct bins were formed
+            if num_bins == 3 and len(bins) == 4:
                 labels = [
                     f'Pequeno (até {int(bins[1])})',
                     f'Médio ({int(bins[1])} - {int(bins[2])})',
                     f'Grande (acima de {int(bins[2])})'
                 ]
-            elif len(bins) > 1: # Fallback for other numbers of bins
-                 labels = [f'{int(bins[i])} - {int(bins[i+1])}' for i in range(len(bins)-1)]
-            else: # Single bin case, should ideally not happen with qcut unless all values are identical
+            elif len(bins) > 1:
+                labels = [f'{int(bins[i])} - {int(bins[i+1])}' for i in range(len(bins)-1)]
+            else:
                 labels = ["Único Porte"]
-
 
             df_filtered['Porte'] = pd.cut(
                 df_filtered['Q_DZ_PROD'],
                 bins=bins,
                 labels=labels,
-                include_lowest=True, # Include the lowest value
-                right=False # Interval is [a, b)
+                include_lowest=True,
+                right=False
             )
             freq_portes = df_filtered['Porte'].value_counts().reindex(labels, fill_value=0)
 
@@ -286,24 +258,22 @@ if 'Q_DZ_PROD' in df.columns:
         )
         st.plotly_chart(fig4, use_container_width=True)
 
-        # Adicionado st.expander para a interpretação do gráfico de porte dos estabelecimentos
         with st.expander("💡 Interpretação do Gráfico de Distribuição por Porte dos Estabelecimentos"):
             st.info("""
             **🏭 Análise da Distribuição por Porte dos Estabelecimentos**
 
-            📌 **Principais observações:**
-            - A distribuição de estabelecimentos por porte é agora categorizada dinamicamente, garantindo múltiplos grupos.
-            - O gráfico mostrará a proporção de estabelecimentos em cada faixa de produção de ovos (em dúzias), que foram definidos para equilibrar a quantidade de dados em cada categoria.
-            - A maior parte dos estabelecimentos tende a se concentrar nos portes menores, enquanto os maiores produtores são menos numerosos, mas contribuem significativamente para o volume total de produção.
+            O gráfico mostra a quantidade de estabelecimentos distribuídos por diferentes faixas de porte (definidas dinamicamente):
 
-            💡 **Interpretação:**
-            - A categorização dinâmica dos portes permite uma visão mais fiel da distribuição dos estabelecimentos dentro do seu conjunto de dados.
-            - Isso ajuda a identificar a estrutura do setor, seja ela dominada por muitos pequenos produtores ou por poucos grandes.
-            - Compreender essa distribuição é crucial para direcionar políticas de apoio, investimentos e estratégias de mercado para os diferentes segmentos de produtores avícolas.
+            - As faixas intermediárias concentram os maiores números de estabelecimentos, sugerindo predominância de produtores de médio porte no setor.
+            - A maior parte dos estabelecimentos tende a se concentrar nos portes menores, enquanto os maiores produtores são menos numerosos, mas contribuem significativamente para o volume total de produção.
+            - A presença de estabelecimentos "Nulo" ou "Sem produção" reforça a importância de considerar sazonalidade ou inatividade temporária.
+
+            **Conclusão:** 
+            - O perfil da produção avícola brasileira é fortemente marcado pela presença de estabelecimentos de porte intermediário, com pequena participação de grandes produtores e um contingente relevante de pequenos estabelecimentos. Isso tem implicações para políticas públicas, estratégias de mercado e apoio ao setor.
             """)
 else:
-    st.warning("A coluna 'Q_DZ_PROD' não foi encontrada no dataset.")
-    
+    st.warning("A coluna 'NOM_CL_GAL' ou 'Q_DZ_PROD' não foi encontrada no dataset.")
+
 # =============================================
 # 🔹 Rodapé
 # =============================================
