@@ -51,8 +51,9 @@ if not df_estados.empty:
     )
     fig1.update_layout(xaxis_tickangle=-45)
     st.plotly_chart(fig1, use_container_width=True)
-    
-    st.info("""
+
+    with st.expander("💡 Interpretação do Gráfico"):
+    st.markdown("""
     **🔍 Análise por Estado**
     
     📌 **Principais observações:**
@@ -65,6 +66,7 @@ if not df_estados.empty:
     - Estados do Centro-Oeste e Nordeste se destacam como polos importantes na produção de matrizes
     - Estados com menor número de matrizes podem representar oportunidades para crescimento e investimento no setor avícola
     """)
+    
 else:
     st.warning("Não há dados disponíveis para os estados.")
 
