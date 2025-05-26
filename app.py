@@ -35,7 +35,26 @@ except Exception as e:
     st.error(f"Erro ao carregar os dados: {e}")
     st.stop()
 
-# Mostrar um preview dos dados
+# =============================================
+# ✨ NOVIDADE: Mapeamento e Limpeza da coluna SIST_CRIA
+# =============================================
+if 'SIST_CRIA' in df.columns:
+    # Limpar espaços em branco e garantir que é string antes de mapear
+    df['SIST_CRIA'] = df['SIST_CRIA'].astype(str).str.strip()
+
+    # Dicionário de mapeamento das abreviações para descrições completas
+    mapeamento_sistemas = {
+        '1-SIST_POC': 'Produtores de ovos para consumo',
+        '2-SIST_POI': 'Produtores de ovos para incubação',
+        '3-SIST_PFC': 'Produtores de frangos de corte',
+        '4-Outro': 'Outros produtores'
+    }
+    
+    # Aplicar o mapeamento
+    df['SIST_CRIA'] = df['SIST_CRIA'].replace(mapeamento_sistemas)
+    st.info("Colunas de 'SIST_CRIA' mapeadas para descrições completas para melhor legibilidade.")
+
+# Mostrar um preview dos dados (após o mapeamento, se aplicável)
 st.subheader("Visualização dos Dados")
 st.dataframe(df.head())
 
@@ -48,7 +67,7 @@ if 'SIST_CRIA' in df.columns:
     freq_sistemas = df['SIST_CRIA'].value_counts(normalize=True) * 100
     fig1 = px.pie(
         values=freq_sistemas.values,
-        names=freq_sistemas.index,
+        names=freq_sistemas.index, # Agora 'names' usará as descrições completas
         title='Distribuição Percentual dos Sistemas de Criação',
         color_discrete_sequence=px.colors.qualitative.Pastel
     )
@@ -60,14 +79,14 @@ if 'SIST_CRIA' in df.columns:
         **📊 Análise dos Sistemas de Criação**
         
         📌 **Principais observações:**
-        - Os sistemas **3-SIST_PFC** (28,3%) e **1-SIST_POC** (28,1%) apresentam proporções muito semelhantes, sendo os mais representativos do total.
-        - A categoria **4-Outro** (27,3%) também possui participação relevante, indicando diversidade e presença de outros sistemas além dos principais.
-        - O sistema **2-SIST_POI** (16,4%) apresenta a menor fatia, mas ainda assim representa uma parcela considerável.
+        - Os sistemas **Produtores de frangos de corte** (28,3%) e **Produtores de ovos para consumo** (28,1%) apresentam proporções muito semelhantes, sendo os mais representativos do total.
+        - A categoria **Outros produtores** (27,3%) também possui participação relevante, indicando diversidade e presença de outros sistemas além dos principais.
+        - O sistema **Produtores de ovos para incubação** (16,4%) apresenta a menor fatia, mas ainda assim representa uma parcela considerável.
 
         💡 **Interpretação:**
-        - O equilíbrio entre SIST_PFC e SIST_POC sugere concorrência ou complementaridade entre esses sistemas na criação.
-        - A expressiva participação da categoria "Outro" ressalta a existência de múltiplos sistemas alternativos, possivelmente personalizados ou regionais.
-        - A presença significativa do SIST_POI, mesmo sendo a menor, pode indicar nichos produtivos ou oportunidades para expansão.
+        - O equilíbrio entre Produtores de frangos de corte e Produtores de ovos para consumo sugere concorrência ou complementaridade entre esses sistemas na criação.
+        - A expressiva participação da categoria "Outros produtores" ressalta a existência de múltiplos sistemas alternativos, possivelmente personalizados ou regionais.
+        - A presença significativa dos Produtores de ovos para incubação, mesmo sendo a menor, pode indicar nichos produtivos ou oportunidades para expansão.
         """)
 else:
     st.warning("A coluna 'SIST_CRIA' não foi encontrada no dataset.")
@@ -112,17 +131,20 @@ else:
 st.header('👥 Relação entre Tamanho do Estabelecimento e Número de Trabalhadores')
 
 if 'GAL_TOTAL' in df.columns and 'N_TRAB_TOTAL' in df.columns:
+    # Conversão de tipos de dados (feito aqui para garantir que 'df' esteja atualizado com as descrições de SIST_CRIA)
     df['GAL_TOTAL'] = pd.to_numeric(df['GAL_TOTAL'], errors='coerce')
     df['N_TRAB_TOTAL'] = pd.to_numeric(df['N_TRAB_TOTAL'], errors='coerce')
     
     corr = df['GAL_TOTAL'].corr(df['N_TRAB_TOTAL'])
     
     fig3 = px.scatter(
-        x=df['GAL_TOTAL'],
-        y=df['N_TRAB_TOTAL'],
+        df, # Passa o DataFrame completo para que Plotly possa usar outras colunas
+        x='GAL_TOTAL',
+        y='N_TRAB_TOTAL',
         title='Relação entre Tamanho do Estabelecimento e Número de Trabalhadores',
-        labels={'x': 'Total de Galináceos', 'y': 'Número de Trabalhadores'},
-        trendline="ols"
+        labels={'GAL_TOTAL': 'Total de Galináceos', 'N_TRAB_TOTAL': 'Número de Trabalhadores'},
+        trendline="ols",
+        color='SIST_CRIA' # Adicionando cor pelo sistema de criação para melhor visualização
     )
     st.plotly_chart(fig3, use_container_width=True)
 
@@ -137,11 +159,13 @@ if 'GAL_TOTAL' in df.columns and 'N_TRAB_TOTAL' in df.columns:
         - A maior parte dos estabelecimentos concentra-se nos menores valores de total de galináceos, apresentando alta dispersão no número de trabalhadores.
         - Mesmo entre estabelecimentos de pequeno porte, há casos com grande número de funcionários, indicando diferenças operacionais ou de modelo de gestão.
         - À medida que o tamanho do estabelecimento aumenta, observa-se uma tendência de diminuição da variação no número de trabalhadores, com a maioria das unidades maiores empregando até cerca de 200 pessoas.
+        - A coloração por **Sistema de Criação** (agora com nomes completos na legenda) revela que diferentes sistemas podem ter padrões distintos na relação entre tamanho e força de trabalho, por exemplo, produtores de ovos para incubação podem ser maiores e mais automatizados, enquanto "Outros produtores" podem ser menores e mais intensivos em mão de obra.
 
         💡 **Interpretação:**
         - A dispersão sugere que fatores além do tamanho físico, como tecnologia, automação, tipo de produção e especialização, influenciam fortemente a necessidade de mão de obra.
         - Pequenos estabelecimentos podem demandar mais trabalhadores proporcionalmente, possivelmente devido a processos menos mecanizados ou maior diversificação de atividades.
         - Estabelecimentos maiores tendem a otimizar o uso da força de trabalho, possivelmente refletindo maior eficiência operacional.
+        - A segmentação por sistema de criação no gráfico de dispersão ajuda a identificar nichos e modelos de negócio específicos que impactam a demanda por trabalhadores.
         """)
 
 else:
@@ -157,16 +181,16 @@ if 'Q_DZ_PROD' in df.columns:
     df.dropna(subset=['Q_DZ_PROD'], inplace=True)
 
     # Diagnóstico da distribuição
-    st.write(df['Q_DZ_PROD'].describe())
-    st.write(df['Q_DZ_PROD'].value_counts(bins=10))
+    # st.write(df['Q_DZ_PROD'].describe())
+    # st.write(df['Q_DZ_PROD'].value_counts(bins=10))
 
     # Ajuste dos bins conforme os dados
     max_val = df['Q_DZ_PROD'].max()
     # Definindo bins de forma mais robusta para evitar inf, se Q_DZ_PROD for 0 ou pequeno
     if max_val > 0:
         bins = [-float('inf'), 1000, 5000, max_val + 1]
-    else: # Caso todos os valores sejam 0 ou muito pequenos
-        bins = [-float('inf'), 1, 1000, float('inf')] # Ajuste para lidar com valores muito baixos
+    else: # Caso todos os valores sejam 0 ou muito pequenos, ajuste os bins
+        bins = [-float('inf'), 1, 1000, float('inf')] 
     
     labels = ['Pequeno', 'Médio', 'Grande']
 
