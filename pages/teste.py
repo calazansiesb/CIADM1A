@@ -170,36 +170,50 @@ if 'GAL_TOTAL' in df.columns and 'N_TRAB_TOTAL' in df.columns:
 
 else:
     st.warning("As colunas 'GAL_TOTAL' ou 'N_TRAB_TOTAL' não foram encontradas no dataset.")
-    
+
 # =============================================
-# 🔹 5. Distribuição por Porte dos Estabelecimentos
+# 🔹 5. Distribuição por Porte dos Estabelecimentos (CORRIGIDO)
 # =============================================
 st.header('🏭 Distribuição por Porte dos Estabelecimentos')
 
-if 'Q_DZ_PROD' in df.columns:
+# NOVO: Usar a coluna NOM_CL_GAL se existir para porte por faixa, ou Q_DZ_PROD para categorização dinâmica
+if 'NOM_CL_GAL' in df.columns:
+    # Distribuição usando a faixa já categorizada pelo IBGE
+    freq_portes = df['NOM_CL_GAL'].value_counts().sort_index()
+    fig4 = px.bar(
+        x=freq_portes.index,
+        y=freq_portes.values,
+        title='Distribuição de Estabelecimentos por Porte (Faixas IBGE)',
+        labels={'x': 'Porte do Estabelecimento', 'y': 'Quantidade'},
+        color_discrete_sequence=['#636EFA', '#EF553B', '#00CC96', '#AB63FA', '#FFA15A']
+    )
+    st.plotly_chart(fig4, use_container_width=True)
+
+    with st.expander("💡 Interpretação do Gráfico de Distribuição por Porte dos Estabelecimentos"):
+        st.info("""
+        **🏭 Análise da Distribuição por Porte dos Estabelecimentos (Faixas IBGE)**
+
+        📌 **Principais observações:**
+        - A distribuição segue as faixas já definidas pelo IBGE, facilitando comparações e integrando a categorização oficial.
+        - Estabelecimentos de menor porte (faixas iniciais) são muito mais numerosos, enquanto grandes estabelecimentos são minoria, mas possuem peso produtivo importante.
+
+        💡 **Interpretação:**
+        - Utilizar as faixas oficiais permite análises mais comparáveis e facilmente comunicáveis.
+        - A concentração nos portes menores indica predominância de pequenos produtores, importante para políticas públicas e arranjos produtivos locais.
+        """)
+elif 'Q_DZ_PROD' in df.columns:
     df['Q_DZ_PROD'] = pd.to_numeric(df['Q_DZ_PROD'], errors='coerce')
-    # Use .copy() to avoid SettingWithCopyWarning if df is a slice
-    df_filtered = df.dropna(subset=['Q_DZ_PROD']).copy() 
+    df_filtered = df.dropna(subset=['Q_DZ_PROD']).copy()
 
     if df_filtered.empty:
         st.warning("Não há dados válidos para a produção de ovos para categorizar por porte após a remoção de valores ausentes.")
     else:
-        # Define the number of desired bins
-        num_bins = 3 # You want at least 3 groups
+        num_bins = 3
 
-        # Calculate quantiles to define dynamic bins
-        # Ensure unique quantiles, as pd.cut fails with duplicate bin edges
-        # Adding a small epsilon to the max to ensure it's always included in the last bin
         if df_filtered['Q_DZ_PROD'].nunique() < num_bins:
-            # If there are fewer unique values than desired bins,
-            # we might not be able to create all bins dynamically.
-            # In this case, use a fixed set of bins that are likely to work or
-            # adjust the number of bins.
             st.warning(f"Atenção: A coluna 'Q_DZ_PROD' tem apenas {df_filtered['Q_DZ_PROD'].nunique()} valores únicos. Pode não ser possível criar {num_bins} grupos distintos. Exibindo grupos existentes.")
-            # Fallback to a simpler, more robust binning if data is too sparse
-            bins = [0, 1, 1000, 5000, float('inf')] # More detailed fixed bins
+            bins = [0, 1, 1000, 5000, float('inf')]
             labels = ['Nulo (0)', 'Muito Pequeno (0-1k)', 'Pequeno (1k-5k)', 'Médio-Grande (>5k)']
-            # Remove labels if their corresponding bins are empty after cutting
             df_filtered['Porte'] = pd.cut(
                 df_filtered['Q_DZ_PROD'],
                 bins=bins,
@@ -207,52 +221,38 @@ if 'Q_DZ_PROD' in df.columns:
                 include_lowest=True,
                 right=False
             )
-            # Filter out categories that are empty to avoid issues with plotly if reindex tries to plot them
             freq_portes = df_filtered['Porte'].value_counts()
-            # Only reindex with labels that actually have data
             labels_with_data = [label for label in labels if label in freq_portes.index]
             freq_portes = freq_portes.reindex(labels_with_data, fill_value=0)
-
         else:
-            # Use qcut for more evenly distributed groups if there are enough unique values
-            # This creates groups with approximately equal number of observations
-            # Add a small value to the upper limit to ensure max value is included
             bins = pd.qcut(
                 df_filtered['Q_DZ_PROD'],
                 q=num_bins,
-                duplicates='drop', # Drop duplicate bin edges that can occur with sparse data
-                retbins=True # Return the actual bin edges
+                duplicates='drop',
+                retbins=True
             )[1]
-
-            # Adjust the first bin edge if it's not 0 or negative
             if bins[0] > 0:
-                bins[0] = 0 # Ensure the first bin starts at 0 for practical count
-
-            # Adjust the last bin to ensure it covers the absolute max value
+                bins[0] = 0
             if bins[-1] < df_filtered['Q_DZ_PROD'].max():
-                bins[-1] = df_filtered['Q_DZ_PROD'].max() + 1e-9 # Add tiny epsilon
+                bins[-1] = df_filtered['Q_DZ_PROD'].max() + 1e-9
 
-            labels = [f'Grupo {i+1}' for i in range(len(bins)-1)]
-            # You can make these labels more descriptive, e.g., based on the bin ranges
-            # Example for 3 bins:
-            if num_bins == 3 and len(bins) == 4: # Check if 3 distinct bins were formed
+            if num_bins == 3 and len(bins) == 4:
                 labels = [
                     f'Pequeno (até {int(bins[1])})',
                     f'Médio ({int(bins[1])} - {int(bins[2])})',
                     f'Grande (acima de {int(bins[2])})'
                 ]
-            elif len(bins) > 1: # Fallback for other numbers of bins
-                 labels = [f'{int(bins[i])} - {int(bins[i+1])}' for i in range(len(bins)-1)]
-            else: # Single bin case, should ideally not happen with qcut unless all values are identical
+            elif len(bins) > 1:
+                labels = [f'{int(bins[i])} - {int(bins[i+1])}' for i in range(len(bins)-1)]
+            else:
                 labels = ["Único Porte"]
-
 
             df_filtered['Porte'] = pd.cut(
                 df_filtered['Q_DZ_PROD'],
                 bins=bins,
                 labels=labels,
-                include_lowest=True, # Include the lowest value
-                right=False # Interval is [a, b)
+                include_lowest=True,
+                right=False
             )
             freq_portes = df_filtered['Porte'].value_counts().reindex(labels, fill_value=0)
 
@@ -265,7 +265,6 @@ if 'Q_DZ_PROD' in df.columns:
         )
         st.plotly_chart(fig4, use_container_width=True)
 
-        # Adicionado st.expander para a interpretação do gráfico de porte dos estabelecimentos
         with st.expander("💡 Interpretação do Gráfico de Distribuição por Porte dos Estabelecimentos"):
             st.info("""
             **🏭 Análise da Distribuição por Porte dos Estabelecimentos**
@@ -281,8 +280,8 @@ if 'Q_DZ_PROD' in df.columns:
             - Compreender essa distribuição é crucial para direcionar políticas de apoio, investimentos e estratégias de mercado para os diferentes segmentos de produtores avícolas.
             """)
 else:
-    st.warning("A coluna 'Q_DZ_PROD' não foi encontrada no dataset.")
-    
+    st.warning("A coluna 'NOM_CL_GAL' ou 'Q_DZ_PROD' não foi encontrada no dataset.")
+
 # =============================================
 # 🔹 Rodapé
 # =============================================
