@@ -21,13 +21,35 @@ try:
     df['NOM_TERR'] = df['NOM_TERR'].astype(str).str.strip().str.title()
     df['GAL_MATR'] = pd.to_numeric(df['GAL_MATR'], errors='coerce').fillna(0)
 except FileNotFoundError:
-    st.error("Erro: Arquivo 'GALINACEOS.csv' não encontrado.")
+    st.error("Erro: Arquivo 'GALINACEOS.csv' não encontrado. Por favor, certifique-se de que o arquivo está no mesmo diretório da aplicação.")
     st.stop()
+
+# =============================================
+# ✨ NOVIDADE: Mapeamento e Limpeza da coluna SIST_CRIA
+# =============================================
+if 'SIST_CRIA' in df.columns:
+    # Limpar espaços em branco e garantir que é string antes de mapear
+    df['SIST_CRIA'] = df['SIST_CRIA'].astype(str).str.strip()
+
+    # Dicionário de mapeamento das abreviações para descrições completas
+    mapeamento_sistemas = {
+        '1-SIST_POC': 'Produtores de ovos para consumo',
+        '2-SIST_POI': 'Produtores de ovos para incubação',
+        '3-SIST_PFC': 'Produtores de frangos de corte',
+        '4-Outro': 'Outros produtores'
+    }
+    
+    # Aplicar o mapeamento
+    df['SIST_CRIA'] = df['SIST_CRIA'].replace(mapeamento_sistemas)
+    
+else:
+    st.warning("A coluna 'SIST_CRIA' não foi encontrada no dataset. Verifique o nome da coluna.")
 
 # Listas de regiões
 regioes = ['Norte', 'Nordeste', 'Sudeste', 'Sul', 'Centro-Oeste']
 df_estados = df[~df['NOM_TERR'].isin(regioes + ['Brasil'])].copy()
 df_regioes = df[df['NOM_TERR'].isin(regioes)].copy()
+
 
 # =============================================
 # 1. GRÁFICO DE BARRAS - MATRIZES POR ESTADO
@@ -126,7 +148,7 @@ if 'SIST_CRIA' in df.columns and not df_regioes.empty:
         sistemas_por_regiao,
         x='NOM_TERR',
         y='GAL_MATR',
-        color='SIST_CRIA',
+        color='SIST_CRIA', # Esta coluna agora terá os nomes completos
         title='Sistemas de Criação por Região',
         labels={'NOM_TERR': 'Região', 'GAL_MATR': 'Matrizes', 'SIST_CRIA': 'Sistema de Criação'},
         barmode='group'
@@ -149,6 +171,8 @@ if 'SIST_CRIA' in df.columns and not df_regioes.empty:
         - As diferenças refletem fatores como tradição produtiva, demanda de mercado e adequação das condições regionais.
         - Os resultados indicam a necessidade de estratégias regionais para aprimorar a competitividade e a sustentabilidade do setor avícola.
         """)
+else:
+    st.warning("A coluna 'SIST_CRIA' não foi encontrada no dataset ou não há dados para regiões.")
 
 # Rodapé
 st.markdown("---")
