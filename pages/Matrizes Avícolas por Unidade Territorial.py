@@ -52,20 +52,20 @@ if not df_estados.empty:
     fig1.update_layout(xaxis_tickangle=-45)
     st.plotly_chart(fig1, use_container_width=True)
     
-    # Corrected indentation for st.expander
-    with st.expander("💡 Interpretação do Gráfico"):
+    # Adicionado st.expander para a interpretação do gráfico de barras
+    with st.expander("💡 Interpretação do Gráfico de Barras"):
         st.markdown("""
         **🔍 Análise por Estado**
         
         📌 **Principais observações:**
-        - Mato Grosso do Sul e Pernambuco lideram em número absoluto de matrizes avícolas
-        - Distrito Federal e Pará também apresentam valores expressivos, compondo o grupo dos quatro estados com maior concentração
-        - A distribuição é bastante desigual, com alguns estados apresentando números significativamente mais baixos
+        - **Mato Grosso do Sul** e **Pernambuco** lideram em número absoluto de matrizes avícolas.
+        - **Distrito Federal** e **Pará** também apresentam valores expressivos, compondo o grupo dos quatro estados com maior concentração.
+        - A distribuição é bastante desigual, com alguns estados apresentando números significativamente mais baixos.
         
         💡 **Interpretação:**
-        - Concentração de matrizes em poucos estados pode refletir fatores como infraestrutura, tradição produtiva e incentivos regionais
-        - Estados do Centro-Oeste e Nordeste se destacam como polos importantes na produção de matrizes
-        - Estados com menor número de matrizes podem representar oportunidades para crescimento e investimento no setor avícola
+        - A concentração de matrizes em poucos estados pode refletir fatores como infraestrutura, tradição produtiva e incentivos regionais.
+        - Estados do **Centro-Oeste** e **Nordeste** se destacam como polos importantes na produção de matrizes.
+        - Estados com menor número de matrizes podem representar oportunidades para crescimento e investimento no setor avícola.
         """)
     
 else:
@@ -94,19 +94,21 @@ if not df_regioes.empty:
     fig2.update_traces(textposition='inside', textinfo='percent+label')
     st.plotly_chart(fig2, use_container_width=True)
     
-    st.info("""
-    **🔍 Análise por Região**
-    
-    📌 **Principais observações:**
-    - Nordeste lidera com 40,2% das matrizes avícolas do Brasil
-    - Centro-Oeste é o segundo maior polo, com 30,7%
-    - Sul, Norte e Sudeste têm participações menores (11,4%, 9,89% e 7,95%)
-    
-    💡 **Interpretação:**
-    - Forte concentração da produção de matrizes nas regiões Nordeste e Centro-Oeste
-    - Distribuição pode estar relacionada à disponibilidade de áreas, clima e incentivos regionais
-    - Indica necessidade de estratégias regionais para o desenvolvimento do setor
-    """)
+    # Adicionado st.expander para a interpretação do gráfico de pizza
+    with st.expander("💡 Interpretação do Gráfico de Pizza"):
+        st.info("""
+        **🔍 Análise por Região**
+        
+        📌 **Principais observações:**
+        - **Nordeste** lidera com **40,2%** das matrizes avícolas do Brasil.
+        - **Centro-Oeste** é o segundo maior polo, com **30,7%**.
+        - Sul, Norte e Sudeste têm participações menores (11,4%, 9,89% e 7,95%).
+        
+        💡 **Interpretação:**
+        - Forte concentração da produção de matrizes nas regiões **Nordeste** e **Centro-Oeste**.
+        - A distribuição pode estar relacionada à disponibilidade de áreas, clima e incentivos regionais.
+        - Indica a necessidade de estratégias regionais para o desenvolvimento do setor.
+        """)
 else:
     st.warning("Não há dados disponíveis para as regiões.")
 
@@ -131,20 +133,22 @@ if 'SIST_CRIA' in df.columns and not df_regioes.empty:
     )
     st.plotly_chart(fig3, use_container_width=True)
     
-    st.info("""
-    **🔍 Análise por Região — Sistemas de Criação**
+    # Adicionado st.expander para a interpretação do gráfico de sistemas de criação
+    with st.expander("💡 Interpretação dos Sistemas de Criação por Região"):
+        st.info("""
+        **🔍 Análise por Região — Sistemas de Criação**
 
-    📌 **Principais observações:**
-    - O sistema de produção de ovos para consumo (Produtores de ovos para consumo) é predominante no Centro-Oeste, Nordeste e Sul.
-    - O Nordeste apresenta a maior quantidade de matrizes, especialmente no sistema Produtores de ovos para consumo, seguido por relevante participação do sistema Produtores de frangos de corte.
-    - O Sudeste e o Norte possuem menor representatividade, com destaque para o Sudeste na produção de frangos de corte.
-    - Baixa expressão dos sistemas Produtores de ovos para incubação e Outros produtores em todas as regiões.
+        📌 **Principais observações:**
+        - O sistema de produção de ovos para consumo (**Produtores de ovos para consumo**) é predominante no **Centro-Oeste**, **Nordeste** e **Sul**.
+        - O **Nordeste** apresenta a maior quantidade de matrizes, especialmente no sistema **Produtores de ovos para consumo**, seguido por relevante participação do sistema **Produtores de frangos de corte**.
+        - O **Sudeste** e o **Norte** possuem menor representatividade, com destaque para o Sudeste na produção de frangos de corte.
+        - Baixa expressão dos sistemas **Produtores de ovos para incubação** e **Outros produtores** em todas as regiões.
 
-    💡 **Interpretação:**
-    - Há especialização regional nos sistemas de criação, com o Centro-Oeste e Nordeste se destacando na produção de ovos e o Sudeste e Sul mostrando variações nos tipos de produção.
-    - As diferenças refletem fatores como tradição produtiva, demanda de mercado e adequação das condições regionais.
-    - Resultados indicam a necessidade de estratégias regionais para aprimorar a competitividade e a sustentabilidade do setor avícola.
-    """)
+        💡 **Interpretação:**
+        - Há especialização regional nos sistemas de criação, com o **Centro-Oeste** e **Nordeste** se destacando na produção de ovos e o **Sudeste** e **Sul** mostrando variações nos tipos de produção.
+        - As diferenças refletem fatores como tradição produtiva, demanda de mercado e adequação das condições regionais.
+        - Os resultados indicam a necessidade de estratégias regionais para aprimorar a competitividade e a sustentabilidade do setor avícola.
+        """)
 
 # Rodapé
 st.markdown("---")
