@@ -51,10 +51,10 @@ if not df_estados.empty:
     )
     fig1.update_layout(xaxis_tickangle=-45)
     st.plotly_chart(fig1, use_container_width=True)
-
+    
  with st.expander("💡 Interpretação do Gráfico"):
-    st.markdown("""
-    **🔍 Análise por Estado**
+      st.markdown("""
+      **🔍 Análise por Estado**
     
     📌 **Principais observações:**
     - Mato Grosso do Sul e Pernambuco lideram em número absoluto de matrizes avícolas
