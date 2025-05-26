@@ -14,7 +14,7 @@ st.set_page_config(
 # Título principal
 st.title("Trabalho Final - Introdução à Ciência de Dados CIADM1A-CIA001-20251")
 st.subheader("Professor: Alexandre Vaz Roriz")
-st.subheader("Alunos: DIEGO ALEXANDRE, Ewerton Calazans")
+st.subheader("Alunos: Diego Sá, Ewerton Calazans")
 
 st.title('Análise de Galináceos no Brasil (IBGE 2017)')
 st.markdown("---")
