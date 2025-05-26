@@ -53,10 +53,10 @@ if 'SIST_CRIA' in df.columns:
     df['SIST_CRIA'] = df['SIST_CRIA'].replace(mapeamento_sistemas)
     
 
-# Mostrar um preview dos dados (após o mapeamento, se aplicável)
+# Mostrar registros aleatórios do conjunto de dados)
 st.subheader("Visualização dos Dados")
-with st.expander("🔎 Ver primeiros registros do conjunto de dados"):
-    st.dataframe(df.head())
+with st.expander("🔎 Ver registros aleatórios do conjunto de dados"):
+    st.dataframe(df.sample(10))  # Exibe 5 linhas aleatórias
 
 # =============================================
 # 🔹 2. Proporção dos Sistemas de Criação
