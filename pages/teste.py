@@ -1,258 +1,164 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go # Importar para controle mais fino se necessário
 
 # Configuração da página
 st.set_page_config(
-    page_title="Análise Avícola - Sistemas de Criação",
-    page_icon="🐔",
-    layout="wide",
-    initial_sidebar_state="expanded",
+    page_title="Impacto na Lucratividade",
+    page_icon="📊",
+    layout="centered", # Usar layout centered para este tipo de dashboard
 )
 
 # Título principal
-st.title('Análise de Sistemas de Criação Avícola')
+st.title("💰 Fatores que Mais Impactam a Lucratividade da Granja")
+
+# Dados dos coeficientes
+coefs = {
+    "Tecnologia": 0.9,
+    "Terra": -0.8,
+    "Mão de Obra": 0.5,
+    "Marketing": -0.3,
+    "Capital": 0.2,
+    "Insumos": -0.1,
+}
+
+# Preparação dos dados
+coef_df = pd.DataFrame(list(coefs.items()), columns=["Fator", "Coeficiente"])
+coef_df["Categoria"] = coef_df["Coeficiente"].apply(lambda x: "Positivo" if x > 0 else "Negativo")
+# Criar uma coluna para a magnitude absoluta para escala de cor
+coef_df["Magnitude"] = coef_df["Coeficiente"].abs()
+coef_df = coef_df.sort_values("Coeficiente", key=abs, ascending=True)
+
+# Gráfico de barras elegante (não 3D literal, mas com profundidade visual)
+st.subheader("📈 Importância dos Fatores para a Lucratividade")
+
+# Definir escalas de cores personalizadas e mais vivas
+# Para positivo, um gradiente verde-claro a verde-escuro
+positive_colors = ['#C8E6C9', '#4CAF50', '#2E7D32'] # Light green to dark green
+# Para negativo, um gradiente vermelho-claro a vermelho-escuro
+negative_colors = ['#FFCDD2', '#F44336', '#B71C1C'] # Light red to dark red
+
+
+# Usar a Magnitude para a intensidade da cor
+fig = px.bar(
+    coef_df,
+    x="Coeficiente",
+    y="Fator",
+    color="Coeficiente", # Colorir pelo coeficiente para um gradiente
+    color_continuous_scale=[(0, 'red'), (0.5, 'white'), (1, 'green')], # Escala de cor que transiciona de vermelho para verde
+    # Ou usar uma escala baseada na categoria para ter dois gradientes distintos:
+    # color_continuous_scale=px.colors.sequential.RdYlGn, # Um gradiente que vai de vermelho a verde
+    # color_continuous_scale=px.colors.diverging.RdYlGn, # Outra opção divergente
+    
+    orientation='h',
+    text_auto=True,
+    labels={"Coeficiente": "Impacto no Modelo", "Fator": ""},
+    height=450, # Aumentar um pouco a altura para melhor visualização
+    template="plotly_white" # Um tema mais limpo
+)
+
+# Se quiser escalas de cores separadas por categoria (Positivo/Negativo)
+# Isso requer um pouco mais de manipulação com go.Bar, ou criar dois traces
+# Para simplificar e manter a elegância com px.bar: usar uma escala contínua divergente
+# Ou usar o 'color' pelo Coeficiente e ajustar range_color
+
+# Ajustar o range de cor para que o "branco" ou neutro fique no 0
+# A escala de cor irá de min(Coeficiente) a max(Coeficiente)
+min_val = coef_df["Coeficiente"].min()
+max_val = coef_df["Coeficiente"].max()
+# Ajustar range_color para que o ponto central (0) fique no meio do gradiente
+fig.update_layout(coloraxis_colorbar=dict(title="Impacto"))
+fig.update_traces(marker_line_color='darkgray', marker_line_width=1) # Adiciona borda nas barras
+
+
+# Layout elegante
+fig.update_layout(
+    hovermode="y unified",
+    showlegend=False,
+    yaxis={'categoryorder':'total ascending'},
+    margin=dict(l=0, r=0, t=50, b=0), # Ajustar margens
+    title_x=0.5, # Centralizar título
+    plot_bgcolor='rgba(0,0,0,0)', # Fundo transparente
+    paper_bgcolor='rgba(0,0,0,0)', # Fundo do papel transparente
+    xaxis=dict(showgrid=True, gridcolor='lightgray'), # Mostrar grid no eixo X
+    yaxis=dict(showgrid=False) # Remover grid no eixo Y
+)
+
+# Destaques no gráfico (manter, são úteis)
+fig.add_annotation(
+    x=0.85, y="Tecnologia",
+    text="Maior impacto positivo",
+    showarrow=True,
+    arrowhead=1,
+    ax=50,
+    ay=0,
+    font=dict(color="darkgreen", size=12),
+    bgcolor="rgba(255,255,255,0.7)"
+)
+
+fig.add_annotation(
+    x=-0.75, y="Terra",
+    text="Maior impacto negativo",
+    showarrow=True,
+    arrowhead=1,
+    ax=-50,
+    ay=0,
+    font=dict(color="darkred", size=12),
+    bgcolor="rgba(255,255,255,0.7)"
+)
+
+st.plotly_chart(fig, use_container_width=True)
+
+# Tabela de dados
+st.subheader("📋 Detalhes dos Coeficientes")
+st.dataframe(
+    coef_df.sort_values("Coeficiente", ascending=False),
+    column_config={
+        "Fator": "Fator Analisado",
+        "Coeficiente": st.column_config.NumberColumn(
+            "Impacto",
+            format="%.2f",
+            help="Coeficiente padronizado do modelo"
+        ),
+        "Categoria": "Tipo de Impacto"
+    },
+    hide_index=True,
+    use_container_width=True
+)
+
+# Análise automática
 st.markdown("---")
+st.subheader("🔎 Principais Insights")
 
-# Carregamento do arquivo local
-try:
-    df = pd.read_csv("GALINACEOS.csv", sep=';')
-    # Convertendo 'GAL_TOTAL' e 'GAL_VEND' para numérico, tratando erros e preenchendo NaNs
-    df['GAL_TOTAL'] = pd.to_numeric(df['GAL_TOTAL'], errors='coerce').fillna(0)
-    df['GAL_VEND'] = pd.to_numeric(df['GAL_VEND'], errors='coerce').fillna(0)
-    df['Q_DZ_PROD'] = pd.to_numeric(df['Q_DZ_PROD'], errors='coerce').fillna(0)
-    df['N_TRAB_TOTAL'] = pd.to_numeric(df['N_TRAB_TOTAL'], errors='coerce').fillna(0) # Adicionar N_TRAB_TOTAL para o 3D
-    # Convertendo 'SIST_CRIA' para string e removendo espaços
-    df['SIST_CRIA'] = df['SIST_CRIA'].astype(str).str.strip()
+col1, col2 = st.columns(2)
 
-    # =============================================
-    # ✨ NOVIDADE: Mapeamento e Limpeza da coluna SIST_CRIA
-    # =============================================
-    if 'SIST_CRIA' in df.columns:
-        # Dicionário de mapeamento das abreviações para descrições completas
-        mapeamento_sistemas = {
-            '1-SIST_POC': 'Produtores de ovos para consumo',
-            '2-SIST_POI': 'Produtores de ovos para incubação',
-            '3-SIST_PFC': 'Produtores de frangos de corte',
-            '4-Outro': 'Outros produtores'
-        }
-        
-        # Aplicar o mapeamento
-        df['SIST_CRIA'] = df['SIST_CRIA'].replace(mapeamento_sistemas)
-        st.info("Colunas de 'SIST_CRIA' mapeadas para descrições completas para melhor legibilidade.")
-    else:
-        st.warning("A coluna 'SIST_CRIA' não foi encontrada no dataset. Gráficos dependentes dela podem não funcionar corretamente.")
-
-except Exception as e:
-    st.error(f"Erro ao carregar o arquivo GALINACEOS.csv: {e}")
-    st.stop()
-
-
-# ---
-## Gráfico de Densidade de Aves por Sistema de Criação
-# ---
-def gerar_grafico_densidade_aves_por_sistema(df):
-    st.subheader("📊 Densidade de Aves por Sistema de Criação")
-    if 'SIST_CRIA' not in df.columns or 'GAL_TOTAL' not in df.columns:
-        st.warning("O DataFrame não contém as colunas necessárias ('SIST_CRIA' ou 'GAL_TOTAL').")
-        return
-    
-    df_plot = df[['SIST_CRIA', 'GAL_TOTAL']].dropna()
-    if df_plot.empty:
-        st.warning("Não há dados suficientes para gerar o gráfico de densidade.")
-        return
-    
-    fig = px.density_heatmap(
-        df_plot,
-        x='GAL_TOTAL',
-        y='SIST_CRIA',
-        title='Distribuição de Densidade de Aves por Sistema de Criação',
-        labels={'GAL_TOTAL': 'Total de Aves (Cabeça)', 'SIST_CRIA': 'Sistema de Criação'},
-        color_continuous_scale='Plasma',
-        nbinsx=20,
-        height=500
-    )
-    st.plotly_chart(fig, use_container_width=True)
-    
-    with st.expander("💡 Interpretação do Gráfico de Densidade"):
-        st.info("""
-        **🔍 Análise da Distribuição de Densidade de Aves por Sistema de Criação**
-        📌 **Principais observações:**
-        - O sistema **"Outros produtores"** apresenta concentração de estabelecimentos com menor número total de aves, predominantemente entre **6.000 e 7.000 cabeças**.
-        - **"Produtores de ovos para consumo"** e **"Produtores de frangos de corte"** mostram maior dispersão, com a maioria dos registros entre **9.000 e 12.000 aves** por estabelecimento.
-        - **"Produtores de ovos para incubação"** destaca-se por concentrar-se nas faixas mais elevadas, **acima de 13.000 aves**.
-        💡 **Interpretação:**
-        - O gráfico evidencia diferentes perfis produtivos: sistemas voltados para incubação tendem a operar com plantéis mais numerosos, enquanto sistemas classificados como "Outros" concentram-se em pequenas criações.
-        - A variação na densidade sugere especialização e segmentação claras entre os sistemas de criação, refletindo demandas produtivas e estratégias distintas.
-        - As informações são úteis para orientar políticas de apoio e estratégias de crescimento conforme o perfil predominante de cada sistema.
-        """)
-
-# ---
-## Gráfico de Distribuição da Produção por Sistema
-# ---
-def gerar_grafico_distribuicao_producao_por_sistema(df, tipo_producao='aves'):
-    if tipo_producao == 'aves':
-        coluna_producao = 'GAL_VEND'
-        rotulo_eixo_y = 'Quantidade de Aves Vendidas (Cabeça)'
-        titulo_grafico = '📈 Distribuição da Venda de Aves por Sistema de Criação'
-    elif tipo_producao == 'ovos':
-        coluna_producao = 'Q_DZ_PROD'
-        rotulo_eixo_y = 'Quantidade de Ovos Produzidos (Dúzia)'
-        titulo_grafico = '🥚 Distribuição da Produção de Ovos por Sistema de Criação'
-    else:
-        st.warning("Tipo de produção inválido. Escolha 'aves' ou 'ovos'.")
-        return
-    
-    if 'SIST_CRIA' not in df.columns or coluna_producao not in df.columns:
-        st.warning(f"O DataFrame não contém as colunas necessárias ('SIST_CRIA' ou '{coluna_producao}').")
-        return
-    
-    producao_por_sistema = df.groupby('SIST_CRIA')[coluna_producao].sum().reset_index()
-    
-    fig = px.bar(
-        producao_por_sistema,
-        x='SIST_CRIA',
-        y=coluna_producao,
-        title=titulo_grafico,
-        labels={'SIST_CRIA': 'Sistema de Criação', coluna_producao: rotulo_eixo_y},
-        color='SIST_CRIA',
-        color_discrete_sequence=px.colors.qualitative.Plotly, # MUDANÇA AQUI: Cores discretas mais vivas
-        text=coluna_producao
-    )
-    fig.update_traces(texttemplate='%{text:,.0f}', textposition='outside')
-    fig.update_layout(xaxis_tickangle=-45)
-    st.plotly_chart(fig, use_container_width=True)
-    
-    with st.expander(f"💡 Interpretação do Gráfico de {('Venda de Aves' if tipo_producao == 'aves' else 'Produção de Ovos')}"):
-        st.info(f"""
-        **🔍 Análise da Distribuição da {'Venda de Aves' if tipo_producao == 'aves' else 'Produção de Ovos'} por Sistema de Criação**
-        📌 **Principais observações:**
-        - O sistema **"Produtores de frangos de corte"** lidera as vendas, com maior volume comercializado.
-        - Os sistemas **"Produtores de ovos para consumo"** e **"Produtores de ovos para incubação"** também apresentam volumes elevados, evidenciando a importância dos sistemas voltados à produção de ovos tanto para consumo direto quanto para incubação.
-        - O grupo **"Outros produtores"** registra o menor volume de vendas, indicando baixa participação desse segmento no mercado.
-        💡 **Interpretação:**
-        - O destaque do sistema de frangos de corte reforça o papel central da avicultura de corte na cadeia produtiva e comercial.
-        - A significativa participação dos sistemas de ovos para consumo e incubação revela a diversificação da produção e a relevância desses segmentos no abastecimento do mercado.
-        - A baixa representatividade do grupo "Outros" pode indicar oportunidades para o desenvolvimento de nichos ou sistemas alternativos, caso haja demanda específica.
-        """)
-
-# ---
-## Histograma de Distribuição de Aves por Sistema
-# ---
-def gerar_histograma_aves_por_sistema(df):
-    st.subheader("📊 Histograma de Distribuição de Aves por Sistema")
-    if 'SIST_CRIA' not in df.columns or 'GAL_TOTAL' not in df.columns:
-        st.warning("O DataFrame não contém as colunas necessárias ('SIST_CRIA' ou 'GAL_TOTAL').")
-        return
-    
-    df_plot = df[['SIST_CRIA', 'GAL_TOTAL']].dropna()
-    if df_plot.empty:
-        st.warning("Não há dados suficientes para gerar o histograma.")
-        return
-    
-    fig = px.histogram(
-        df_plot,
-        x='GAL_TOTAL',
-        color='SIST_CRIA',
-        title='Distribuição de Aves por Sistema de Criação',
-        labels={'GAL_TOTAL': 'Total de Aves (Cabeça)', 'SIST_CRIA': 'Sistema de Criação'},
-        color_discrete_sequence=px.colors.qualitative.Bold, # MUDANÇA AQUI: Cores discretas mais vivas
-        nbins=20,
-        barmode='stack',
-        opacity=0.7
-    )
-    st.plotly_chart(fig, use_container_width=True)
-    
-    with st.expander("💡 Interpretação do Histograma"):
-        st.info("""
-        **🔍 Análise do Histograma de Distribuição de Aves por Sistema**
-        📌 **Principais observações:**
-        - O histograma apresenta a distribuição do total de aves por estabelecimento, segmentado pelos sistemas: **Produtores de ovos para consumo**, **Produtores de frangos de corte**, **Outros produtores** e **Produtores de ovos para incubação**.
-        - A maior concentração de registros ocorre nas faixas de **6.000 a 14.000 aves**, evidenciando uma ampla variação no porte dos estabelecimentos.
-        - O sistema **"Produtores de ovos para incubação"** aparece tanto nas faixas mais baixas (cerca de 6.000 aves) quanto nas mais altas (acima de 13.000 aves), indicando diversidade de escalas dentro deste segmento.
-        - Os sistemas **"Produtores de ovos para consumo"**, **"Produtores de frangos de corte"** e **"Outros produtores"** estão presentes principalmente nas faixas intermediárias e elevadas, sugerindo preferência por plantéis médios a grandes nesses sistemas.
-        💡 **Interpretação:**
-        - O gráfico revela que a produção avícola é marcada por grande heterogeneidade no tamanho dos plantéis, mesmo dentro de um mesmo sistema de criação.
-        - A presença de sistemas de incubação em diferentes faixas pode indicar estratégias produtivas distintas, enquanto os demais sistemas tendem a se concentrar em faixas médias e altas de produção.
-        - Essas informações são relevantes para o planejamento do setor, permitindo identificar oportunidades de apoio e desenvolvimento conforme o perfil produtivo predominante em cada sistema.
-        """)
-
-# ---
-## NOVO: Gráfico de Dispersão 3D
-# ---
-def gerar_grafico_dispersao_3d(df):
-    st.header('✨ Relação 3D: Aves, Trabalhadores e Produção de Ovos')
-    
-    # Garantir que as colunas existam e sejam numéricas
-    cols_3d = ['GAL_TOTAL', 'N_TRAB_TOTAL', 'Q_DZ_PROD', 'SIST_CRIA']
-    if not all(col in df.columns for col in cols_3d):
-        st.warning("O DataFrame não contém todas as colunas necessárias para o gráfico 3D ('GAL_TOTAL', 'N_TRAB_TOTAL', 'Q_DZ_PROD', 'SIST_CRIA').")
-        return
-    
-    # Remover linhas com NaN nas colunas relevantes para o gráfico 3D
-    df_plot_3d = df.dropna(subset=['GAL_TOTAL', 'N_TRAB_TOTAL', 'Q_DZ_PROD', 'SIST_CRIA']).copy()
-
-    if df_plot_3d.empty:
-        st.warning("Não há dados suficientes para gerar o gráfico 3D após a remoção de valores ausentes.")
-        return
-
-    # Usar GAL_TOTAL, N_TRAB_TOTAL e Q_DZ_PROD como eixos
-    # Colorir os pontos pelo SIST_CRIA
-    fig = px.scatter_3d(
-        df_plot_3d,
-        x='GAL_TOTAL',
-        y='N_TRAB_TOTAL',
-        z='Q_DZ_PROD',
-        color='SIST_CRIA', # Colorir por Sistema de Criação
-        title='Relação entre Aves, Trabalhadores e Produção de Ovos por Sistema de Criação',
-        labels={
-            'GAL_TOTAL': 'Total de Aves',
-            'N_TRAB_TOTAL': 'Total de Trabalhadores',
-            'Q_DZ_PROD': 'Produção de Ovos (Dúzia)',
-            'SIST_CRIA': 'Sistema de Criação'
-        },
-        color_discrete_sequence=px.colors.qualitative.Vivid, # Cores mais vivas para o 3D
-        height=700
-    )
-    
-    st.plotly_chart(fig, use_container_width=True)
-
-    with st.expander("💡 Interpretação do Gráfico de Dispersão 3D"):
-        st.info("""
-        **🔍 Análise da Relação 3D: Aves, Trabalhadores e Produção de Ovos por Sistema de Criação**
-
-        📌 **Principais observações:**
-        - Este gráfico permite visualizar a relação simultânea entre o total de aves, o número de trabalhadores e a produção de dúzias de ovos, segmentado pelo sistema de criação.
-        - Observe como os agrupamentos de cores (sistemas de criação) se distribuem no espaço 3D, indicando se certos sistemas tendem a ter mais aves, mais trabalhadores ou maior produção de ovos.
-        - É possível identificar clusters de pontos que representam estabelecimentos com características semelhantes em termos de escala de produção e mão de obra.
-
-        💡 **Interpretação:**
-        - Uma nuvem de pontos densa em uma área específica pode indicar um padrão comum de operação para aquele sistema de criação.
-        - A separação entre as cores pode mostrar que diferentes sistemas de criação têm modelos operacionais distintos, com variações significativas em sua força de trabalho e capacidade produtiva.
-        - Este gráfico é excelente para identificar outliers ou estabelecimentos que fogem do padrão comum, possibilitando investigações mais aprofundadas.
-        """)
-
-
-# Seção de gráficos
-col1, col2 = st.columns([3, 1])
 with col1:
-    gerar_grafico_densidade_aves_por_sistema(df)
-with col2:
-    tipo = st.radio(
-        "Tipo de produção:",
-        ('aves', 'ovos'),
-        format_func=lambda x: "Aves vendidas" if x=="aves" else "Ovos produzidos",
-        key='tipo_producao'
+    st.metric(
+        label="Fator Mais Positivo",
+        value="Tecnologia",
+        delta="Coef: +0.90"
     )
+    st.markdown("""
+    **Recomendações:**
+    - Investir em automação
+    - Adotar sistemas de monitoramento
+    - Implementar tecnologias de precisão
+    """)
 
-# Garantir que os gráficos de produção e histograma sempre sejam exibidos
-gerar_grafico_distribuicao_producao_por_sistema(df, tipo_producao=tipo)
-gerar_histograma_aves_por_sistema(df)
-
-# Chamar o novo gráfico 3D
-gerar_grafico_dispersao_3d(df)
+with col2:
+    st.metric(
+        label="Fator Mais Negativo",
+        value="Terra",
+        delta="Coef: -0.80"
+    )
+    st.markdown("""
+    **Recomendações:**
+    - Otimizar uso do espaço
+    - Considerar sistemas verticais
+    - Reduzir expansões desnecessárias
+    """)
 
 # Rodapé
 st.markdown("---")
-st.caption("""
-🔎 *Análise desenvolvida com base em dados de produção avícola* 📅 *Atualizado em Outubro 2023* """)
+st.caption("Análise desenvolvida com base em modelo de regressão linear multivariada | Dados simulados")
