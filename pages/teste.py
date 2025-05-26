@@ -178,73 +178,83 @@ st.header('🏭 Distribuição por Porte dos Estabelecimentos')
 
 if 'Q_DZ_PROD' in df.columns:
     df['Q_DZ_PROD'] = pd.to_numeric(df['Q_DZ_PROD'], errors='coerce')
-    df.dropna(subset=['Q_DZ_PROD'], inplace=True)
+    # Use .copy() to avoid SettingWithCopyWarning if df is a slice
+    df_filtered = df.dropna(subset=['Q_DZ_PROD']).copy() 
 
-    # Determine dynamic bins based on data range
-    min_val = df['Q_DZ_PROD'].min()
-    max_val = df['Q_DZ_PROD'].max()
-
-    # Define thresholds. Adjust these as needed for your data distribution.
-    # It's important that thresholds are ordered and make sense with min/max values.
-    threshold_small = 1000
-    threshold_medium = 5000
-
-    # Initialize bins to ensure monotonicity
-    bins_list = [-float('inf')] # Start with negative infinity for the lowest bin
-
-    # Add thresholds ensuring they are strictly increasing
-    if threshold_small > -float('inf'): # Add if valid
-        bins_list.append(threshold_small)
-    if threshold_medium > threshold_small: # Add if valid and larger than previous
-        bins_list.append(threshold_medium)
-    
-    # Ensure the last bin covers up to the max value of the data
-    # If max_val is less than the highest threshold, we need to adjust
-    if max_val >= bins_list[-1]: # If max_val is greater than or equal to the last threshold, extend to it
-        bins_list.append(max_val + 1) # Add a small epsilon to include max_val
-    elif len(bins_list) > 1 and max_val < bins_list[-1]: # If max_val is smaller than the last threshold, ensure it's included as the last bin
-        # If the last bin is already greater than max_val, we're good unless max_val is the only significant value
-        # This condition helps if max_val falls between two defined thresholds.
-        # Ensure we don't duplicate values or have non-monotonic sequence.
-        # A simpler approach is to use the standard thresholds and let pd.cut handle the range.
-        # However, for the 'Grande' category, we need to ensure it actually captures the max.
-        if max_val < threshold_small and max_val > -float('inf'): # If max_val is very small, adjust the thresholds
-            bins_list = [-float('inf'), max_val + 1] # Only 'Pequeno' category if max_val is tiny
-            labels = ['Pequeno'] # Only one category
-        elif max_val < threshold_medium and max_val >= threshold_small:
-            bins_list = [-float('inf'), threshold_small, max_val + 1]
-            labels = ['Pequeno', 'Médio']
-        else: # Default case, use all thresholds defined
-            bins_list.append(float('inf')) # Ensure it always goes to infinity if max_val is large
-            labels = ['Pequeno', 'Médio', 'Grande']
-
-    # Final check and adjust labels if bins_list changes
-    if bins_list == [-float('inf'), 1000, 5000, float('inf')]:
-        labels = ['Pequeno', 'Médio', 'Grande']
-    elif bins_list == [-float('inf'), 1000, float('inf')]:
-        labels = ['Pequeno', 'Médio_Grande'] # Adjust label if only 2 bins
-    elif bins_list == [-float('inf'), float('inf')]:
-        labels = ['Único Porte'] # Adjust label if only 1 bin
-
-    # Simplified and more robust bin definition:
-    # Use fixed thresholds and let pd.cut handle values outside the range,
-    # or ensure the last bin covers up to infinity if data extends beyond it.
-    bins = [0, 1000, 5000, float('inf')] # Using 0 as lowest bin to avoid -inf for practical "small" numbers
-    labels = ['Pequeno (0-1k)', 'Médio (1k-5k)', 'Grande (>5k)']
-    
-    # Handle potential empty dataframe or all NaNs after dropna
-    if df['Q_DZ_PROD'].empty:
-        st.warning("Não há dados válidos para a produção de ovos para categorizar por porte.")
+    if df_filtered.empty:
+        st.warning("Não há dados válidos para a produção de ovos para categorizar por porte após a remoção de valores ausentes.")
     else:
-        df['Porte'] = pd.cut(
-            df['Q_DZ_PROD'],
-            bins=bins,
-            labels=labels,
-            include_lowest=True, # Include the left-most bin edge
-            right=False # Interval is [a, b)
-        )
+        # Define the number of desired bins
+        num_bins = 3 # You want at least 3 groups
 
-        freq_portes = df['Porte'].value_counts().reindex(labels, fill_value=0)
+        # Calculate quantiles to define dynamic bins
+        # Ensure unique quantiles, as pd.cut fails with duplicate bin edges
+        # Adding a small epsilon to the max to ensure it's always included in the last bin
+        if df_filtered['Q_DZ_PROD'].nunique() < num_bins:
+            # If there are fewer unique values than desired bins,
+            # we might not be able to create all bins dynamically.
+            # In this case, use a fixed set of bins that are likely to work or
+            # adjust the number of bins.
+            st.warning(f"Atenção: A coluna 'Q_DZ_PROD' tem apenas {df_filtered['Q_DZ_PROD'].nunique()} valores únicos. Pode não ser possível criar {num_bins} grupos distintos. Exibindo grupos existentes.")
+            # Fallback to a simpler, more robust binning if data is too sparse
+            bins = [0, 1, 1000, 5000, float('inf')] # More detailed fixed bins
+            labels = ['Nulo (0)', 'Muito Pequeno (0-1k)', 'Pequeno (1k-5k)', 'Médio-Grande (>5k)']
+            # Remove labels if their corresponding bins are empty after cutting
+            df_filtered['Porte'] = pd.cut(
+                df_filtered['Q_DZ_PROD'],
+                bins=bins,
+                labels=labels,
+                include_lowest=True,
+                right=False
+            )
+            # Filter out categories that are empty to avoid issues with plotly if reindex tries to plot them
+            freq_portes = df_filtered['Porte'].value_counts()
+            # Only reindex with labels that actually have data
+            labels_with_data = [label for label in labels if label in freq_portes.index]
+            freq_portes = freq_portes.reindex(labels_with_data, fill_value=0)
+
+        else:
+            # Use qcut for more evenly distributed groups if there are enough unique values
+            # This creates groups with approximately equal number of observations
+            # Add a small value to the upper limit to ensure max value is included
+            bins = pd.qcut(
+                df_filtered['Q_DZ_PROD'],
+                q=num_bins,
+                duplicates='drop', # Drop duplicate bin edges that can occur with sparse data
+                retbins=True # Return the actual bin edges
+            )[1]
+
+            # Adjust the first bin edge if it's not 0 or negative
+            if bins[0] > 0:
+                bins[0] = 0 # Ensure the first bin starts at 0 for practical count
+
+            # Adjust the last bin to ensure it covers the absolute max value
+            if bins[-1] < df_filtered['Q_DZ_PROD'].max():
+                bins[-1] = df_filtered['Q_DZ_PROD'].max() + 1e-9 # Add tiny epsilon
+
+            labels = [f'Grupo {i+1}' for i in range(len(bins)-1)]
+            # You can make these labels more descriptive, e.g., based on the bin ranges
+            # Example for 3 bins:
+            if num_bins == 3 and len(bins) == 4: # Check if 3 distinct bins were formed
+                labels = [
+                    f'Pequeno (até {int(bins[1])})',
+                    f'Médio ({int(bins[1])} - {int(bins[2])})',
+                    f'Grande (acima de {int(bins[2])})'
+                ]
+            elif len(bins) > 1: # Fallback for other numbers of bins
+                 labels = [f'{int(bins[i])} - {int(bins[i+1])}' for i in range(len(bins)-1)]
+            else: # Single bin case, should ideally not happen with qcut unless all values are identical
+                labels = ["Único Porte"]
+
+
+            df_filtered['Porte'] = pd.cut(
+                df_filtered['Q_DZ_PROD'],
+                bins=bins,
+                labels=labels,
+                include_lowest=True, # Include the lowest value
+                right=False # Interval is [a, b)
+            )
+            freq_portes = df_filtered['Porte'].value_counts().reindex(labels, fill_value=0)
 
         fig4 = px.bar(
             x=freq_portes.index,
@@ -261,14 +271,14 @@ if 'Q_DZ_PROD' in df.columns:
             **🏭 Análise da Distribuição por Porte dos Estabelecimentos**
 
             📌 **Principais observações:**
-            - A maioria dos estabelecimentos se enquadra no porte **"Pequeno"** (produção de até 1.000 dúzias de ovos), indicando uma base ampla de pequenos produtores.
-            - O número de estabelecimentos de porte **"Médio"** (entre 1.000 e 5.000 dúzias) é significativamente menor que o dos pequenos.
-            - Estabelecimentos de porte **"Grande"** (acima de 5.000 dúzias) são os menos numerosos, mas representam as maiores produções individuais.
+            - A distribuição de estabelecimentos por porte é agora categorizada dinamicamente, garantindo múltiplos grupos.
+            - O gráfico mostrará a proporção de estabelecimentos em cada faixa de produção de ovos (em dúzias), que foram definidos para equilibrar a quantidade de dados em cada categoria.
+            - A maior parte dos estabelecimentos tende a se concentrar nos portes menores, enquanto os maiores produtores são menos numerosos, mas contribuem significativamente para o volume total de produção.
 
             💡 **Interpretação:**
-            - A predominância de pequenos estabelecimentos pode refletir a estrutura da avicultura familiar ou de subsistência no Brasil.
-            - A menor quantidade de estabelecimentos de médio e grande porte sugere uma concentração da produção em poucas unidades de maior escala.
-            - Essa distribuição indica a necessidade de políticas diferenciadas para apoiar os diversos portes de produtores, visando tanto o fortalecimento da base quanto o incentivo à expansão e modernização.
+            - A categorização dinâmica dos portes permite uma visão mais fiel da distribuição dos estabelecimentos dentro do seu conjunto de dados.
+            - Isso ajuda a identificar a estrutura do setor, seja ela dominada por muitos pequenos produtores ou por poucos grandes.
+            - Compreender essa distribuição é crucial para direcionar políticas de apoio, investimentos e estratégias de mercado para os diferentes segmentos de produtores avícolas.
             """)
 else:
     st.warning("A coluna 'Q_DZ_PROD' não foi encontrada no dataset.")
