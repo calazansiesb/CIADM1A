@@ -52,20 +52,21 @@ if not df_estados.empty:
     fig1.update_layout(xaxis_tickangle=-45)
     st.plotly_chart(fig1, use_container_width=True)
     
- with st.expander("💡 Interpretação do Gráfico"):
-      st.markdown("""
-      **🔍 Análise por Estado**
-    
-    📌 **Principais observações:**
-    - Mato Grosso do Sul e Pernambuco lideram em número absoluto de matrizes avícolas
-    - Distrito Federal e Pará também apresentam valores expressivos, compondo o grupo dos quatro estados com maior concentração
-    - A distribuição é bastante desigual, com alguns estados apresentando números significativamente mais baixos
-    
-    💡 **Interpretação:**
-    - Concentração de matrizes em poucos estados pode refletir fatores como infraestrutura, tradição produtiva e incentivos regionais
-    - Estados do Centro-Oeste e Nordeste se destacam como polos importantes na produção de matrizes
-    - Estados com menor número de matrizes podem representar oportunidades para crescimento e investimento no setor avícola
-    """)
+    # Corrected indentation for st.expander
+    with st.expander("💡 Interpretação do Gráfico"):
+        st.markdown("""
+        **🔍 Análise por Estado**
+        
+        📌 **Principais observações:**
+        - Mato Grosso do Sul e Pernambuco lideram em número absoluto de matrizes avícolas
+        - Distrito Federal e Pará também apresentam valores expressivos, compondo o grupo dos quatro estados com maior concentração
+        - A distribuição é bastante desigual, com alguns estados apresentando números significativamente mais baixos
+        
+        💡 **Interpretação:**
+        - Concentração de matrizes em poucos estados pode refletir fatores como infraestrutura, tradição produtiva e incentivos regionais
+        - Estados do Centro-Oeste e Nordeste se destacam como polos importantes na produção de matrizes
+        - Estados com menor número de matrizes podem representar oportunidades para crescimento e investimento no setor avícola
+        """)
     
 else:
     st.warning("Não há dados disponíveis para os estados.")
@@ -148,6 +149,4 @@ if 'SIST_CRIA' in df.columns and not df_regioes.empty:
 # Rodapé
 st.markdown("---")
 st.caption("""
-🔎 *Análise desenvolvida com base nos dados do IBGE*  
-📅 *Atualizado em Outubro 2023*  
-""")
+🔎 *Análise desenvolvida com base nos dados do IBGE* 📅 *Atualizado em Outubro 2023* """)
