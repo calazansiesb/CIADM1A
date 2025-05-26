@@ -56,7 +56,7 @@ if 'SIST_CRIA' in df.columns:
 # Mostrar um preview dos dados (após o mapeamento, se aplicável)
 st.subheader("Visualização dos Dados")
 with st.expander("🔎 Ver primeiros registros do conjunto de dados"):
-    st.dataframe(df.head())
+    st.dataframe(df.head(10))
 
 # =============================================
 # 🔹 2. Proporção dos Sistemas de Criação
