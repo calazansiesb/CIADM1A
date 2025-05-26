@@ -39,7 +39,7 @@ try:
         # Aplicar o mapeamento
         df['SIST_CRIA'] = df['SIST_CRIA'].replace(mapeamento_sistemas)
         st.info("Colunas de 'SIST_CRIA' mapeadas para descrições completas para melhor legibilidade.")
-    else:
+    
         
 
 except Exception as e:
