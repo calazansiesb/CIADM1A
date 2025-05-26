@@ -49,14 +49,14 @@ if 'SIST_CRIA' in df.columns:
         '3-SIST_PFC': 'Produtores de frangos de corte',
         '4-Outro': 'Outros produtores'
     }
-    
     # Aplicar o mapeamento
     df['SIST_CRIA'] = df['SIST_CRIA'].replace(mapeamento_sistemas)
     st.info("Colunas de 'SIST_CRIA' mapeadas para descrições completas para melhor legibilidade.")
 
 # Mostrar um preview dos dados (após o mapeamento, se aplicável)
 st.subheader("Visualização dos Dados")
-st.dataframe(df.head())
+with st.expander("🔎 Ver primeiros registros do conjunto de dados"):
+    st.dataframe(df.head())
 
 # =============================================
 # 🔹 2. Proporção dos Sistemas de Criação
@@ -67,17 +67,16 @@ if 'SIST_CRIA' in df.columns:
     freq_sistemas = df['SIST_CRIA'].value_counts(normalize=True) * 100
     fig1 = px.pie(
         values=freq_sistemas.values,
-        names=freq_sistemas.index, # Agora 'names' usará as descrições completas
+        names=freq_sistemas.index,
         title='Distribuição Percentual dos Sistemas de Criação',
         color_discrete_sequence=px.colors.qualitative.Pastel
     )
     st.plotly_chart(fig1, use_container_width=True)
 
-    # Adicionado st.expander para a interpretação do gráfico de sistemas de criação
     with st.expander("💡 Interpretação do Gráfico de Proporção dos Sistemas de Criação"):
         st.info("""
         **📊 Análise dos Sistemas de Criação**
-        
+
         📌 **Principais observações:**
         - Os sistemas **Produtores de frangos de corte** (28,3%) e **Produtores de ovos para consumo** (28,1%) apresentam proporções muito semelhantes, sendo os mais representativos do total.
         - A categoria **Outros produtores** (27,3%) também possui participação relevante, indicando diversidade e presença de outros sistemas além dos principais.
@@ -107,11 +106,10 @@ if 'NOM_TERR' in df.columns:
     )
     st.plotly_chart(fig2, use_container_width=True)
 
-    # Adicionado st.expander para a interpretação do gráfico de distribuição por UF
     with st.expander("💡 Interpretação do Gráfico de Distribuição por Unidade Federativa"):
         st.info("""
         **🌎 Análise da Distribuição por Unidade Federativa**
-        
+
         📌 **Principais observações:**
         - Os maiores valores de estabelecimentos estão concentrados nas regiões **Sul, Sudeste e Nordeste**, com estados como **Paraná, Santa Catarina, Bahia, Pernambuco e Rio Grande do Sul** entre os primeiros colocados.
         - O número de estabelecimentos por UF apresenta uma distribuição relativamente homogênea nos estados líderes, com leve declínio nos estados das regiões Norte e Centro-Oeste.
@@ -131,26 +129,21 @@ else:
 st.header('👥 Relação entre Tamanho do Estabelecimento e Número de Trabalhadores')
 
 if 'GAL_TOTAL' in df.columns and 'N_TRAB_TOTAL' in df.columns:
-    # Conversão de tipos de dados (feito aqui para garantir que 'df' esteja atualizado com as descrições de SIST_CRIA)
     df['GAL_TOTAL'] = pd.to_numeric(df['GAL_TOTAL'], errors='coerce')
     df['N_TRAB_TOTAL'] = pd.to_numeric(df['N_TRAB_TOTAL'], errors='coerce')
-    
     corr = df['GAL_TOTAL'].corr(df['N_TRAB_TOTAL'])
-    
     fig3 = px.scatter(
-        df, # Passa o DataFrame completo para que Plotly possa usar outras colunas
+        df,
         x='GAL_TOTAL',
         y='N_TRAB_TOTAL',
         title='Relação entre Tamanho do Estabelecimento e Número de Trabalhadores',
         labels={'GAL_TOTAL': 'Total de Galináceos', 'N_TRAB_TOTAL': 'Número de Trabalhadores'},
         trendline="ols",
-        color='SIST_CRIA' # Adicionando cor pelo sistema de criação para melhor visualização
+        color='SIST_CRIA'
     )
     st.plotly_chart(fig3, use_container_width=True)
-
     st.info(f"**Correlação Calculada:** {corr:.2f}")
 
-    # Conteúdo da análise resumida para o gráfico de dispersão
     with st.expander("💡 Interpretação do Gráfico de Relação entre Tamanho e Trabalhadores"):
         st.info("""
         **👥 Análise da Relação entre Tamanho do Estabelecimento e Número de Trabalhadores**
@@ -167,18 +160,15 @@ if 'GAL_TOTAL' in df.columns and 'N_TRAB_TOTAL' in df.columns:
         - Sistemas como **frangos de corte** podem se beneficiar mais de **automação em larga escala**, enquanto a **produção de ovos** pode ter uma necessidade de mão de obra mais **constante** por unidade produzida.
         - As diferenças observadas indicam que o setor avícola possui **perfis operacionais diversos**, que dependem não apenas do tamanho, mas também da especialização do estabelecimento.
         """)
-
 else:
     st.warning("As colunas 'GAL_TOTAL' ou 'N_TRAB_TOTAL' não foram encontradas no dataset.")
 
 # =============================================
-# 🔹 5. Distribuição por Porte dos Estabelecimentos (CORRIGIDO)
+# 🔹 5. Distribuição por Porte dos Estabelecimentos (CORRIGIDO + ANÁLISE DO GRÁFICO)
 # =============================================
 st.header('🏭 Distribuição por Porte dos Estabelecimentos')
 
-# NOVO: Usar a coluna NOM_CL_GAL se existir para porte por faixa, ou Q_DZ_PROD para categorização dinâmica
 if 'NOM_CL_GAL' in df.columns:
-    # Distribuição usando a faixa já categorizada pelo IBGE
     freq_portes = df['NOM_CL_GAL'].value_counts().sort_index()
     fig4 = px.bar(
         x=freq_portes.index,
@@ -191,15 +181,18 @@ if 'NOM_CL_GAL' in df.columns:
 
     with st.expander("💡 Interpretação do Gráfico de Distribuição por Porte dos Estabelecimentos"):
         st.info("""
-        **🏭 Análise da Distribuição por Porte dos Estabelecimentos (Faixas IBGE)**
+        **🏭 Análise da Distribuição por Porte dos Estabelecimentos**
 
-        📌 **Principais observações:**
-        - A distribuição segue as faixas já definidas pelo IBGE, facilitando comparações e integrando a categorização oficial.
-        - Estabelecimentos de menor porte (faixas iniciais) são muito mais numerosos, enquanto grandes estabelecimentos são minoria, mas possuem peso produtivo importante.
+        O gráfico mostra a quantidade de estabelecimentos distribuídos por diferentes faixas de porte (definidas pelo IBGE):
 
-        💡 **Interpretação:**
-        - Utilizar as faixas oficiais permite análises mais comparáveis e facilmente comunicáveis.
-        - A concentração nos portes menores indica predominância de pequenos produtores, importante para políticas públicas e arranjos produtivos locais.
+        - As faixas intermediárias, especialmente entre **201 e 5.000 aves**, concentram os maiores números de estabelecimentos, sugerindo predominância de produtores de médio porte no setor.
+        - Pequenos produtores ("De 1 a 100" e "De 101 a 200") também são numerosos, mas em menor quantidade que as faixas intermediárias.
+        - Faixas extremas ("De 100.001 e mais" e "Sem galináceos em 30.09.2017") apresentam participação reduzida, indicando que grandes produtores e estabelecimentos temporariamente inativos são minoria.
+        - A categoria "Total" pode representar registros agregados ou casos não classificados nas demais faixas, devendo ser analisada com cautela.
+        - A presença de estabelecimentos "Sem galináceos" reforça a importância de considerar sazonalidade ou inatividade temporária.
+
+        **Conclusão:** 
+        - O perfil da produção avícola brasileira é fortemente marcado pela presença de estabelecimentos de porte intermediário, com pequena participação de grandes produtores e um contingente relevante de pequenos estabelecimentos. Isso tem implicações para políticas públicas, estratégias de mercado e apoio ao setor.
         """)
 elif 'Q_DZ_PROD' in df.columns:
     df['Q_DZ_PROD'] = pd.to_numeric(df['Q_DZ_PROD'], errors='coerce')
@@ -265,21 +258,19 @@ elif 'Q_DZ_PROD' in df.columns:
         )
         st.plotly_chart(fig4, use_container_width=True)
 
-with st.expander("💡 Interpretação do Gráfico de Distribuição por Porte dos Estabelecimentos"):
-     st.info("""
-    **🏭 Análise da Distribuição por Porte dos Estabelecimentos**
+        with st.expander("💡 Interpretação do Gráfico de Distribuição por Porte dos Estabelecimentos"):
+            st.info("""
+            **🏭 Análise da Distribuição por Porte dos Estabelecimentos**
 
-    O gráfico mostra a quantidade de estabelecimentos distribuídos por diferentes faixas de porte (definidas pelo IBGE):
+            O gráfico mostra a quantidade de estabelecimentos distribuídos por diferentes faixas de porte (definidas dinamicamente):
 
-    - As faixas intermediárias, especialmente entre **201 e 5.000 aves**, concentram os maiores números de estabelecimentos, sugerindo predominância de produtores de médio porte no setor.
-    - Pequenos produtores ("De 1 a 100" e "De 101 a 200") também são numerosos, mas em menor quantidade que as faixas intermediárias.
-    - Faixas extremas ("De 100.001 e mais" e "Sem galináceos em 30.09.2017") apresentam participação reduzida, indicando que grandes produtores e estabelecimentos temporariamente inativos são minoria.
-    - A categoria "Total" pode representar registros agregados ou casos não classificados nas demais faixas, devendo ser analisada com cautela.
-    - A presença de estabelecimentos "Sem galináceos" reforça a importância de considerar sazonalidade ou inatividade temporária.
+            - As faixas intermediárias concentram os maiores números de estabelecimentos, sugerindo predominância de produtores de médio porte no setor.
+            - A maior parte dos estabelecimentos tende a se concentrar nos portes menores, enquanto os maiores produtores são menos numerosos, mas contribuem significativamente para o volume total de produção.
+            - A presença de estabelecimentos "Nulo" ou "Sem produção" reforça a importância de considerar sazonalidade ou inatividade temporária.
 
-    **Conclusão:** 
-    - O perfil da produção avícola brasileira é fortemente marcado pela presença de estabelecimentos de porte intermediário, com pequena participação de grandes produtores e um contingente relevante de pequenos estabelecimentos. Isso tem implicações para políticas públicas, estratégias de mercado e apoio ao setor.
-    """)
+            **Conclusão:** 
+            - O perfil da produção avícola brasileira é fortemente marcado pela presença de estabelecimentos de porte intermediário, com pequena participação de grandes produtores e um contingente relevante de pequenos estabelecimentos. Isso tem implicações para políticas públicas, estratégias de mercado e apoio ao setor.
+            """)
 else:
     st.warning("A coluna 'NOM_CL_GAL' ou 'Q_DZ_PROD' não foi encontrada no dataset.")
 
