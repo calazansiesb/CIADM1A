@@ -56,7 +56,7 @@ if 'SIST_CRIA' in df.columns:
 # Mostrar registros aleatórios do conjunto de dados)
 st.subheader("Visualização dos Dados")
 with st.expander("🔎 Ver registros aleatórios do conjunto de dados"):
-    st.dataframe(df.sample(5))  # Exibe 5 linhas aleatórias
+    st.dataframe(df.sample(10))  # Exibe 5 linhas aleatórias
 
 # =============================================
 # 🔹 2. Proporção dos Sistemas de Criação
