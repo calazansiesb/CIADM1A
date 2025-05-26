@@ -265,20 +265,21 @@ elif 'Q_DZ_PROD' in df.columns:
         )
         st.plotly_chart(fig4, use_container_width=True)
 
-        with st.expander("💡 Interpretação do Gráfico de Distribuição por Porte dos Estabelecimentos"):
-            st.info("""
-            **🏭 Análise da Distribuição por Porte dos Estabelecimentos**
+with st.expander("💡 Interpretação do Gráfico de Distribuição por Porte dos Estabelecimentos"):
+     st.info("""
+    **🏭 Análise da Distribuição por Porte dos Estabelecimentos**
 
-            📌 **Principais observações:**
-            - A distribuição de estabelecimentos por porte é agora categorizada dinamicamente, garantindo múltiplos grupos.
-            - O gráfico mostrará a proporção de estabelecimentos em cada faixa de produção de ovos (em dúzias), que foram definidos para equilibrar a quantidade de dados em cada categoria.
-            - A maior parte dos estabelecimentos tende a se concentrar nos portes menores, enquanto os maiores produtores são menos numerosos, mas contribuem significativamente para o volume total de produção.
+    O gráfico mostra a quantidade de estabelecimentos distribuídos por diferentes faixas de porte (definidas pelo IBGE):
 
-            💡 **Interpretação:**
-            - A categorização dinâmica dos portes permite uma visão mais fiel da distribuição dos estabelecimentos dentro do seu conjunto de dados.
-            - Isso ajuda a identificar a estrutura do setor, seja ela dominada por muitos pequenos produtores ou por poucos grandes.
-            - Compreender essa distribuição é crucial para direcionar políticas de apoio, investimentos e estratégias de mercado para os diferentes segmentos de produtores avícolas.
-            """)
+    - As faixas intermediárias, especialmente entre **201 e 5.000 aves**, concentram os maiores números de estabelecimentos, sugerindo predominância de produtores de médio porte no setor.
+    - Pequenos produtores ("De 1 a 100" e "De 101 a 200") também são numerosos, mas em menor quantidade que as faixas intermediárias.
+    - Faixas extremas ("De 100.001 e mais" e "Sem galináceos em 30.09.2017") apresentam participação reduzida, indicando que grandes produtores e estabelecimentos temporariamente inativos são minoria.
+    - A categoria "Total" pode representar registros agregados ou casos não classificados nas demais faixas, devendo ser analisada com cautela.
+    - A presença de estabelecimentos "Sem galináceos" reforça a importância de considerar sazonalidade ou inatividade temporária.
+
+    **Conclusão:** 
+    - O perfil da produção avícola brasileira é fortemente marcado pela presença de estabelecimentos de porte intermediário, com pequena participação de grandes produtores e um contingente relevante de pequenos estabelecimentos. Isso tem implicações para políticas públicas, estratégias de mercado e apoio ao setor.
+    """)
 else:
     st.warning("A coluna 'NOM_CL_GAL' ou 'Q_DZ_PROD' não foi encontrada no dataset.")
 
