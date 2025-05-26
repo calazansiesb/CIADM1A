@@ -40,7 +40,7 @@ try:
         df['SIST_CRIA'] = df['SIST_CRIA'].replace(mapeamento_sistemas)
         st.info("Colunas de 'SIST_CRIA' mapeadas para descrições completas para melhor legibilidade.")
     else:
-        st.warning("A coluna 'SIST_CRIA' não foi encontrada no dataset. Gráficos dependentes dela podem não funcionar corretamente.")
+        
 
 except Exception as e:
     st.error(f"Erro ao carregar o arquivo GALINACEOS.csv: {e}")
