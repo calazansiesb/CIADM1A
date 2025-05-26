@@ -156,16 +156,16 @@ if 'GAL_TOTAL' in df.columns and 'N_TRAB_TOTAL' in df.columns:
         **👥 Análise da Relação entre Tamanho do Estabelecimento e Número de Trabalhadores**
 
         📌 **Principais observações:**
-        - A maior parte dos estabelecimentos concentra-se nos menores valores de total de galináceos, apresentando alta dispersão no número de trabalhadores.
-        - Mesmo entre estabelecimentos de pequeno porte, há casos com grande número de funcionários, indicando diferenças operacionais ou de modelo de gestão.
-        - À medida que o tamanho do estabelecimento aumenta, observa-se uma tendência de diminuição da variação no número de trabalhadores, com a maioria das unidades maiores empregando até cerca de 200 pessoas.
-        - A coloração por **Sistema de Criação** (agora com nomes completos na legenda) revela que diferentes sistemas podem ter padrões distintos na relação entre tamanho e força de trabalho, por exemplo, produtores de ovos para incubação podem ser maiores e mais automatizados, enquanto "Outros produtores" podem ser menores e mais intensivos em mão de obra.
+        - A maioria dos estabelecimentos é de **pequeno a médio porte** (poucos galináceos), empregando, em geral, **menos de 200 trabalhadores**.
+        - Há uma **alta dispersão** na quantidade de trabalhadores em estabelecimentos menores, indicando variabilidade nas operações.
+        - A correlação geral (-0.08) é muito fraca, mas a análise por sistema de criação revela tendências distintas.
+        - Para **Produtores de frangos de corte** e **Outros produtores**, a linha de tendência é **levemente negativa/plana**, sugerindo que o aumento da escala pode ser acompanhado por maior automação e eficiência de mão de obra.
+        - Para **Produtores de ovos para consumo** e **incubação**, a relação tende a ser mais **estável ou ligeiramente positiva**, indicando que a demanda por mão de obra é menos reduzida com o aumento da escala.
 
         💡 **Interpretação:**
-        - A dispersão sugere que fatores além do tamanho físico, como tecnologia, automação, tipo de produção e especialização, influenciam fortemente a necessidade de mão de obra.
-        - Pequenos estabelecimentos podem demandar mais trabalhadores proporcionalmente, possivelmente devido a processos menos mecanizados ou maior diversificação de atividades.
-        - Estabelecimentos maiores tendem a otimizar o uso da força de trabalho, possivelmente refletindo maior eficiência operacional.
-        - A segmentação por sistema de criação no gráfico de dispersão ajuda a identificar nichos e modelos de negócio específicos que impactam a demanda por trabalhadores.
+        - A relação entre o tamanho do plantel e o número de trabalhadores é **complexa e não linear**, sendo fortemente influenciada pelo **sistema de criação**.
+        - Sistemas como **frangos de corte** podem se beneficiar mais de **automação em larga escala**, enquanto a **produção de ovos** pode ter uma necessidade de mão de obra mais **constante** por unidade produzida.
+        - As diferenças observadas indicam que o setor avícola possui **perfis operacionais diversos**, que dependem não apenas do tamanho, mas também da especialização do estabelecimento.
         """)
 
 else:
