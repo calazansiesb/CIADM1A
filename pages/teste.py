@@ -51,7 +51,7 @@ if 'SIST_CRIA' in df.columns:
     }
     # Aplicar o mapeamento
     df['SIST_CRIA'] = df['SIST_CRIA'].replace(mapeamento_sistemas)
-    st.info("Colunas de 'SIST_CRIA' mapeadas para descrições completas para melhor legibilidade.")
+    
 
 # Mostrar um preview dos dados (após o mapeamento, se aplicável)
 st.subheader("Visualização dos Dados")
