@@ -41,7 +41,7 @@ if 'SIST_CRIA' in df.columns:
     
     # Aplicar o mapeamento
     df['SIST_CRIA'] = df['SIST_CRIA'].replace(mapeamento_sistemas)
-    st.info("Colunas de 'SIST_CRIA' mapeadas para descrições completas para melhor legibilidade.")
+    
 else:
     st.warning("A coluna 'SIST_CRIA' não foi encontrada no dataset. Verifique o nome da coluna.")
 
