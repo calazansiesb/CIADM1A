@@ -1,17 +1,16 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-import plotly.graph_objects as go # Importar para controle mais fino se necessário
 
 # Configuração da página
 st.set_page_config(
-    page_title="Impacto na Lucratividade",
+    page_title="Impacto na Lucratividade (3D)",
     page_icon="📊",
-    layout="centered", # Usar layout centered para este tipo de dashboard
+    layout="wide", # Mudar para wide para melhor visualização 3D
 )
 
 # Título principal
-st.title("💰 Fatores que Mais Impactam a Lucratividade da Granja")
+st.title("💰 Fatores que Mais Impactam a Lucratividade da Granja (Visualização 3D)")
 
 # Dados dos coeficientes
 coefs = {
@@ -26,91 +25,67 @@ coefs = {
 # Preparação dos dados
 coef_df = pd.DataFrame(list(coefs.items()), columns=["Fator", "Coeficiente"])
 coef_df["Categoria"] = coef_df["Coeficiente"].apply(lambda x: "Positivo" if x > 0 else "Negativo")
-# Criar uma coluna para a magnitude absoluta para escala de cor
-coef_df["Magnitude"] = coef_df["Coeficiente"].abs()
+# Adicionar uma "terceira dimensão" para o 3D: pode ser a Magnitude
+coef_df["Magnitude_Absoluta"] = coef_df["Coeficiente"].abs()
+# Ou uma variável dummy fixa para apenas visualizar os pontos em um plano 3D:
+# coef_df["Z_Dummy"] = 1 # Todos os pontos em Z=1
+
 coef_df = coef_df.sort_values("Coeficiente", key=abs, ascending=True)
 
-# Gráfico de barras elegante (não 3D literal, mas com profundidade visual)
-st.subheader("📈 Importância dos Fatores para a Lucratividade")
+# Gráfico de Dispersão 3D
+st.subheader("🌐 Visualização 3D dos Coeficientes de Impacto")
 
-# Definir escalas de cores personalizadas e mais vivas
-# Para positivo, um gradiente verde-claro a verde-escuro
-positive_colors = ['#C8E6C9', '#4CAF50', '#2E7D32'] # Light green to dark green
-# Para negativo, um gradiente vermelho-claro a vermelho-escuro
-negative_colors = ['#FFCDD2', '#F44336', '#B71C1C'] # Light red to dark red
-
-
-# Usar a Magnitude para a intensidade da cor
-fig = px.bar(
+fig_3d = px.scatter_3d(
     coef_df,
-    x="Coeficiente",
-    y="Fator",
-    color="Coeficiente", # Colorir pelo coeficiente para um gradiente
-    color_continuous_scale=[(0, 'red'), (0.5, 'white'), (1, 'green')], # Escala de cor que transiciona de vermelho para verde
-    # Ou usar uma escala baseada na categoria para ter dois gradientes distintos:
-    # color_continuous_scale=px.colors.sequential.RdYlGn, # Um gradiente que vai de vermelho a verde
-    # color_continuous_scale=px.colors.diverging.RdYlGn, # Outra opção divergente
-    
-    orientation='h',
-    text_auto=True,
-    labels={"Coeficiente": "Impacto no Modelo", "Fator": ""},
-    height=450, # Aumentar um pouco a altura para melhor visualização
-    template="plotly_white" # Um tema mais limpo
+    x="Fator",
+    y="Coeficiente",
+    z="Magnitude_Absoluta", # Usar a magnitude como o terceiro eixo (profundidade)
+    color="Categoria", # Colorir pela categoria (Positivo/Negativo)
+    color_discrete_map={"Positivo": "#4CAF50", "Negativo": "#F44336"},
+    size="Magnitude_Absoluta", # Fazer o tamanho do ponto proporcional à magnitude
+    hover_name="Fator",
+    hover_data={"Coeficiente": ":.2f", "Magnitude_Absoluta": False}, # Mostrar coeficiente no hover, ocultar magnitude
+    title='Impacto dos Fatores na Lucratividade (3D)',
+    labels={
+        "Fator": "Fator",
+        "Coeficiente": "Coeficiente de Impacto",
+        "Magnitude_Absoluta": "Magnitude do Impacto"
+    },
+    height=600,
+    template="plotly_dark" # Tema escuro para um visual mais "tecnológico" em 3D
 )
 
-# Se quiser escalas de cores separadas por categoria (Positivo/Negativo)
-# Isso requer um pouco mais de manipulação com go.Bar, ou criar dois traces
-# Para simplificar e manter a elegância com px.bar: usar uma escala contínua divergente
-# Ou usar o 'color' pelo Coeficiente e ajustar range_color
-
-# Ajustar o range de cor para que o "branco" ou neutro fique no 0
-# A escala de cor irá de min(Coeficiente) a max(Coeficiente)
-min_val = coef_df["Coeficiente"].min()
-max_val = coef_df["Coeficiente"].max()
-# Ajustar range_color para que o ponto central (0) fique no meio do gradiente
-fig.update_layout(coloraxis_colorbar=dict(title="Impacto"))
-fig.update_traces(marker_line_color='darkgray', marker_line_width=1) # Adiciona borda nas barras
-
-
-# Layout elegante
-fig.update_layout(
-    hovermode="y unified",
-    showlegend=False,
-    yaxis={'categoryorder':'total ascending'},
-    margin=dict(l=0, r=0, t=50, b=0), # Ajustar margens
-    title_x=0.5, # Centralizar título
-    plot_bgcolor='rgba(0,0,0,0)', # Fundo transparente
-    paper_bgcolor='rgba(0,0,0,0)', # Fundo do papel transparente
-    xaxis=dict(showgrid=True, gridcolor='lightgray'), # Mostrar grid no eixo X
-    yaxis=dict(showgrid=False) # Remover grid no eixo Y
+fig_3d.update_layout(
+    scene = dict(
+        xaxis_title='Fator',
+        yaxis_title='Coeficiente de Impacto',
+        zaxis_title='Magnitude Absoluta',
+        # Ajustar a câmera para uma melhor visão inicial
+        camera = dict(
+            eye=dict(x=1.8, y=1.8, z=0.8) # Mais de cima e de lado
+        )
+    )
 )
 
-# Destaques no gráfico (manter, são úteis)
-fig.add_annotation(
-    x=0.85, y="Tecnologia",
-    text="Maior impacto positivo",
-    showarrow=True,
-    arrowhead=1,
-    ax=50,
-    ay=0,
-    font=dict(color="darkgreen", size=12),
-    bgcolor="rgba(255,255,255,0.7)"
-)
+st.plotly_chart(fig_3d, use_container_width=True)
 
-fig.add_annotation(
-    x=-0.75, y="Terra",
-    text="Maior impacto negativo",
-    showarrow=True,
-    arrowhead=1,
-    ax=-50,
-    ay=0,
-    font=dict(color="darkred", size=12),
-    bgcolor="rgba(255,255,255,0.7)"
-)
+with st.expander("💡 Interpretação do Gráfico 3D"):
+    st.info("""
+    **🌐 Análise do Gráfico de Dispersão 3D:**
+    Este gráfico tenta representar a magnitude do impacto de cada fator em uma terceira dimensão.
+    - **Eixo X (Fator):** Mostra os diferentes fatores.
+    - **Eixo Y (Coeficiente de Impacto):** Indica se o impacto é positivo ou negativo e sua força.
+    - **Eixo Z (Magnitude do Impacto):** Representa o valor absoluto do coeficiente, ou seja, o quão forte é o impacto, independentemente de ser positivo ou negativo.
+    - O tamanho e a cor dos pontos também reforçam a categoria (positivo/negativo) e a magnitude.
 
-st.plotly_chart(fig, use_container_width=True)
+    **💡 Interpretação:**
+    - Fatores com maior magnitude (ponto mais alto no eixo Z e/ou ponto maior) são os mais relevantes para a lucratividade, seja positiva ou negativamente.
+    - A visualização 3D permite girar o gráfico para observar as relações de diferentes ângulos.
+    - **Tecnologia** (verde, ponto maior) e **Terra** (vermelho, ponto maior) se destacam pela sua alta magnitude no eixo Z, confirmando seu papel crucial.
+    """)
 
-# Tabela de dados
+
+# Tabela de dados (mantida)
 st.subheader("📋 Detalhes dos Coeficientes")
 st.dataframe(
     coef_df.sort_values("Coeficiente", ascending=False),
@@ -121,13 +96,14 @@ st.dataframe(
             format="%.2f",
             help="Coeficiente padronizado do modelo"
         ),
-        "Categoria": "Tipo de Impacto"
+        "Categoria": "Tipo de Impacto",
+        "Magnitude_Absoluta": "Magnitude" # Mostrar a nova coluna
     },
     hide_index=True,
     use_container_width=True
 )
 
-# Análise automática
+# Análise automática (mantida)
 st.markdown("---")
 st.subheader("🔎 Principais Insights")
 
