@@ -20,7 +20,7 @@ st.title('Análise de Galináceos no Brasil (IBGE 2017)')
 st.markdown("---")
 
 # =============================================
-# 🔹 1. Carregar Dados Reais do GitHub
+# 1. Carregar Dados Reais do GitHub
 # =============================================
 st.header("📂 Carregando Dados Reais")
 
@@ -34,7 +34,7 @@ except Exception as e:
     st.stop()
 
 # =============================================
-# ✨ NOVIDADE: Mapeamento e Limpeza da coluna SIST_CRIA
+# NOVIDADE: Mapeamento e Limpeza da coluna SIST_CRIA
 # =============================================
 if 'SIST_CRIA' in df.columns:
     df['SIST_CRIA'] = df['SIST_CRIA'].astype(str).str.strip()
@@ -52,7 +52,7 @@ with st.expander("🔎 Ver registros aleatórios do conjunto de dados"):
     st.dataframe(df.sample(10))  # Exibe 10 linhas aleatórias
 
 # =============================================
-# 🔹 2. Proporção dos Sistemas de Criação
+# 2. Proporção dos Sistemas de Criação
 # =============================================
 st.header('📊 Proporção dos Sistemas de Criação')
 
@@ -84,8 +84,10 @@ else:
     st.warning("A coluna 'SIST_CRIA' não foi encontrada no dataset.")
 
 # =============================================
-# 🔹 3. Distribuição por Unidade Federativa (apenas estados)
+# 3. Distribuição por Unidade Federativa (apenas estados)
 # =============================================
+# ... (código anterior)
+
 st.header('🌎 Distribuição por Unidade Federativa')
 
 if 'NOM_TERR' in df.columns:
@@ -96,44 +98,30 @@ if 'NOM_TERR' in df.columns:
         'Piauí', 'Rio de Janeiro', 'Rio Grande do Norte', 'Rio Grande do Sul', 'Rondônia', 'Roraima', 'Santa Catarina',
         'São Paulo', 'Sergipe', 'Tocantins'
     ]
-    # Filtrando apenas estados
+    # Filtrar apenas estados
     df_uf = df[df['NOM_TERR'].isin(estados_brasil)]
     freq_estab_por_uf = df_uf['NOM_TERR'].value_counts().sort_values(ascending=False)
-    df_uf_plot = freq_estab_por_uf.rename_axis('Unidade Federativa').reset_index(name='Quantidade')
+    df_plot = freq_estab_por_uf.rename_axis('Unidade Federativa').reset_index(name='Quantidade')
 
-    # Gráfico Seaborn bonito apenas para os estados
-    st.write("#### Número de Estabelecimentos por Estado")
-    fig, ax = plt.subplots(figsize=(16, 7))
-    sns.barplot(
+    fig2 = px.bar(
+        df_plot,
         x='Unidade Federativa',
         y='Quantidade',
-        data=df_uf_plot,
-        palette='Set2'
+        title='Número de Estabelecimentos por Estado',
+        labels={'Unidade Federativa': 'Estado', 'Quantidade': 'Quantidade'},
+        color='Unidade Federativa',  # Cor única para cada estado!
+        color_discrete_sequence=px.colors.qualitative.Set2  # Paleta amigável
     )
-    ax.set_xlabel('Unidade Federativa')
-    ax.set_ylabel('Quantidade')
-    ax.set_title('Número de Estabelecimentos por Estado')
-    plt.xticks(rotation=35, ha='right')
-    plt.tight_layout()
-    st.pyplot(fig)
-
-    with st.expander("💡 Interpretação do Gráfico de Distribuição por Unidade Federativa"):
-        st.info("""
-        **🌎 Análise da Distribuição por Unidade Federativa (Apenas Estados)**
-
-        📌 **Principais observações:**
-        - Os maiores valores de estabelecimentos estão concentrados nos estados das regiões **Sul, Sudeste e Nordeste**, com destaque para **Paraná, Santa Catarina, Bahia, Pernambuco e Rio Grande do Sul**.
-        - Os estados da região Norte e parte do Centro-Oeste apresentam menores quantidades de estabelecimentos.
-        - Essa filtragem evidencia o panorama real dos estados brasileiros, retirando agregados regionais e totais.
-
-        💡 **Interpretação:**
-        - A análise detalhada por estado permite identificar oportunidades de crescimento e concentração produtiva, fundamentais para estratégias regionais e políticas públicas.
-        """)
-else:
-    st.warning("A coluna 'NOM_TERR' não foi encontrada no dataset.")
-
+    fig2.update_layout(
+        xaxis_tickangle=-35,
+        showlegend=False,
+        bargap=0.15,
+        plot_bgcolor='white',
+        font=dict(size=14)
+    )
+    st.plotly_chart(fig2, use_container_width=True)
 # =============================================
-# 🔹 4. Relação: Tamanho × Trabalhadores
+# 4. Relação: Tamanho × Trabalhadores
 # =============================================
 st.header('👥 Relação entre Tamanho do Estabelecimento e Número de Trabalhadores')
 
@@ -173,7 +161,7 @@ else:
     st.warning("As colunas 'GAL_TOTAL' ou 'N_TRAB_TOTAL' não foram encontradas no dataset.")
 
 # =============================================
-# 🔹 5. Distribuição por Porte dos Estabelecimentos
+# 5. Distribuição por Porte dos Estabelecimentos
 # =============================================
 st.header('🏭 Distribuição por Porte dos Estabelecimentos')
 
@@ -207,7 +195,7 @@ else:
     st.warning("A coluna 'NOM_CL_GAL' não foi encontrada no dataset.")
 
 # =============================================
-# 🔹 Rodapé
+# Rodapé
 # =============================================
 st.markdown("---")
 st.caption("""
