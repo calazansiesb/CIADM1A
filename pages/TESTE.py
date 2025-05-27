@@ -2,6 +2,8 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import plotly.express as px
+import seaborn as sns
+import matplotlib.pyplot as plt
 
 # Configuração da página
 st.set_page_config(
@@ -24,7 +26,6 @@ st.markdown("---")
 # =============================================
 st.header("📂 Carregando Dados Reais")
 
-# URL do arquivo no GitHub
 csv_url = "https://raw.githubusercontent.com/calazansiesb/CIADM1A/main/GALINACEOS.csv"
 
 try:
@@ -86,40 +87,50 @@ else:
     st.warning("A coluna 'SIST_CRIA' não foi encontrada no dataset.")
 
 # =============================================
-# 🔹 3. Distribuição por Unidade Federativa
+# 🔹 3. Distribuição por Unidade Federativa (usando seaborn)
 # =============================================
 st.header('🌎 Distribuição por Unidade Federativa')
 
 if 'NOM_TERR' in df.columns:
+    # Exemplo de agrupamento fictício por região - troque conforme sua base real!
+    regioes_dict = {
+        # Adapte conforme suas UFs e regiões!
+        'Acre': 'Norte', 'Amapá': 'Norte', 'Amazonas': 'Norte', 'Pará': 'Norte', 'Rondônia': 'Norte',
+        'Roraima': 'Norte', 'Tocantins': 'Norte',
+        'Alagoas': 'Nordeste', 'Bahia': 'Nordeste', 'Ceará': 'Nordeste', 'Maranhão': 'Nordeste',
+        'Paraíba': 'Nordeste', 'Pernambuco': 'Nordeste', 'Piauí': 'Nordeste', 'Rio Grande do Norte': 'Nordeste', 'Sergipe': 'Nordeste',
+        'Distrito Federal': 'Centro-Oeste', 'Goiás': 'Centro-Oeste', 'Mato Grosso': 'Centro-Oeste', 'Mato Grosso do Sul': 'Centro-Oeste',
+        'Espírito Santo': 'Sudeste', 'Minas Gerais': 'Sudeste', 'Rio de Janeiro': 'Sudeste', 'São Paulo': 'Sudeste',
+        'Paraná': 'Sul', 'Rio Grande do Sul': 'Sul', 'Santa Catarina': 'Sul',
+        'Brasil': 'Brasil', 'Sul': 'Brasil', 'Sudeste': 'Brasil', 'Nordeste': 'Brasil', 'Centro-Oeste': 'Brasil', 'Norte': 'Brasil',
+        'Total': 'Brasil', 'Sem Galinaceos em 30.09.2017': 'Brasil'
+    }
+    df['Região'] = df['NOM_TERR'].map(regioes_dict).fillna('Outra')
+
     freq_estab_por_uf = df['NOM_TERR'].value_counts().sort_values(ascending=False)
-    fig2 = px.bar(
-        x=freq_estab_por_uf.index,
-        y=freq_estab_por_uf.values,
-        title='Número de Estabelecimentos por UF',
-        labels={'x': 'Unidade Federativa', 'y': 'Quantidade'},
-        color_discrete_sequence=['#FF8700'],
-        text=freq_estab_por_uf.values,
+    df_uf = (
+        freq_estab_por_uf.rename_axis('Unidade Federativa')
+        .reset_index(name='Quantidade')
     )
+    df_uf['Região'] = df_uf['Unidade Federativa'].map(regioes_dict).fillna('Outra')
 
-    fig2.update_traces(
-        textposition='outside',
-        marker_line_color='black',
-        marker_line_width=1.2,
-        opacity=0.9,
+    # Gráfico Seaborn
+    st.write("#### Número de Estabelecimentos por UF e Região")
+    fig, ax = plt.subplots(figsize=(16, 7))
+    sns.barplot(
+        x='Unidade Federativa',
+        y='Quantidade',
+        data=df_uf,
+        hue='Região',
+        palette='Set2'
     )
-
-    fig2.update_layout(
-        xaxis_title='Unidade Federativa',
-        yaxis_title='Quantidade',
-        xaxis_tickangle=-35,
-        bargap=0.15,
-        plot_bgcolor='white',
-        title_x=0.5,
-        showlegend=False,
-        font=dict(size=13)
-    )
-
-    st.plotly_chart(fig2, use_container_width=True)
+    ax.set_xlabel('Unidade Federativa')
+    ax.set_ylabel('Quantidade')
+    ax.set_title('Número de Estabelecimentos por UF e Região')
+    plt.xticks(rotation=35, ha='right')
+    plt.legend(title="Região")
+    plt.tight_layout()
+    st.pyplot(fig)
 
     with st.expander("💡 Interpretação do Gráfico de Distribuição por Unidade Federativa"):
         st.info("""
