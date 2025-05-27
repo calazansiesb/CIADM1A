@@ -1,9 +1,9 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import plotly.express as px
 import seaborn as sns
 import matplotlib.pyplot as plt
+import plotly.express as px
 
 # Configuração da página
 st.set_page_config(
@@ -87,64 +87,50 @@ else:
     st.warning("A coluna 'SIST_CRIA' não foi encontrada no dataset.")
 
 # =============================================
-# 🔹 3. Distribuição por Unidade Federativa (usando seaborn)
+# 🔹 3. Distribuição por Unidade Federativa (apenas estados)
 # =============================================
 st.header('🌎 Distribuição por Unidade Federativa')
 
 if 'NOM_TERR' in df.columns:
-    # Exemplo de agrupamento fictício por região - troque conforme sua base real!
-    regioes_dict = {
-        # Adapte conforme suas UFs e regiões!
-        'Acre': 'Norte', 'Amapá': 'Norte', 'Amazonas': 'Norte', 'Pará': 'Norte', 'Rondônia': 'Norte',
-        'Roraima': 'Norte', 'Tocantins': 'Norte',
-        'Alagoas': 'Nordeste', 'Bahia': 'Nordeste', 'Ceará': 'Nordeste', 'Maranhão': 'Nordeste',
-        'Paraíba': 'Nordeste', 'Pernambuco': 'Nordeste', 'Piauí': 'Nordeste', 'Rio Grande do Norte': 'Nordeste', 'Sergipe': 'Nordeste',
-        'Distrito Federal': 'Centro-Oeste', 'Goiás': 'Centro-Oeste', 'Mato Grosso': 'Centro-Oeste', 'Mato Grosso do Sul': 'Centro-Oeste',
-        'Espírito Santo': 'Sudeste', 'Minas Gerais': 'Sudeste', 'Rio de Janeiro': 'Sudeste', 'São Paulo': 'Sudeste',
-        'Paraná': 'Sul', 'Rio Grande do Sul': 'Sul', 'Santa Catarina': 'Sul',
-        'Brasil': 'Brasil', 'Sul': 'Brasil', 'Sudeste': 'Brasil', 'Nordeste': 'Brasil', 'Centro-Oeste': 'Brasil', 'Norte': 'Brasil',
-        'Total': 'Brasil', 'Sem Galinaceos em 30.09.2017': 'Brasil'
-    }
-    df['Região'] = df['NOM_TERR'].map(regioes_dict).fillna('Outra')
+    # Lista oficial dos 26 estados + DF
+    estados_brasil = [
+        'Acre', 'Alagoas', 'Amapá', 'Amazonas', 'Bahia', 'Ceará', 'Distrito Federal', 'Espírito Santo', 'Goiás',
+        'Maranhão', 'Mato Grosso', 'Mato Grosso do Sul', 'Minas Gerais', 'Pará', 'Paraíba', 'Paraná', 'Pernambuco',
+        'Piauí', 'Rio de Janeiro', 'Rio Grande do Norte', 'Rio Grande do Sul', 'Rondônia', 'Roraima', 'Santa Catarina',
+        'São Paulo', 'Sergipe', 'Tocantins'
+    ]
+    # Filtrando apenas estados
+    df_uf = df[df['NOM_TERR'].isin(estados_brasil)]
+    freq_estab_por_uf = df_uf['NOM_TERR'].value_counts().sort_values(ascending=False)
+    df_uf_plot = freq_estab_por_uf.rename_axis('Unidade Federativa').reset_index(name='Quantidade')
 
-    freq_estab_por_uf = df['NOM_TERR'].value_counts().sort_values(ascending=False)
-    df_uf = (
-        freq_estab_por_uf.rename_axis('Unidade Federativa')
-        .reset_index(name='Quantidade')
-    )
-    df_uf['Região'] = df_uf['Unidade Federativa'].map(regioes_dict).fillna('Outra')
-
-    # Gráfico Seaborn
-    st.write("#### Número de Estabelecimentos por UF e Região")
+    # Gráfico Seaborn bonito apenas para os estados
+    st.write("#### Número de Estabelecimentos por Estado")
     fig, ax = plt.subplots(figsize=(16, 7))
     sns.barplot(
         x='Unidade Federativa',
         y='Quantidade',
-        data=df_uf,
-        hue='Região',
+        data=df_uf_plot,
         palette='Set2'
     )
     ax.set_xlabel('Unidade Federativa')
     ax.set_ylabel('Quantidade')
-    ax.set_title('Número de Estabelecimentos por UF e Região')
+    ax.set_title('Número de Estabelecimentos por Estado')
     plt.xticks(rotation=35, ha='right')
-    plt.legend(title="Região")
     plt.tight_layout()
     st.pyplot(fig)
 
     with st.expander("💡 Interpretação do Gráfico de Distribuição por Unidade Federativa"):
         st.info("""
-        **🌎 Análise da Distribuição por Unidade Federativa**
+        **🌎 Análise da Distribuição por Unidade Federativa (Apenas Estados)**
 
         📌 **Principais observações:**
-        - Os maiores valores de estabelecimentos estão concentrados nas regiões **Sul, Sudeste e Nordeste**, com estados como **Paraná, Santa Catarina, Bahia, Pernambuco e Rio Grande do Sul** entre os primeiros colocados.
-        - O número de estabelecimentos por UF apresenta uma distribuição relativamente homogênea nos estados líderes, com leve declínio nos estados das regiões Norte e Centro-Oeste.
-        - Estados como **Acre, Amapá, Roraima e Amazonas** estão entre os que apresentam menor quantidade de estabelecimentos.
+        - Os maiores valores de estabelecimentos estão concentrados nos estados das regiões **Sul, Sudeste e Nordeste**, com destaque para **Paraná, Santa Catarina, Bahia, Pernambuco e Rio Grande do Sul**.
+        - Os estados da região Norte e parte do Centro-Oeste apresentam menores quantidades de estabelecimentos.
+        - Essa filtragem evidencia o panorama real dos estados brasileiros, retirando agregados regionais e totais.
 
         💡 **Interpretação:**
-        - A forte presença de estabelecimentos nas regiões Sul, Sudeste e Nordeste pode estar relacionada à infraestrutura mais desenvolvida, tradição produtiva e maior demanda de mercado.
-        - A menor concentração de estabelecimentos em estados do Norte e parte do Centro-Oeste pode indicar desafios logísticos, menor densidade populacional ou potencial para expansão do setor.
-        - A análise sugere oportunidades de investimento e crescimento nas regiões menos representadas, promovendo maior equilíbrio nacional na distribuição de estabelecimentos.
+        - A análise detalhada por estado permite identificar oportunidades de crescimento e concentração produtiva, fundamentais para estratégias regionais e políticas públicas.
         """)
 else:
     st.warning("A coluna 'NOM_TERR' não foi encontrada no dataset.")
