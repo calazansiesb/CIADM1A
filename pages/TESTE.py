@@ -86,6 +86,8 @@ else:
 # =============================================
 # 3. Distribuição por Unidade Federativa (apenas estados)
 # =============================================
+# ... (código anterior)
+
 st.header('🌎 Distribuição por Unidade Federativa')
 
 if 'NOM_TERR' in df.columns:
@@ -96,50 +98,28 @@ if 'NOM_TERR' in df.columns:
         'Piauí', 'Rio de Janeiro', 'Rio Grande do Norte', 'Rio Grande do Sul', 'Rondônia', 'Roraima', 'Santa Catarina',
         'São Paulo', 'Sergipe', 'Tocantins'
     ]
-    # Filtrando apenas estados
+    # Filtrar apenas estados
     df_uf = df[df['NOM_TERR'].isin(estados_brasil)]
     freq_estab_por_uf = df_uf['NOM_TERR'].value_counts().sort_values(ascending=False)
+    df_plot = freq_estab_por_uf.rename_axis('Unidade Federativa').reset_index(name='Quantidade')
+
     fig2 = px.bar(
-        x=freq_estab_por_uf.index,
-        y=freq_estab_por_uf.values,
+        df_plot,
+        x='Unidade Federativa',
+        y='Quantidade',
         title='Número de Estabelecimentos por Estado',
-        labels={'x': 'Unidade Federativa', 'y': 'Quantidade'},
-        color_discrete_sequence=['#FF8700'],
-        text=freq_estab_por_uf.values
-    )
-    fig2.update_traces(
-        textposition='outside',
-        marker_line_color='black',
-        marker_line_width=1.2,
-        opacity=0.9,
+        labels={'Unidade Federativa': 'Estado', 'Quantidade': 'Quantidade'},
+        color='Unidade Federativa',  # Cor única para cada estado!
+        color_discrete_sequence=px.colors.qualitative.Set2  # Paleta amigável
     )
     fig2.update_layout(
-        xaxis_title='Unidade Federativa',
-        yaxis_title='Quantidade',
         xaxis_tickangle=-35,
+        showlegend=False,
         bargap=0.15,
         plot_bgcolor='white',
-        title_x=0.5,
-        showlegend=False,
-        font=dict(size=13)
+        font=dict(size=14)
     )
     st.plotly_chart(fig2, use_container_width=True)
-
-    with st.expander("💡 Interpretação do Gráfico de Distribuição por Unidade Federativa"):
-        st.info("""
-        **🌎 Análise da Distribuição por Unidade Federativa (Apenas Estados)**
-
-        📌 **Principais observações:**
-        - Os maiores valores de estabelecimentos estão concentrados nos estados das regiões **Sul, Sudeste e Nordeste**, com destaque para **Paraná, Santa Catarina, Bahia, Pernambuco e Rio Grande do Sul**.
-        - Os estados da região Norte e parte do Centro-Oeste apresentam menores quantidades de estabelecimentos.
-        - Essa filtragem evidencia o panorama real dos estados brasileiros, retirando agregados regionais e totais.
-
-        💡 **Interpretação:**
-        - A análise detalhada por estado permite identificar oportunidades de crescimento e concentração produtiva, fundamentais para estratégias regionais e políticas públicas.
-        """)
-else:
-    st.warning("A coluna 'NOM_TERR' não foi encontrada no dataset.")
-
 # =============================================
 # 4. Relação: Tamanho × Trabalhadores
 # =============================================
