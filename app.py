@@ -24,10 +24,8 @@ st.markdown("---")
 # =============================================
 st.header("📂 Carregando Dados Reais")
 
-# URL do arquivo no GitHub (Substitua pelo correto caso necessário)
 csv_url = "https://raw.githubusercontent.com/calazansiesb/CIADM1A/main/GALINACEOS.csv"
 
-# Carregar dados
 try:
     df = pd.read_csv(csv_url, sep=';')
     st.success("Dados carregados com sucesso!")
@@ -39,24 +37,19 @@ except Exception as e:
 # ✨ NOVIDADE: Mapeamento e Limpeza da coluna SIST_CRIA
 # =============================================
 if 'SIST_CRIA' in df.columns:
-    # Limpar espaços em branco e garantir que é string antes de mapear
     df['SIST_CRIA'] = df['SIST_CRIA'].astype(str).str.strip()
-
-    # Dicionário de mapeamento das abreviações para descrições completas
     mapeamento_sistemas = {
         '1-SIST_POC': 'Produtores de ovos para consumo',
         '2-SIST_POI': 'Produtores de ovos para incubação',
         '3-SIST_PFC': 'Produtores de frangos de corte',
         '4-Outro': 'Outros produtores'
     }
-    # Aplicar o mapeamento
     df['SIST_CRIA'] = df['SIST_CRIA'].replace(mapeamento_sistemas)
-    
 
-# Mostrar registros aleatórios do conjunto de dados)
+# Mostrar registros aleatórios do conjunto de dados
 st.subheader("Visualização dos Dados")
 with st.expander("🔎 Ver registros aleatórios do conjunto de dados"):
-    st.dataframe(df.sample(10))  # Exibe 5 linhas aleatórias
+    st.dataframe(df.sample(10))  # Exibe 10 linhas aleatórias
 
 # =============================================
 # 🔹 2. Proporção dos Sistemas de Criação
@@ -91,34 +84,50 @@ else:
     st.warning("A coluna 'SIST_CRIA' não foi encontrada no dataset.")
 
 # =============================================
-# 🔹 3. Distribuição por Unidade Federativa
+# 🔹 3. Distribuição por Unidade Federativa (apenas estados)
 # =============================================
 st.header('🌎 Distribuição por Unidade Federativa')
 
 if 'NOM_TERR' in df.columns:
-    freq_estab_por_uf = df['NOM_TERR'].value_counts()
-    fig2 = px.bar(
-        x=freq_estab_por_uf.index,
-        y=freq_estab_por_uf.values,
-        title='Número de Estabelecimentos por UF',
-        labels={'x': 'Unidade Federativa', 'y': 'Quantidade'},
-        color_discrete_sequence=px.colors.qualitative.Vivid
+    # Lista oficial dos 26 estados + DF
+    estados_brasil = [
+        'Acre', 'Alagoas', 'Amapá', 'Amazonas', 'Bahia', 'Ceará', 'Distrito Federal', 'Espírito Santo', 'Goiás',
+        'Maranhão', 'Mato Grosso', 'Mato Grosso do Sul', 'Minas Gerais', 'Pará', 'Paraíba', 'Paraná', 'Pernambuco',
+        'Piauí', 'Rio de Janeiro', 'Rio Grande do Norte', 'Rio Grande do Sul', 'Rondônia', 'Roraima', 'Santa Catarina',
+        'São Paulo', 'Sergipe', 'Tocantins'
+    ]
+    # Filtrando apenas estados
+    df_uf = df[df['NOM_TERR'].isin(estados_brasil)]
+    freq_estab_por_uf = df_uf['NOM_TERR'].value_counts().sort_values(ascending=False)
+    df_uf_plot = freq_estab_por_uf.rename_axis('Unidade Federativa').reset_index(name='Quantidade')
+
+    # Gráfico Seaborn bonito apenas para os estados
+    st.write("#### Número de Estabelecimentos por Estado")
+    fig, ax = plt.subplots(figsize=(16, 7))
+    sns.barplot(
+        x='Unidade Federativa',
+        y='Quantidade',
+        data=df_uf_plot,
+        palette='Set2'
     )
-    st.plotly_chart(fig2, use_container_width=True)
+    ax.set_xlabel('Unidade Federativa')
+    ax.set_ylabel('Quantidade')
+    ax.set_title('Número de Estabelecimentos por Estado')
+    plt.xticks(rotation=35, ha='right')
+    plt.tight_layout()
+    st.pyplot(fig)
 
     with st.expander("💡 Interpretação do Gráfico de Distribuição por Unidade Federativa"):
         st.info("""
-        **🌎 Análise da Distribuição por Unidade Federativa**
+        **🌎 Análise da Distribuição por Unidade Federativa (Apenas Estados)**
 
         📌 **Principais observações:**
-        - Os maiores valores de estabelecimentos estão concentrados nas regiões **Sul, Sudeste e Nordeste**, com estados como **Paraná, Santa Catarina, Bahia, Pernambuco e Rio Grande do Sul** entre os primeiros colocados.
-        - O número de estabelecimentos por UF apresenta uma distribuição relativamente homogênea nos estados líderes, com leve declínio nos estados das regiões Norte e Centro-Oeste.
-        - Estados como **Acre, Amapá, Roraima e Amazonas** estão entre os que apresentam menor quantidade de estabelecimentos.
+        - Os maiores valores de estabelecimentos estão concentrados nos estados das regiões **Sul, Sudeste e Nordeste**, com destaque para **Paraná, Santa Catarina, Bahia, Pernambuco e Rio Grande do Sul**.
+        - Os estados da região Norte e parte do Centro-Oeste apresentam menores quantidades de estabelecimentos.
+        - Essa filtragem evidencia o panorama real dos estados brasileiros, retirando agregados regionais e totais.
 
         💡 **Interpretação:**
-        - A forte presença de estabelecimentos nas regiões Sul, Sudeste e Nordeste pode estar relacionada à infraestrutura mais desenvolvida, tradição produtiva e maior demanda de mercado.
-        - A menor concentração de estabelecimentos em estados do Norte e parte do Centro-Oeste pode indicar desafios logísticos, menor densidade populacional ou potencial para expansão do setor.
-        - A análise sugere oportunidades de investimento e crescimento nas regiões menos representadas, promovendo maior equilíbrio nacional na distribuição de estabelecimentos.
+        - A análise detalhada por estado permite identificar oportunidades de crescimento e concentração produtiva, fundamentais para estratégias regionais e políticas públicas.
         """)
 else:
     st.warning("A coluna 'NOM_TERR' não foi encontrada no dataset.")
@@ -164,7 +173,7 @@ else:
     st.warning("As colunas 'GAL_TOTAL' ou 'N_TRAB_TOTAL' não foram encontradas no dataset.")
 
 # =============================================
-# 🔹 5. Distribuição por Porte dos Estabelecimentos (CORRIGIDO + ANÁLISE DO GRÁFICO)
+# 🔹 5. Distribuição por Porte dos Estabelecimentos
 # =============================================
 st.header('🏭 Distribuição por Porte dos Estabelecimentos')
 
@@ -194,85 +203,8 @@ if 'NOM_CL_GAL' in df.columns:
         **Conclusão:** 
         - O perfil da produção avícola brasileira é fortemente marcado pela presença de estabelecimentos de porte intermediário, com pequena participação de grandes produtores e um contingente relevante de pequenos estabelecimentos. Isso tem implicações para políticas públicas, estratégias de mercado e apoio ao setor.
         """)
-elif 'Q_DZ_PROD' in df.columns:
-    df['Q_DZ_PROD'] = pd.to_numeric(df['Q_DZ_PROD'], errors='coerce')
-    df_filtered = df.dropna(subset=['Q_DZ_PROD']).copy()
-
-    if df_filtered.empty:
-        st.warning("Não há dados válidos para a produção de ovos para categorizar por porte após a remoção de valores ausentes.")
-    else:
-        num_bins = 3
-
-        if df_filtered['Q_DZ_PROD'].nunique() < num_bins:
-            st.warning(f"Atenção: A coluna 'Q_DZ_PROD' tem apenas {df_filtered['Q_DZ_PROD'].nunique()} valores únicos. Pode não ser possível criar {num_bins} grupos distintos. Exibindo grupos existentes.")
-            bins = [0, 1, 1000, 5000, float('inf')]
-            labels = ['Nulo (0)', 'Muito Pequeno (0-1k)', 'Pequeno (1k-5k)', 'Médio-Grande (>5k)']
-            df_filtered['Porte'] = pd.cut(
-                df_filtered['Q_DZ_PROD'],
-                bins=bins,
-                labels=labels,
-                include_lowest=True,
-                right=False
-            )
-            freq_portes = df_filtered['Porte'].value_counts()
-            labels_with_data = [label for label in labels if label in freq_portes.index]
-            freq_portes = freq_portes.reindex(labels_with_data, fill_value=0)
-        else:
-            bins = pd.qcut(
-                df_filtered['Q_DZ_PROD'],
-                q=num_bins,
-                duplicates='drop',
-                retbins=True
-            )[1]
-            if bins[0] > 0:
-                bins[0] = 0
-            if bins[-1] < df_filtered['Q_DZ_PROD'].max():
-                bins[-1] = df_filtered['Q_DZ_PROD'].max() + 1e-9
-
-            if num_bins == 3 and len(bins) == 4:
-                labels = [
-                    f'Pequeno (até {int(bins[1])})',
-                    f'Médio ({int(bins[1])} - {int(bins[2])})',
-                    f'Grande (acima de {int(bins[2])})'
-                ]
-            elif len(bins) > 1:
-                labels = [f'{int(bins[i])} - {int(bins[i+1])}' for i in range(len(bins)-1)]
-            else:
-                labels = ["Único Porte"]
-
-            df_filtered['Porte'] = pd.cut(
-                df_filtered['Q_DZ_PROD'],
-                bins=bins,
-                labels=labels,
-                include_lowest=True,
-                right=False
-            )
-            freq_portes = df_filtered['Porte'].value_counts().reindex(labels, fill_value=0)
-
-        fig4 = px.bar(
-            x=freq_portes.index,
-            y=freq_portes.values,
-            title='Distribuição de Estabelecimentos por Porte',
-            labels={'x': 'Porte do Estabelecimento', 'y': 'Quantidade'},
-            color_discrete_sequence=['#636EFA', '#EF553B', '#00CC96']
-        )
-        st.plotly_chart(fig4, use_container_width=True)
-
-        with st.expander("💡 Interpretação do Gráfico de Distribuição por Porte dos Estabelecimentos"):
-            st.info("""
-            **🏭 Análise da Distribuição por Porte dos Estabelecimentos**
-
-            O gráfico mostra a quantidade de estabelecimentos distribuídos por diferentes faixas de porte (definidas dinamicamente):
-
-            - As faixas intermediárias concentram os maiores números de estabelecimentos, sugerindo predominância de produtores de médio porte no setor.
-            - A maior parte dos estabelecimentos tende a se concentrar nos portes menores, enquanto os maiores produtores são menos numerosos, mas contribuem significativamente para o volume total de produção.
-            - A presença de estabelecimentos "Nulo" ou "Sem produção" reforça a importância de considerar sazonalidade ou inatividade temporária.
-
-            **Conclusão:** 
-            - O perfil da produção avícola brasileira é fortemente marcado pela presença de estabelecimentos de porte intermediário, com pequena participação de grandes produtores e um contingente relevante de pequenos estabelecimentos. Isso tem implicações para políticas públicas, estratégias de mercado e apoio ao setor.
-            """)
 else:
-    st.warning("A coluna 'NOM_CL_GAL' ou 'Q_DZ_PROD' não foi encontrada no dataset.")
+    st.warning("A coluna 'NOM_CL_GAL' não foi encontrada no dataset.")
 
 # =============================================
 # 🔹 Rodapé
