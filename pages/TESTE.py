@@ -84,34 +84,50 @@ else:
     st.warning("A coluna 'SIST_CRIA' não foi encontrada no dataset.")
 
 # =============================================
-# 🔹 3. Distribuição por Unidade Federativa
+# 🔹 3. Distribuição por Unidade Federativa (apenas estados)
 # =============================================
 st.header('🌎 Distribuição por Unidade Federativa')
 
 if 'NOM_TERR' in df.columns:
-    freq_estab_por_uf = df['NOM_TERR'].value_counts()
-    fig2 = px.bar(
-        x=freq_estab_por_uf.index,
-        y=freq_estab_por_uf.values,
-        title='Número de Estabelecimentos por UF',
-        labels={'x': 'Unidade Federativa', 'y': 'Quantidade'},
-        color_discrete_sequence=px.colors.qualitative.Vivid
+    # Lista oficial dos 26 estados + DF
+    estados_brasil = [
+        'Acre', 'Alagoas', 'Amapá', 'Amazonas', 'Bahia', 'Ceará', 'Distrito Federal', 'Espírito Santo', 'Goiás',
+        'Maranhão', 'Mato Grosso', 'Mato Grosso do Sul', 'Minas Gerais', 'Pará', 'Paraíba', 'Paraná', 'Pernambuco',
+        'Piauí', 'Rio de Janeiro', 'Rio Grande do Norte', 'Rio Grande do Sul', 'Rondônia', 'Roraima', 'Santa Catarina',
+        'São Paulo', 'Sergipe', 'Tocantins'
+    ]
+    # Filtrando apenas estados
+    df_uf = df[df['NOM_TERR'].isin(estados_brasil)]
+    freq_estab_por_uf = df_uf['NOM_TERR'].value_counts().sort_values(ascending=False)
+    df_uf_plot = freq_estab_por_uf.rename_axis('Unidade Federativa').reset_index(name='Quantidade')
+
+    # Gráfico Seaborn bonito apenas para os estados
+    st.write("#### Número de Estabelecimentos por Estado")
+    fig, ax = plt.subplots(figsize=(16, 7))
+    sns.barplot(
+        x='Unidade Federativa',
+        y='Quantidade',
+        data=df_uf_plot,
+        palette='Set2'
     )
-    st.plotly_chart(fig2, use_container_width=True)
+    ax.set_xlabel('Unidade Federativa')
+    ax.set_ylabel('Quantidade')
+    ax.set_title('Número de Estabelecimentos por Estado')
+    plt.xticks(rotation=35, ha='right')
+    plt.tight_layout()
+    st.pyplot(fig)
 
     with st.expander("💡 Interpretação do Gráfico de Distribuição por Unidade Federativa"):
         st.info("""
-        **🌎 Análise da Distribuição por Unidade Federativa**
+        **🌎 Análise da Distribuição por Unidade Federativa (Apenas Estados)**
 
         📌 **Principais observações:**
-        - Os maiores valores de estabelecimentos estão concentrados nas regiões **Sul, Sudeste e Nordeste**, com estados como **Paraná, Santa Catarina, Bahia, Pernambuco e Rio Grande do Sul** entre os primeiros colocados.
-        - O número de estabelecimentos por UF apresenta uma distribuição relativamente homogênea nos estados líderes, com leve declínio nos estados das regiões Norte e Centro-Oeste.
-        - Estados como **Acre, Amapá, Roraima e Amazonas** estão entre os que apresentam menor quantidade de estabelecimentos.
+        - Os maiores valores de estabelecimentos estão concentrados nos estados das regiões **Sul, Sudeste e Nordeste**, com destaque para **Paraná, Santa Catarina, Bahia, Pernambuco e Rio Grande do Sul**.
+        - Os estados da região Norte e parte do Centro-Oeste apresentam menores quantidades de estabelecimentos.
+        - Essa filtragem evidencia o panorama real dos estados brasileiros, retirando agregados regionais e totais.
 
         💡 **Interpretação:**
-        - A forte presença de estabelecimentos nas regiões Sul, Sudeste e Nordeste pode estar relacionada à infraestrutura mais desenvolvida, tradição produtiva e maior demanda de mercado.
-        - A menor concentração de estabelecimentos em estados do Norte e parte do Centro-Oeste pode indicar desafios logísticos, menor densidade populacional ou potencial para expansão do setor.
-        - A análise sugere oportunidades de investimento e crescimento nas regiões menos representadas, promovendo maior equilíbrio nacional na distribuição de estabelecimentos.
+        - A análise detalhada por estado permite identificar oportunidades de crescimento e concentração produtiva, fundamentais para estratégias regionais e políticas públicas.
         """)
 else:
     st.warning("A coluna 'NOM_TERR' não foi encontrada no dataset.")
