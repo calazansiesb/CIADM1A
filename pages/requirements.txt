@@ -1,4 +1,13 @@
-streamlit>=1.22.0
+streamlit
 pandas
 matplotlib
+seaborn
+numpy
+scikit-learn
 plotly
+statsmodels
+tensorflow
+pandas
+streamlit
+requests
+scikit-learn
