@@ -1,241 +1,213 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
 import plotly.express as px
-import unicodedata
+import unicodedata # Adicionado para limpeza de nomes de colunas
 
 # Configuração da página
 st.set_page_config(
-    page_title="Análise Avícola - Sistemas de Criação",
+    page_title="Trabalho Final - Introdução à Ciência de Dados CIADM1A-CIA001-20251",
     page_icon="🐔",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
 # Título principal
-st.title('Análise de Sistemas de Criação Avícola')
-st.markdown("Uma visão aprofundada dos diferentes sistemas de criação de aves e seus impactos na produção.")
+st.title("Trabalho Final - Introdução à Ciência de Dados CIADM1A-CIA001-20251")
+st.subheader("Professor: Alexandre Vaz Roriz")
+st.subheader("Alunos: Diego Sá, Ewerton Calazans")
+
+st.title('Análise de Galináceos no Brasil (IBGE 2017)')
 st.markdown("---")
 
-# Carregamento do arquivo local
+# =============================================
+# 1. Carregar Dados Reais do GitHub
+# =============================================
+st.header("📂 Carregando Dados Reais")
+
+csv_url = "https://raw.githubusercontent.com/calazansiesb/CIADM1A/main/GALINACEOS.csv"
+
 try:
-    df = pd.read_csv("GALINACEOS.csv", sep=';')
+    df = pd.read_csv(csv_url, sep=';')
     # Limpar nomes das colunas (remover espaços, acentos, padronizar maiúsculas)
     df.columns = [unicodedata.normalize('NFKD', col).encode('ASCII', 'ignore').decode('utf-8').strip().upper() for col in df.columns]
-    # REMOVIDO: st.write("Colunas disponíveis no DataFrame:", list(df.columns))
-    
-    # Convertendo para numérico e preenchendo NaNs
-    for col in ['GAL_TOTAL', 'GAL_VEND', 'Q_DZ_PROD']:
-        if col in df.columns:
-            df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
-        else:
-            st.warning(f"A coluna '{col}' não foi encontrada no dataset.")
-    
-    # Convertendo 'SIST_CRIA' para string e removendo espaços
-    if 'SIST_CRIA' in df.columns:
-        df['SIST_CRIA'] = df['SIST_CRIA'].astype(str).str.strip()
-        # Mapeamento e Limpeza da coluna SIST_CRIA
-        mapeamento_sistemas = {
-            '1-SIST_POC': 'Produtores de Ovos para Consumo',
-            '2-SIST_POI': 'Produtores de Ovos para Incubacao',
-            '3-SIST_PFC': 'Produtores de Frangos de Corte',
-            '4-Outro': 'Outros Produtores'
-        }
-        df['SIST_CRIA'] = df['SIST_CRIA'].replace(mapeamento_sistemas)
-    else:
-        st.warning("A coluna 'SIST_CRIA' não foi encontrada no dataset. Gráficos dependentes dela podem não funcionar corretamente.")
-
+    st.success("Dados carregados com sucesso!")
 except Exception as e:
-    st.error(f"Erro ao carregar o arquivo GALINACEOS.csv: {e}")
+    st.error(f"Erro ao carregar os dados: {e}")
     st.stop()
 
+# =============================================
+# Mapeamento e Limpeza da coluna SIST_CRIA (mantido para consistência, embora não seja o foco principal)
+# =============================================
+if 'SIST_CRIA' in df.columns:
+    df['SIST_CRIA'] = df['SIST_CRIA'].astype(str).str.strip()
+    mapeamento_sistemas = {
+        '1-SIST_POC': 'Produtores de ovos para consumo',
+        '2-SIST_POI': 'Produtores de ovos para incubação',
+        '3-SIST_PFC': 'Produtores de frangos de corte',
+        '4-Outro': 'Outros produtores'
+    }
+    df['SIST_CRIA'] = df['SIST_CRIA'].replace(mapeamento_sistemas)
 
-# ---
-# Gráfico de Densidade de Aves por Sistema de Criação
-# ---
-def gerar_grafico_densidade_aves_por_sistema(df):
-    st.subheader("📊 Densidade de Aves por Sistema de Criação")
-    st.markdown("Explore a distribuição da densidade de aves por diferentes sistemas de criação, identificando padrões e concentrações.")
-    if not set(['SIST_CRIA', 'GAL_TOTAL']).issubset(df.columns):
-        st.error("Colunas 'SIST_CRIA' ou 'GAL_TOTAL' não estão presentes no DataFrame. Verifique o CSV.")
-        st.write("Colunas atuais:", df.columns)
-        return
+# Mostrar registros aleatórios do conjunto de dados
+st.subheader("Visualização dos Dados")
+with st.expander("🔎 Ver registros aleatórios do conjunto de dados"):
+    st.dataframe(df.sample(10))  # Exibe 10 linhas aleatórias
 
-    df_plot = df[['SIST_CRIA', 'GAL_TOTAL']].dropna()
-    if df_plot.empty:
-        st.warning("Não há dados suficientes para gerar o gráfico de densidade.")
-        return
+---
 
-    fig = px.density_heatmap(
-        df_plot,
-        x='GAL_TOTAL',
-        y='SIST_CRIA', # Agora com os nomes completos
-        title='Distribuição da Densidade de Aves por Sistema de Criação',
-        labels={'GAL_TOTAL': 'Total de Aves (Cabeça)', 'SIST_CRIA': 'Sistema de Criação'},
-        color_continuous_scale='Plasma',
-        nbinsx=30,
-        height=500,
+# =============================================
+# Distribuição por Unidade Federativa e Região
+# =============================================
+st.header('🌎 Distribuição de Estabelecimentos por Unidade Federativa')
+st.markdown("Explore a quantidade de estabelecimentos avícolas por estado, com a opção de filtrar por região do Brasil.")
+
+if 'NOM_TERR' in df.columns:
+    # Mapeamento de Estados para Regiões
+    regioes = {
+        'Norte': ['Acre', 'Amapá', 'Amazonas', 'Pará', 'Rondônia', 'Roraima', 'Tocantins'],
+        'Nordeste': ['Alagoas', 'Bahia', 'Ceará', 'Maranhão', 'Paraíba', 'Pernambuco', 'Piauí', 'Rio Grande do Norte', 'Sergipe'],
+        'Sudeste': ['Espírito Santo', 'Minas Gerais', 'Rio de Janeiro', 'São Paulo'],
+        'Sul': ['Paraná', 'Rio Grande do Sul', 'Santa Catarina'],
+        'Centro-Oeste': ['Distrito Federal', 'Goiás', 'Mato Grosso', 'Mato Grosso do Sul']
+    }
+
+    # Inverter o mapeamento para ter Estado -> Região
+    estado_para_regiao = {estado: regiao for regiao, estados in regioes.items() for estado in estados}
+    df['REGIAO'] = df['NOM_TERR'].map(estado_para_regiao)
+
+    # Filtrar apenas os registros que são estados e que têm uma região definida
+    df_uf = df[df['NOM_TERR'].isin(sum(regioes.values(), []))].copy()
+    
+    # Adicionar um filtro por região
+    todas_regioes = ['Todas as Regiões'] + list(regioes.keys())
+    selected_region = st.selectbox("Selecione uma Região:", todas_regioes)
+
+    if selected_region != 'Todas as Regiões':
+        df_filtered_by_region = df_uf[df_uf['REGIAO'] == selected_region]
+        region_title = f'Número de Estabelecimentos por Estado na Região {selected_region}'
+        region_explanation = f"""
+        Neste gráfico, você vê a distribuição de estabelecimentos avícolas apenas para os estados da **Região {selected_region}**.
+        Observe quais estados dessa região possuem maior e menor concentração de estabelecimentos.
+        """
+    else:
+        df_filtered_by_region = df_uf
+        region_title = 'Número de Estabelecimentos por Estado em Todas as Regiões'
+        region_explanation = """
+        Este gráfico mostra a distribuição de estabelecimentos avícolas por estado em **todo o Brasil**.
+        É possível identificar os estados com maior e menor presença de granjas.
+        """
+
+    freq_estab_por_uf = df_filtered_by_region['NOM_TERR'].value_counts().sort_values(ascending=False)
+    df_plot_uf = freq_estab_por_uf.rename_axis('Unidade Federativa').reset_index(name='Quantidade')
+
+    fig_uf_geral = px.bar(
+        df_plot_uf,
+        x='Unidade Federativa',
+        y='Quantidade',
+        title=region_title,
+        labels={'Unidade Federativa': 'Estado', 'Quantidade': 'Quantidade de Estabelecimentos'},
+        color='Unidade Federativa',
+        color_discrete_sequence=px.colors.qualitative.Set2
+    )
+    fig_uf_geral.update_layout(
+        xaxis_tickangle=-45,
+        showlegend=False,
+        bargap=0.15,
+        plot_bgcolor='white',
+        font=dict(size=14),
+        hovermode="x unified"
+    )
+    st.plotly_chart(fig_uf_geral, use_container_width=True)
+
+    with st.expander("💡 Interpretação do Gráfico de Distribuição por Unidade Federativa"):
+        st.info(region_explanation + """
+        **Pontos a observar:**
+        - **Concentração Regional:** Veja se há estados com um número significativamente maior de estabelecimentos, indicando polos de produção avícola.
+        - **Dispersão:** Observe se a distribuição é mais homogênea entre os estados da região selecionada ou se há grandes disparidades.
+        - **Comparação:** Ao mudar a região, compare como o perfil de distribuição se altera entre as diferentes partes do país.
+        """)
+
+    # =============================================
+    # Segundo Gráfico: Top 5, Meio 5 e Bottom 5 (sem filtro de região para uma visão nacional)
+    # =============================================
+    st.header('📈 Desempenho dos Estados: Top, Médios e Menores Produtores')
+    st.markdown("Aqui, visualizamos os 5 estados com mais estabelecimentos, 5 estados intermediários e os 5 com menos, para uma análise de escala nacional.")
+
+    # Usar df_uf que contém todos os estados para esta análise
+    freq_estab_total = df_uf['NOM_TERR'].value_counts().sort_values(ascending=False)
+    
+    # Pega os 5 maiores
+    top_5 = freq_estab_total.head(5)
+    
+    # Pega os 5 menores (excluindo os maiores para evitar sobreposição se houver menos de 15 estados)
+    bottom_5 = freq_estab_total.tail(5)
+
+    # Calcula os estados médios
+    # Remove os top 5 e bottom 5 para pegar os do meio
+    middle_states_counts = freq_estab_total.drop(top_5.index.union(bottom_5.index), errors='ignore')
+    middle_5 = middle_states_counts.head(5) # Pega os 5 primeiros após remover os extremos
+
+    # Combina os dataframes
+    df_combined_ranks = pd.concat([
+        top_5.rename('Quantidade').reset_index().assign(Categoria='Top 5 Maiores'),
+        middle_5.rename('Quantidade').reset_index().assign(Categoria='5 do Meio'),
+        bottom_5.rename('Quantidade').reset_index().assign(Categoria='Top 5 Menores')
+    ]).rename(columns={'index': 'Unidade Federativa'})
+
+    # Garante que a ordem das categorias seja lógica no gráfico
+    df_combined_ranks['Categoria'] = pd.Categorical(df_combined_ranks['Categoria'], 
+                                                    categories=['Top 5 Maiores', '5 do Meio', 'Top 5 Menores'], 
+                                                    ordered=True)
+
+    fig_ranks = px.bar(
+        df_combined_ranks,
+        x='Unidade Federativa',
+        y='Quantidade',
+        color='Categoria',
+        title='Ranking de Estabelecimentos Avícolas por Estado (Top 5, Meio 5, Bottom 5)',
+        labels={'Unidade Federativa': 'Estado', 'Quantidade': 'Quantidade de Estabelecimentos'},
+        color_discrete_map={
+            'Top 5 Maiores': 'green',
+            '5 do Meio': 'orange',
+            'Top 5 Menores': 'red'
+        },
         template='plotly_white'
     )
-    fig.update_layout(
-        title_font_size=20,
-        xaxis_title_font_size=16,
-        yaxis_title_font_size=16,
-        coloraxis_colorbar=dict(title='Densidade')
-    )
-    st.plotly_chart(fig, use_container_width=True)
-    
-    with st.expander("💡 Interpretação do Gráfico de Densidade"):
-        st.info("""
-        **🔍 Análise da Distribuição de Densidade de Aves por Sistema de Criação**
-        📌 **Principais observações:**
-        - O sistema **"Outros Produtores"** apresenta concentração de estabelecimentos com menor número total de aves, predominantemente entre **6.000 e 7.000 cabeças**.
-        - **"Produtores de Ovos para Consumo"** e **"Produtores de Frangos de Corte"** mostram maior dispersão, com a maioria dos registros entre **9.000 e 12.000 aves** por estabelecimento.
-        - **"Produtores de Ovos para Incubacao"** destaca-se por concentrar-se nas faixas mais elevadas, **acima de 13.000 aves**.
-        💡 **Interpretação:**
-        - O gráfico evidencia diferentes perfis produtivos: sistemas voltados para incubação tendem a operar com plantéis mais numerosos, enquanto sistemas classificados como "Outros" concentram-se em pequenas criações.
-        - A variação na densidade sugere especialização e segmentação claras entre os sistemas de criação, refletindo demandas produtivas e estratégias distintas.
-        - As informações são úteis para orientar políticas de apoio e estratégias de crescimento conforme o perfil predominante de cada sistema.
-        """)
-
-# ---
-# Gráfico de Distribuição da Produção por Sistema
-# ---
-def gerar_grafico_distribuicao_producao_por_sistema(df, tipo_producao='aves'):
-    if tipo_producao == 'aves':
-        coluna_producao = 'GAL_VEND'
-        rotulo_eixo_y = 'Quantidade de Aves Vendidas (Cabeça)'
-        titulo_grafico = '📈 Distribuição da Venda de Aves por Sistema de Criação'
-        hover_data = ['GAL_VEND']
-    elif tipo_producao == 'ovos':
-        coluna_producao = 'Q_DZ_PROD'
-        rotulo_eixo_y = 'Quantidade de Ovos Produzidos (Dúzia)'
-        titulo_grafico = '🥚 Distribuição da Produção de Ovos por Sistema de Criação'
-        hover_data = ['Q_DZ_PROD']
-    else:
-        st.warning("Tipo de produção inválido. Escolha 'aves' ou 'ovos'.")
-        return
-    
-    st.subheader(titulo_grafico)
-    st.markdown(f"Visualize como a {'venda de aves' if tipo_producao == 'aves' else 'produção de ovos'} se distribui entre os diferentes sistemas de criação.")
-    
-    if 'SIST_CRIA' not in df.columns or coluna_producao not in df.columns:
-        st.warning(f"O DataFrame não contém as colunas necessárias ('SIST_CRIA' ou '{coluna_producao}').")
-        st.write("Colunas atuais:", df.columns)
-        return
-    
-    producao_por_sistema = df.groupby('SIST_CRIA')[coluna_producao].sum().reset_index()
-    
-    fig = px.bar(
-        producao_por_sistema,
-        x='SIST_CRIA',
-        y=coluna_producao,
-        title=titulo_grafico,
-        labels={'SIST_CRIA': 'Sistema de Criação', coluna_producao: rotulo_eixo_y},
-        color=coluna_producao,
-        color_continuous_scale='Viridis',
-        text=coluna_producao,
-        template='plotly_white',
-        hover_data=hover_data
-    )
-    fig.update_traces(
-        texttemplate='%{text:,.0f}',
-        textposition='outside',
-        marker_line_color='rgb(8,48,107)',
-        marker_line_width=1.5
-    )
-    fig.update_layout(
+    fig_ranks.update_layout(
         xaxis_tickangle=-45,
-        title_font_size=20,
-        xaxis_title_font_size=16,
-        yaxis_title_font_size=16,
-        uniformtext_minsize=8,
-        uniformtext_mode='hide'
+        bargap=0.15,
+        plot_bgcolor='white',
+        font=dict(size=14),
+        hovermode="x unified",
+        legend_title_text='Categorias de Estados'
     )
-    st.plotly_chart(fig, use_container_width=True)
-    
-    with st.expander(f"💡 Interpretação do Gráfico de {('Venda de Aves' if tipo_producao == 'aves' else 'Produção de Ovos')}"):
-        st.info(f"""
-        **🔍 Análise da Distribuição da {'Venda de Aves' if tipo_producao == 'aves' else 'Produção de Ovos'} por Sistema de Criação**
-        📌 **Principais observações:**
-        - O sistema **"Produtores de Frangos de Corte"** lidera as vendas, com maior volume comercializado.
-        - Os sistemas **"Produtores de Ovos para Consumo"** e **"Produtores de Ovos para Incubacao"** também apresentam volumes elevados, evidenciando a importância dos sistemas voltados à produção de ovos tanto para consumo direto quanto para incubação.
-        - O grupo **"Outros Produtores"** registra o menor volume de vendas, indicando baixa participação desse segmento no mercado.
-        💡 **Interpretação:**
-        - O destaque do sistema de frangos de corte reforça o papel central da avicultura de corte na cadeia produtiva e comercial.
-        - A significativa participação dos sistemas de ovos para consumo e incubação revela a diversificação da produção e a relevância desses segmentos no abastecimento do mercado.
-        - A baixa representatividade do grupo "Outros" pode indicar oportunidades para o desenvolvimento de nichos ou sistemas alternativos, caso haja demanda específica.
-        """)
+    st.plotly_chart(fig_ranks, use_container_width=True)
 
-# ---
-# Histograma de Distribuição de Aves por Sistema
-# ---
-def gerar_histograma_aves_por_sistema(df):
-    st.subheader("📊 Histograma de Distribuição de Aves por Sistema")
-    st.markdown("Compreenda a frequência de estabelecimentos por faixa de total de aves, segmentada por sistema de criação.")
-    if not set(['SIST_CRIA', 'GAL_TOTAL']).issubset(df.columns):
-        st.error("Colunas 'SIST_CRIA' ou 'GAL_TOTAL' não estão presentes no DataFrame. Verifique o CSV.")
-        st.write("Colunas atuais:", df.columns)
-        return
-
-    df_plot = df[['SIST_CRIA', 'GAL_TOTAL']].dropna()
-    if df_plot.empty:
-        st.warning("Não há dados suficientes para gerar o histograma.")
-        return
-
-    fig = px.histogram(
-        df_plot,
-        x='GAL_TOTAL',
-        color='SIST_CRIA',
-        title='Distribuição de Aves por Sistema de Criação',
-        labels={'GAL_TOTAL': 'Total de Aves (Cabeça)', 'SIST_CRIA': 'Sistema de Criação'},
-        color_discrete_sequence=px.colors.qualitative.Pastel,
-        nbins=40,
-        barmode='overlay',
-        opacity=0.7,
-        template='plotly_white',
-        hover_data=['GAL_TOTAL']
-    )
-    fig.update_layout(
-        title_font_size=20,
-        xaxis_title_font_size=16,
-        yaxis_title_font_size=16,
-        legend_title_text='Sistema de Criação'
-    )
-    st.plotly_chart(fig, use_container_width=True)
-    
-    with st.expander("💡 Interpretação do Histograma"):
+    with st.expander("💡 Interpretação do Gráfico de Desempenho dos Estados"):
         st.info("""
-        **🔍 Análise do Histograma de Distribuição de Aves por Sistema**
-        📌 **Principais observações:**
-        - O histograma apresenta a distribuição do total de aves por estabelecimento, segmentado pelos sistemas: **Produtores de Ovos para Consumo**, **Produtores de Frangos de Corte**, **Outros Produtores** e **Produtores de Ovos para Incubacao**.
-        - A maior concentração de registros ocorre nas faixas de **6.000 a 14.000 aves**, evidenciando uma ampla variação no porte dos estabelecimentos.
-        - O sistema **"Produtores de Ovos para Incubacao"** aparece tanto nas faixas mais baixas (cerca de 6.000 aves) quanto nas mais altas (acima de 13.000 aves), indicando diversidade de escalas dentro deste segmento.
-        - Os sistemas **"Produtores de Ovos para Consumo"**, **"Produtores de Frangos de Corte"** e **"Outros Produtores"** estão presentes principalmente nas faixas intermediárias e elevadas, sugerindo preferência por plantéis médios a grandes nesses sistemas.
-        💡 **Interpretação:**
-        - O gráfico revela que a produção avícola é marcada por grande heterogeneidade no tamanho dos plantéis, mesmo dentro de um mesmo sistema de criação.
-        - A presença de sistemas de incubação em diferentes faixas pode indicar estratégias produtivas distintas, enquanto os demais sistemas tendem a se concentrar em faixas médias e altas de produção.
-        - Essas informações são relevantes para o planejamento do setor, permitindo identificar oportunidades de apoio e desenvolvimento conforme o perfil produtivo predominante em cada sistema.
+        **📈 Análise de Desempenho dos Estados (Top 5, Meio 5, Bottom 5)**
+
+        Este gráfico oferece uma perspectiva clara sobre a distribuição do número de estabelecimentos avícolas no Brasil, segmentando os estados em três grupos:
+
+        -   **Top 5 Maiores:** Representa os cinco estados com a **maior quantidade de estabelecimentos**. Esses estados são os principais polos da avicultura brasileira, indicando forte presença do setor e, possivelmente, economias regionais mais dependentes dessa atividade.
+        -   **5 do Meio:** Inclui cinco estados que se situam na faixa intermediária de estabelecimentos. Eles mostram uma atividade avícola relevante, mas com menor escala que os líderes. Podem representar regiões em crescimento ou com um equilíbrio entre diferentes setores econômicos.
+        -   **Top 5 Menores:** Apresenta os cinco estados com a **menor quantidade de estabelecimentos**. Essa baixa concentração pode indicar que a avicultura não é uma atividade econômica primária nessas regiões, ou que a produção é mais focada em nichos ou pequena escala.
+
+        **Pontos Chave de Observação:**
+        -   A **disparidade** entre os estados líderes e os com menor número de estabelecimentos.
+        -   A **representatividade** das diferentes regiões do Brasil em cada uma das categorias.
+        -   Implicações para **políticas públicas** e **investimentos** no setor, que podem ser direcionados de forma diferente para cada grupo de estados.
         """)
 
-# Seção de gráficos
-col1, col2 = st.columns([3, 1])
-with col1:
-    gerar_grafico_densidade_aves_por_sistema(df)
-with col2:
-    st.markdown("Selecione o tipo de produção para visualizar as vendas:")
-    tipo = st.radio(
-        "Tipo de Produção:",
-        ('aves', 'ovos'),
-        format_func=lambda x: "Aves Vendidas" if x=="aves" else "Ovos Produzidos",
-        key='tipo_producao'
-    )
+else:
+    st.warning("A coluna 'NOM_TERR' não foi encontrada no dataset para a análise de Unidade Federativa.")
 
-# Garantir que os gráficos de produção e histograma sempre sejam exibidos
-gerar_grafico_distribuicao_producao_por_sistema(df, tipo_producao=tipo)
-gerar_histograma_aves_por_sistema(df)
-
+# =============================================
 # Rodapé
+# =============================================
 st.markdown("---")
 st.caption("""
-🔎 *Análise desenvolvida com base em dados de produção avícola* 📅 *Atualizado em Outubro 2023*
+🔎 *Análise desenvolvida com base nos dados reais do IBGE 2017*
+📅 *Atualizado em Maio 2025*
 """)
