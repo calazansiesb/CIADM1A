@@ -44,16 +44,16 @@ def main():
     col1, col2, col3, col4 = st.columns(4)
     with col1:
         if st.button("📈 Fatores de Lucratividade"):
-            st.session_state['page'] = 'Fatores_Lucratividade 3D'
+            st.session_state['pages'] = 'Fatores_Lucratividade 3D'
     with col2:
         if st.button("🗺️ Matrizes Avícolas"):
-            st.session_state['page'] = 'Matrizes_Avicolas 3D'
+            st.session_state['pages'] = 'Matrizes_Avicolas 3D'
     with col3:
         if st.button("🔮 Modelo de Regressão"):
-            st.session_state['page'] = 'Modelo_Regressao 3D'
+            st.session_state['pages'] = 'Modelo_Regressao 3D'
     with col4:
         if st.button("🏭 Sistemas de Criação"):
-            st.session_state['page'] = 'Sistemas_Criacao 3D'
+            st.session_state['pages'] = 'Sistemas_Criacao 3D'
 
     st.write("")
     st.write("---")
