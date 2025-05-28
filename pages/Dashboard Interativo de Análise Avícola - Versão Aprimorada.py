@@ -8,74 +8,90 @@ def main():
         layout="wide",
         initial_sidebar_state="expanded"
     )
-
-    # Título e subtítulo
+    
+    # CSS incorporado para estilização mínima
+    st.markdown("""
+    <style>
+    .custom-card {
+        padding: 1.5rem;
+        border-radius: 10px;
+        background-color: #ffffff;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        margin-bottom: 1rem;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+    
+    # Cabeçalho
     st.title("Trabalho Final - Introdução à Ciência de Dados")
     st.subheader("CIADM1A-CIA001-20251")
-
-    st.write("")
-    st.write("")
-
-    # Colunas para equipe e sobre o trabalho
+    
+    # Divisor
+    st.write("---")
+    
+    # Seção de informações da equipe
     col1, col2 = st.columns([1, 2])
+    
     with col1:
-        st.header("Professor")
-        st.write("Alexandre Vaz Roriz")
-
-        st.header("Alunos")
-        st.write("- Diego Sá")
-        st.write("- Ewerton Calazans")
-
+        # Professor
+        st.subheader("Professor:")
+        st.markdown("""
+        <div class="custom-card">
+            Alexandre Vaz Roriz
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Alunos
+        st.subheader("Alunos:")
+        st.markdown("""
+        <div class="custom-card">
+            Diego Sá<br>
+            Ewerton Calazans
+        </div>
+        """, unsafe_allow_html=True)
+    
     with col2:
-        st.header("Sobre o Trabalho")
-        st.write(
-            "Este trabalho foi desenvolvido com base em um **dataset do IBGE de 2017 sobre avicultura**. "
-            "Exploramos diversos aspectos da produção avícola no Brasil, utilizando técnicas de ciência de dados para extrair insights valiosos."
-        )
-        st.info("💡 Dica: Navegue pelo menu lateral para acessar cada tópico da análise.")
-
-    st.write("")
+        # Sobre o trabalho
+        st.subheader("Sobre o Trabalho")
+        st.markdown("""
+        <div class="custom-card">
+            <p>Este trabalho foi desenvolvido com base em um <strong>dataset do IBGE de 2017 sobre avicultura</strong>.
+            Exploramos diversos aspectos da produção avícola no Brasil, utilizando técnicas de ciência de dados para extrair insights valiosos.</p>
+            
+            <div style="background-color:#e3f2fd; padding:1rem; border-radius:8px; margin-top:1rem;">
+                <p style="margin:0;"><strong>💡 Dica:</strong> Navegue pelo menu lateral para acessar cada tópico da análise.</p>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    # Divisor
     st.write("---")
-    st.write("")
-
-    st.header("Explore Nossas Análises")
-    st.write("Clique nos botões abaixo para navegar diretamente para cada seção:")
-
-    col1, col2, col3, col4 = st.columns(4)
-    with col1:
-        if st.button("📈 Fatores de Lucratividade"):
-            st.session_state['pages'] = 'Fatores_Lucratividade 3D'
-    with col2:
-        if st.button("🗺️ Matrizes Avícolas"):
-            st.session_state['pages'] = 'Matrizes_Avicolas 3D'
-    with col3:
-        if st.button("🔮 Modelo de Regressão"):
-            st.session_state['pages'] = 'Modelo_Regressao 3D'
-    with col4:
-        if st.button("🏭 Sistemas de Criação"):
-            st.session_state['pages'] = 'Sistemas_Criacao 3D'
-
-    st.write("")
+    
+    # Seção de navegação
+    st.subheader("Explore Nossas Análises")
+    st.write("Selecione uma seção no menu lateral para visualizar as análises:")
+    
+    cols = st.columns(4)
+    sections = [
+        ("📈", "Fatores de Lucratividade", "Elementos que influenciam o desempenho financeiro"),
+        ("🗺️", "Matrizes Avícolas", "Distribuição por região"),
+        ("🔮", "Modelo de Regressão", "Previsão da produção"),
+        ("🏭", "Sistemas de Criação", "Comparação entre sistemas")
+    ]
+    
+    for col, (icon, title, desc) in zip(cols, sections):
+        with col:
+            st.markdown(f"""
+            <div class="custom-card">
+                <h4>{icon} {title}</h4>
+                <p style="color:#7f8c8d; font-size:0.9em;">{desc}</p>
+            </div>
+            """, unsafe_allow_html=True)
+    
+    # Rodapé
     st.write("---")
-    st.write("")
-
-    st.markdown(
-        "<div style='text-align:center; color:#7f8c8d; font-size:0.9rem;'>"
-        "Trabalho desenvolvido para a disciplina de Introdução à Ciência de Dados - 2025/1<br>"
-        "Dados: IBGE - Pesquisa da Pecuária Municipal 2017"
-        "</div>", unsafe_allow_html=True
-    )
-
-    # Navegação simulada (em produção, crie múltiplas páginas ou use st.experimental_rerun com session_state)
-    if 'page' in st.session_state:
-        if st.session_state['page'] == 'Fatores_Lucratividade':
-            st.success("Página: Fatores de Lucratividade")
-        elif st.session_state['page'] == 'Matrizes_Avicolas':
-            st.success("Página: Matrizes Avícolas")
-        elif st.session_state['page'] == 'Modelo_Regressao':
-            st.success("Página: Modelo de Regressão")
-        elif st.session_state['page'] == 'Sistemas_Criacao':
-            st.success("Página: Sistemas de Criação")
+    st.caption("Trabalho desenvolvido para a disciplina de Introdução à Ciência de Dados - 2025/1")
+    st.caption("Dados: IBGE - Pesquisa da Pecuária Municipal 2017")
 
 if __name__ == "__main__":
     main()
