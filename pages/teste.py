@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import plotly.express as px
-import unicodedata # Adicionado para limpeza de nomes de colunas
+import unicodedata  # Adicionado para limpeza de nomes de colunas
 
 st.title('Análise de Galináceos no Brasil (IBGE 2017)')
 st.markdown("---")
@@ -24,7 +24,7 @@ except Exception as e:
     st.stop()
 
 # =============================================
-# Mapeamento e Limpeza da coluna SIST_CRIA (mantido para consistência, embora não seja o foco principal)
+# Mapeamento e Limpeza da coluna SIST_CRIA
 # =============================================
 if 'SIST_CRIA' in df.columns:
     df['SIST_CRIA'] = df['SIST_CRIA'].astype(str).str.strip()
@@ -41,7 +41,8 @@ st.subheader("Visualização dos Dados")
 with st.expander("🔎 Ver registros aleatórios do conjunto de dados"):
     st.dataframe(df.sample(10))  # Exibe 10 linhas aleatórias
 
----
+# ✅ CORREÇÃO: Substituição do '---' inválido
+st.markdown("---")
 
 # =============================================
 # Distribuição por Unidade Federativa e Região
@@ -65,7 +66,7 @@ if 'NOM_TERR' in df.columns:
 
     # Filtrar apenas os registros que são estados e que têm uma região definida
     df_uf = df[df['NOM_TERR'].isin(sum(regioes.values(), []))].copy()
-    
+
     # Adicionar um filtro por região
     todas_regioes = ['Todas as Regiões'] + list(regioes.keys())
     selected_region = st.selectbox("Selecione uma Região:", todas_regioes)
@@ -116,35 +117,27 @@ if 'NOM_TERR' in df.columns:
         """)
 
     # =============================================
-    # Segundo Gráfico: Top 5, Meio 5 e Bottom 5 (sem filtro de região para uma visão nacional)
+    # Segundo Gráfico: Top 5, Meio 5 e Bottom 5
     # =============================================
     st.header('📈 Desempenho dos Estados: Top, Médios e Menores Produtores')
     st.markdown("Aqui, visualizamos os 5 estados com mais estabelecimentos, 5 estados intermediários e os 5 com menos, para uma análise de escala nacional.")
 
-    # Usar df_uf que contém todos os estados para esta análise
     freq_estab_total = df_uf['NOM_TERR'].value_counts().sort_values(ascending=False)
-    
-    # Pega os 5 maiores
+
     top_5 = freq_estab_total.head(5)
-    
-    # Pega os 5 menores (excluindo os maiores para evitar sobreposição se houver menos de 15 estados)
     bottom_5 = freq_estab_total.tail(5)
 
-    # Calcula os estados médios
-    # Remove os top 5 e bottom 5 para pegar os do meio
     middle_states_counts = freq_estab_total.drop(top_5.index.union(bottom_5.index), errors='ignore')
-    middle_5 = middle_states_counts.head(5) # Pega os 5 primeiros após remover os extremos
+    middle_5 = middle_states_counts.head(5)
 
-    # Combina os dataframes
     df_combined_ranks = pd.concat([
         top_5.rename('Quantidade').reset_index().assign(Categoria='Top 5 Maiores'),
         middle_5.rename('Quantidade').reset_index().assign(Categoria='5 do Meio'),
         bottom_5.rename('Quantidade').reset_index().assign(Categoria='Top 5 Menores')
     ]).rename(columns={'index': 'Unidade Federativa'})
 
-    # Garante que a ordem das categorias seja lógica no gráfico
-    df_combined_ranks['Categoria'] = pd.Categorical(df_combined_ranks['Categoria'], 
-                                                    categories=['Top 5 Maiores', '5 do Meio', 'Top 5 Menores'], 
+    df_combined_ranks['Categoria'] = pd.Categorical(df_combined_ranks['Categoria'],
+                                                    categories=['Top 5 Maiores', '5 do Meio', 'Top 5 Menores'],
                                                     ordered=True)
 
     fig_ranks = px.bar(
@@ -177,14 +170,14 @@ if 'NOM_TERR' in df.columns:
 
         Este gráfico oferece uma perspectiva clara sobre a distribuição do número de estabelecimentos avícolas no Brasil, segmentando os estados em três grupos:
 
-        -   **Top 5 Maiores:** Representa os cinco estados com a **maior quantidade de estabelecimentos**. Esses estados são os principais polos da avicultura brasileira, indicando forte presença do setor e, possivelmente, economias regionais mais dependentes dessa atividade.
-        -   **5 do Meio:** Inclui cinco estados que se situam na faixa intermediária de estabelecimentos. Eles mostram uma atividade avícola relevante, mas com menor escala que os líderes. Podem representar regiões em crescimento ou com um equilíbrio entre diferentes setores econômicos.
-        -   **Top 5 Menores:** Apresenta os cinco estados com a **menor quantidade de estabelecimentos**. Essa baixa concentração pode indicar que a avicultura não é uma atividade econômica primária nessas regiões, ou que a produção é mais focada em nichos ou pequena escala.
+        -   **Top 5 Maiores:** Representa os cinco estados com a **maior quantidade de estabelecimentos**.
+        -   **5 do Meio:** Inclui cinco estados intermediários.
+        -   **Top 5 Menores:** Apresenta os cinco estados com a **menor quantidade de estabelecimentos**.
 
         **Pontos Chave de Observação:**
-        -   A **disparidade** entre os estados líderes e os com menor número de estabelecimentos.
-        -   A **representatividade** das diferentes regiões do Brasil em cada uma das categorias.
-        -   Implicações para **políticas públicas** e **investimentos** no setor, que podem ser direcionados de forma diferente para cada grupo de estados.
+        -   A **disparidade** entre os estados líderes e os com menor número.
+        -   A **representatividade** das diferentes regiões.
+        -   Implicações para **políticas públicas** e **investimentos** no setor.
         """)
 
 else:
@@ -195,6 +188,6 @@ else:
 # =============================================
 st.markdown("---")
 st.caption("""
-🔎 *Análise desenvolvida com base nos dados reais do IBGE 2017*
+🔎 *Análise desenvolvida com base nos dados reais do IBGE 2017*  
 📅 *Atualizado em Maio 2025*
 """)
