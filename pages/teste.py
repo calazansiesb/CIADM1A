@@ -1,7 +1,8 @@
 import pandas as pd
 import plotly.express as px
+import streamlit as st
 
-# Dados simulados
+# Simulando DataFrame (substitua isso pelo seu DataFrame real)
 data = {
     'NOM_TERR': [
         'São Paulo', 'Minas Gerais', 'Paraná', 'Bahia', 'Santa Catarina',
@@ -14,30 +15,44 @@ df_uf = pd.DataFrame(data)
 # Frequência dos estados
 freq_estab_total = df_uf['NOM_TERR'].value_counts()
 
-# Top 5, 5 do meio, Bottom 5
+# Top 5, Bottom 5 e os 5 do meio
 top_5 = freq_estab_total.head(5)
 bottom_5 = freq_estab_total.tail(5)
-middle_5 = freq_estab_total[~freq_estab_total.index.isin(top_5.index.union(bottom_5.index))].head(5)
+middle_5 = freq_estab_total[
+    ~freq_estab_total.index.isin(top_5.index.union(bottom_5.index))
+].head(5)
 
-# Combinação dos dados
-df_combined_ranks = pd.concat([
-    top_5.rename('Quantidade').reset_index().assign(Categoria='Top 5 Maiores'),
-    middle_5.rename('Quantidade').reset_index().assign(Categoria='5 do Meio'),
-    bottom_5.rename('Quantidade').reset_index().assign(Categoria='Top 5 Menores')
-]).rename(columns={'index': 'Unidade Federativa'})
+# Monta DataFrame final
+def monta_categoria(df, categoria):
+    return df.rename('Quantidade').reset_index().rename(
+        columns={'index': 'Unidade Federativa'}
+    ).assign(Categoria=categoria)
 
-df_combined_ranks['Categoria'] = pd.Categorical(df_combined_ranks['Categoria'], 
-                                                categories=['Top 5 Maiores', '5 do Meio', 'Top 5 Menores'],
-                                                ordered=True)
+df_top = monta_categoria(top_5, 'Top 5 Maiores')
+df_middle = monta_categoria(middle_5, '5 do Meio')
+df_bottom = monta_categoria(bottom_5, 'Top 5 Menores')
 
-# Gráfico
+df_combined_ranks = pd.concat([df_top, df_middle, df_bottom])
+
+# Ordena categorias
+df_combined_ranks['Categoria'] = pd.Categorical(
+    df_combined_ranks['Categoria'],
+    categories=['Top 5 Maiores', '5 do Meio', 'Top 5 Menores'],
+    ordered=True
+)
+
+# DEBUG VISUAL
+st.write("DataFrame usado no gráfico:")
+st.dataframe(df_combined_ranks)
+
+# Cria o gráfico
 fig_ranks = px.bar(
     df_combined_ranks,
     x='Unidade Federativa',
     y='Quantidade',
     color='Categoria',
-    title='Ranking de Estabelecimentos Avícolas por Estado (Top 5, Meio 5, Bottom 5)',
-    labels={'Unidade Federativa': 'Estado', 'Quantidade': 'Quantidade de Estabelecimentos'},
+    title='Ranking de Estabelecimentos por Estado',
+    labels={'Unidade Federativa': 'Estado', 'Quantidade': 'Qtd de Estabelecimentos'},
     color_discrete_map={
         'Top 5 Maiores': 'green',
         '5 do Meio': 'orange',
@@ -46,4 +61,4 @@ fig_ranks = px.bar(
     template='plotly_white'
 )
 
-fig_ranks.show()
+st.plotly_chart(fig_ranks)
