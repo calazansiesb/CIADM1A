@@ -14,59 +14,31 @@ descricao_variaveis = {
     "NIV_TERR": "Nível das unidades territoriais",
     "COD_TERR": "Código das unidades territoriais",
     "NOM_TERR": "Nome das unidades territoriais",
-    "CL_GAL": "Número da classe de cabeças de galináceos em 30.09.2022",
-    "NOM_CL_GAL": "Nome da classe de cabeças de galináceos em 30.09.2022",
-    "E_CRIA_GAL": "Número de estabelecimentos agropecuários com criação de galináceos (Unidades)",
-    "E_TEM_GAL": "Número de estabelecimentos agropecuários com galináceos na data de referência (Unidades)",
-    "E_GAL_VEND": "Número de estabelecimentos agropecuários que venderam galináceos (Unidades)",
-    "E_OVOS_PROD": "Número de estabelecimentos agropecuários com produção de ovos de galinha (Unidades)",
-    "E_OVOS_VEND": "Número de estabelecimentos agropecuários que venderam ovos de galinha (Unidades)",
-    "E_SUBS": "Número de estabelecimentos agropecuários com finalidade principal da produção para consumo próprio e de pessoas com laços de parentesco com o produtor",
-    "E_COMERC": "Número de estabelecimentos agropecuários com finalidade principal da produção voltada para comercialização (inclusive troca ou escambo)",
-    "E_RECEBE_ORI": "O estabelecimento recebe orientação de técnico especializado em agropecuária",
-    "E_ORI_GOV": "Origem da orientação - governo (federal, estadual ou municipal)",
-    "E_ORI_PROPRIA": "Origem da orientação - própria",
-    "E_ORI_COOP": "Origem da orientação - cooperativas",
-    "E_ORI_EMP_INT": "Origem da orientação - empresas integradoras",
-    "E_ORI_EMP_PRI": "Origem da orientação - empresas privadas de planejamento",
-    "E_ORI_ONG": "Origem da orientação - organização não-governamental (ONG)",
-    "E_ORI_SIST_S": "Origem da orientação - Sistema S",
-    "E_ORI_OUTRA": "Origem da orientação - outra origem",
-    "E_GAL_ENG": "Número de estabelecimentos agropecuários com galináceos para engorda",
-    "E_GAL_GALOS": "Número de estabelecimentos agropecuários com galos",
-    "E_GAL_POED": "Número de estabelecimentos agropecuários com poedeiras",
-    "E_GAL_MATR": "Número de estabelecimentos agropecuários com matrizeiras",
-    "E_ASSOC_COOP": "Número de estabelecimentos agropecuários com produtor(a) associado(a) à cooperativa",
-    "E_FINANC": "Número de estabelecimentos agropecuários que obtiveram investimento",
-    "E_FINANC_COOP": "Número de estabelecimentos agropecuários que obtiveram investimento proveniente de cooperativas de crédito",
-    "E_FINANC_INTEG": "Número de estabelecimentos agropecuários que obtiveram investimento proveniente de empresa integradora",
-    "E_DAP": "Número de estabelecimentos agropecuários em que o(a) produtor(a) possui DAP (documento de aptidão ao PRONAF)",
-    "E_AGRIFAM": "Número de estabelecimentos agropecuários classificados como de Agricultura familiar - Lei 11.326 de 24.07.2017",
-    "E_N_AGRIFAM": "Número de estabelecimentos agropecuários classificados como não sendo de Agricultura familiar - Lei 11.326 de 24.07.2017",
-    "E_PRODUTOR": "Número de estabelecimentos agropecuários com condição legal do(a) produtor(a) - Produtor(a) individual",
-    "E_COOPERATIVA": "Número de estabelecimentos agropecuários com condição legal do(a) produtor(a) - Cooperativa",
-    "E_SA_LDTA": "Número de estabelecimentos agropecuários com condição legal do(a) produtor(a) - Sociedade anônima ou por cotas de responsabilidade limitada",
-    "E_CNPJ": "Número de estabelecimentos agropecuários com CNPJ",
-    "GAL_TOTAL": "Total efetivo de galinhas, galos, frangas, frangos e pintos (Cabeça)",
-    "GAL_ENG": "Total de galináceos para engorda (Cabeça)",
-    "GAL_GALOS": "Total de galos (Cabeça)",
-    "GAL_POED": "Total de poedeiras (Cabeça)",
-    "GAL_MATR": "Total de matrizes (Cabeça)",
-    "GAL_VEND": "Quantidade de galináceos vendidos (Cabeça)",
-    "V_GAL_VEND": "Valor dos galináceos vendidos (R$)",
-    "Q_DZ_PROD": "Quantidade de ovos de galinha produzidos (Dúzia)",
-    "Q_DZ_VEND": "Quantidade de ovos de galinha vendidos (Dúzia)",
-    "V_Q_DZ_PROD": "Valor dos ovos de galinha produzidos (R$/dúzia)",
-    "V_Q_DZ_VEND": "Valor dos ovos de galinha vendidos (R$/dúzia)",
-    "A_TOTAL": "Área total do estabelecimento agropecuário (ha)",
-    "A_PAST_PLANT": "Área de pastagem plantada (ha)",
-    "A_LAV_PERM": "Área de lavoura permanente (ha)",
-    "A_LAV_TEMP": "Área de lavoura temporária (ha)",
-    "A_APPRL": "Área de matas e/ou florestas naturais destinadas à preservação permanente ou reserva legal (ha)",
-    "VTP_AGRO": "Valor total da produção agropecuária (R$)",
-    "RECT_AGRO": "Receita total da produção agropecuária (R$)",
-    "N_TRAB_TOTAL": "Total de trabalhadores em 30.09.2017",
-    "N_TRAB_LACOS": "Total de trabalhadores com laços de parentesco com o produtor em 30.09.2017"
+    "GAL_TOTAL": "Total efetivo de galináceos",
+    "V_GAL_VEND": "Valor dos galináceos vendidos",
+    "E_RECEBE_ORI": "Estabelecimentos com orientação técnica",
+    "VTP_AGRO": "Valor total da produção agropecuária",
+    "E_ORI_GOV": "Orientação do governo",
+    "A_PAST_PLANT": "Área de pastagem plantada",
+    "GAL_ENG": "Galináceos para engorda",
+    "E_ASSOC_COOP": "Associação a cooperativas",
+    "CL_GAL": "Classe de cabeças de galináceos",
+    "GAL_POED": "Total de poedeiras",
+    "Q_DZ_VEND": "Ovos vendidos em dúzias",
+    "E_COMERC": "Estabelecimentos comerciais",
+    "E_AGRIFAM": "Agricultura familiar",
+    "E_FINANC": "Estabelecimentos com investimento",
+    "RECT_AGRO": "Receita total agropecuária",
+    "E_FINANC_COOP": "Investimento de cooperativas",
+    "E_CNPJ": "Estabelecimentos com CNPJ",
+    "E_SUBS": "Produção para consumo próprio",
+    "E_DAP": "Possui DAP/PRONAF",
+    "N_TRAB_TOTAL": "Total de trabalhadores",
+    "E_PRODUTOR": "Produtor individual",
+    "GAL_MATR": "Total de matrizes",
+    "GAL_VEND": "Galináceos vendidos",
+    "E_ORI_INTEG": "Orientação de integradoras",
+    "E_GAL_MATR": "Estabelecimentos com matrizes"
 }
 
 # Configuração da interface do Streamlit
@@ -96,3 +68,42 @@ fig = px.scatter(
 
 # Exibir o gráfico no Streamlit
 st.plotly_chart(fig)
+
+# Expander para exibir sugestões adicionais
+with st.expander("Sugestões de Análises"):
+    st.write(f"""
+    **1. Produção vs. Comercialização**  
+    - **Eixo X:** {descricao_variaveis["GAL_TOTAL"]}  
+    - **Eixo Y:** {descricao_variaveis["V_GAL_VEND"]}  
+    - **Cores:** {descricao_variaveis["NIV_TERR"]}  
+    - **Filtro:** {descricao_variaveis["NOM_TERR"]}  
+    - **Objetivo:** Verificar se estabelecimentos com maior efetivo de galináceos geram mais receita com vendas.  
+
+    **2. Orientação Técnica vs. Produtividade**  
+    - **Eixo X:** {descricao_variaveis["E_RECEBE_ORI"]}  
+    - **Eixo Y:** {descricao_variaveis["VTP_AGRO"]}  
+    - **Cores:** {descricao_variaveis["E_ORI_GOV"]}  
+    - **Filtro:** {descricao_variaveis["SIST_CRIA"]}  
+    - **Objetivo:** Analisar se a assistência técnica está correlacionada com maior valor de produção.  
+
+    **3. Área de Pastagem vs. Criação de Galináceos**  
+    - **Eixo X:** {descricao_variaveis["A_PAST_PLANT"]}  
+    - **Eixo Y:** {descricao_variaveis["GAL_ENG"]}  
+    - **Cores:** {descricao_variaveis["E_ASSOC_COOP"]}  
+    - **Filtro:** {descricao_variaveis["CL_GAL"]}  
+    - **Objetivo:** Investigar se propriedades com mais pastagem tendem a ter maior produção de aves para engorda.  
+
+    **4. Venda de Ovos vs. Número de Poedeiras**  
+    - **Eixo X:** {descricao_variaveis["GAL_POED"]}  
+    - **Eixo Y:** {descricao_variaveis["Q_DZ_VEND"]}  
+    - **Cores:** {descricao_variaveis["E_COMERC"]}  
+    - **Filtro:** {descricao_variaveis["E_AGRIFAM"]}  
+    - **Objetivo:** Correlacionar o tamanho do plantel de poedeiras com a comercialização de ovos.  
+
+    **5. Investimento vs. Receita Total**  
+    - **Eixo X:** {descricao_variaveis["E_FINANC"]}  
+    - **Eixo Y:** {descricao_variaveis["RECT_AGRO"]}  
+    - **Cores:** {descricao_variaveis["E_FINANC_COOP"]}  
+    - **Filtro:** {descricao_variaveis["E_CNPJ"]}  
+    - **Objetivo:** Avaliar se acesso a financiamento está ligado a maiores receitas.  
+    """)
