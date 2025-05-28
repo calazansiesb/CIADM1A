@@ -21,7 +21,7 @@ try:
     df = pd.read_csv("GALINACEOS.csv", sep=';')
     # Limpar nomes das colunas (remover espaços, acentos, padronizar maiúsculas)
     df.columns = [unicodedata.normalize('NFKD', col).encode('ASCII', 'ignore').decode('utf-8').strip().upper() for col in df.columns]
-    st.write("Colunas disponíveis no DataFrame:", list(df.columns))  # Para depuração
+    # REMOVIDO: st.write("Colunas disponíveis no DataFrame:", list(df.columns))
     
     # Convertendo para numérico e preenchendo NaNs
     for col in ['GAL_TOTAL', 'GAL_VEND', 'Q_DZ_PROD']:
