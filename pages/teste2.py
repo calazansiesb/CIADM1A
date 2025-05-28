@@ -4,7 +4,7 @@ import plotly.express as px
 import requests
 import json
 import unicodedata
-import re # Já estava presente nas adaptações anteriores
+import re
 
 # Substitua pela URL RAW correta do seu arquivo CSV no GitHub
 GITHUB_CSV_URL = 'https://raw.githubusercontent.com/calazansiesb/CIADM1A/main/GALINACEOS.csv'
@@ -239,62 +239,4 @@ else:
     st.info(f"Não foi possível gerar o mapa para '{selected_display_title}'. Verifique se o GeoJSON foi carregado e se há dados filtrados.")
 
 st.markdown('---')
-
-# Restante do código para os gráficos dos 3 maiores, 3 do meio e 3 menores (agora dinâmicos)
-st.header(f'Análise Detalhada de {selected_display_title} por Estado (Brasil)')
-
-if len(df_plot_total) >= 3:
-    # Top 3 Maiores
-    top_3 = df_plot_total.head(3)
-    fig_top_3 = px.bar(
-        top_3,
-        x='Unidade Federativa',
-        y=selected_y_label,
-        title=f'Top 3 Maiores Estados em {selected_display_title}',
-        labels={'Unidade Federativa': 'Estado', selected_y_label: selected_y_label},
-        color='Unidade Federativa',
-        color_discrete_sequence=px.colors.qualitative.Plotly
-    )
-    fig_top_3.update_layout(xaxis_tickangle=-35, showlegend=False, plot_bgcolor='white', font=dict(size=14))
-    fig_top_3.update_traces(texttemplate='%{y:,.0f}', textposition='outside')
-    st.plotly_chart(fig_top_3, use_container_width=True)
-
-    # 3 do Meio
-    if len(df_plot_total) >= 6:
-        middle_start = len(df_plot_total) // 2 - 1
-        if middle_start < 0: middle_start = 0
-        middle_3 = df_plot_total.iloc[middle_start : middle_start + 3]
-
-        fig_middle_3 = px.bar(
-            middle_3,
-            x='Unidade Federativa',
-            y=selected_y_label,
-            title=f'3 Estados do Meio em {selected_display_title}',
-            labels={'Unidade Federativa': 'Estado', selected_y_label: selected_y_label},
-            color='Unidade Federativa',
-            color_discrete_sequence=px.colors.qualitative.D3
-        )
-        fig_middle_3.update_layout(xaxis_tickangle=-35, showlegend=False, plot_bgcolor='white', font=dict(size=14))
-        fig_middle_3.update_traces(texttemplate='%{y:,.0f}', textposition='outside')
-        st.plotly_chart(fig_middle_3, use_container_width=True)
-    else:
-        st.info("Não há estados suficientes para exibir os '3 do meio'. São necessários pelo menos 6 estados.")
-
-
-    # 3 Menores
-    bottom_3 = df_plot_total.tail(3)
-    fig_bottom_3 = px.bar(
-        bottom_3,
-        x='Unidade Federativa',
-        y=selected_y_label,
-        title=f'Top 3 Menores Estados em {selected_display_title}',
-        labels={'Unidade Federativa': 'Estado', selected_y_label: selected_y_label},
-        color='Unidade Federativa',
-        color_discrete_sequence=px.colors.qualitative.G10
-    )
-    fig_bottom_3.update_layout(xaxis_tickangle=-35, showlegend=False, plot_bgcolor='white', font=dict(size=14))
-    fig_bottom_3.update_traces(texttemplate='%{y:,.0f}', textposition='outside')
-    st.plotly_chart(fig_bottom_3, use_container_width=True)
-
-else:
-    st.warning(f"Não há dados suficientes para gerar os gráficos dos 3 maiores, 3 do meio e 3 menores estados para '{selected_display_title}'.")
+# Os gráficos dos 3 maiores, 3 do meio e 3 menores foram removidos a partir daqui.
