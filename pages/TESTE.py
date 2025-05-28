@@ -71,40 +71,40 @@ st.plotly_chart(fig)
 
 # Expander para exibir sugestões adicionais
 with st.expander("Sugestões de Análises"):
-    st.write("""
+    st.write(f"""
     **1. Produção vs. Comercialização**  
-    - **Eixo X:** GAL_TOTAL (Total de galináceos)  
-    - **Eixo Y:** V_GAL_VEND (Valor dos galináceos vendidos)  
-    - **Cores:** NIV_TERR (Nível territorial)  
-    - **Filtro:** NOM_TERR (Nome da região)  
+    - **Eixo X:** {descricao_variaveis["GAL_TOTAL"]}  
+    - **Eixo Y:** {descricao_variaveis["V_GAL_VEND"]}  
+    - **Cores:** {descricao_variaveis["NIV_TERR"]}  
+    - **Filtro:** {descricao_variaveis["NOM_TERR"]}  
     - **Objetivo:** Verificar se estabelecimentos com maior efetivo de galináceos geram mais receita com vendas.  
 
     **2. Orientação Técnica vs. Produtividade**  
-    - **Eixo X:** E_RECEBE_ORI (Estabelecimentos com orientação técnica)  
-    - **Eixo Y:** VTP_AGRO (Valor total da produção agropecuária)  
-    - **Cores:** E_ORI_GOV (Orientação do governo)  
-    - **Filtro:** SIST_CRIA (Sistema de criação)  
+    - **Eixo X:** {descricao_variaveis["E_RECEBE_ORI"]}  
+    - **Eixo Y:** {descricao_variaveis["VTP_AGRO"]}  
+    - **Cores:** {descricao_variaveis["E_ORI_GOV"]}  
+    - **Filtro:** {descricao_variaveis["SIST_CRIA"]}  
     - **Objetivo:** Analisar se a assistência técnica está correlacionada com maior valor de produção.  
 
     **3. Área de Pastagem vs. Criação de Galináceos**  
-    - **Eixo X:** A_PAST_PLANT (Área de pastagem plantada)  
-    - **Eixo Y:** GAL_ENG (Galináceos para engorda)  
-    - **Cores:** E_ASSOC_COOP (Associação a cooperativas)  
-    - **Filtro:** CL_GAL (Classe de cabeças)  
+    - **Eixo X:** {descricao_variaveis["A_PAST_PLANT"]}  
+    - **Eixo Y:** {descricao_variaveis["GAL_ENG"]}  
+    - **Cores:** {descricao_variaveis["E_ASSOC_COOP"]}  
+    - **Filtro:** {descricao_variaveis["CL_GAL"]}  
     - **Objetivo:** Investigar se propriedades com mais pastagem tendem a ter maior produção de aves para engorda.  
 
     **4. Venda de Ovos vs. Número de Poedeiras**  
-    - **Eixo X:** GAL_POED (Total de poedeiras)  
-    - **Eixo Y:** Q_DZ_VEND (Ovos vendidos em dúzias)  
-    - **Cores:** E_COMERC (Estabelecimentos comerciais)  
-    - **Filtro:** E_AGRIFAM (Agricultura familiar)  
+    - **Eixo X:** {descricao_variaveis["GAL_POED"]}  
+    - **Eixo Y:** {descricao_variaveis["Q_DZ_VEND"]}  
+    - **Cores:** {descricao_variaveis["E_COMERC"]}  
+    - **Filtro:** {descricao_variaveis["E_AGRIFAM"]}  
     - **Objetivo:** Correlacionar o tamanho do plantel de poedeiras com a comercialização de ovos.  
 
     **5. Investimento vs. Receita Total**  
-    - **Eixo X:** E_FINANC (Estabelecimentos com investimento)  
-    - **Eixo Y:** RECT_AGRO (Receita total agropecuária)  
-    - **Cores:** E_FINANC_COOP (Investimento de cooperativas)  
-    - **Filtro:** E_CNPJ (Estabelecimentos com CNPJ)  
+    - **Eixo X:** {descricao_variaveis["E_FINANC"]}  
+    - **Eixo Y:** {descricao_variaveis["RECT_AGRO"]}  
+    - **Cores:** {descricao_variaveis["E_FINANC_COOP"]}  
+    - **Filtro:** {descricao_variaveis["E_CNPJ"]}  
     - **Objetivo:** Avaliar se acesso a financiamento está ligado a maiores receitas.  
     """)
 
