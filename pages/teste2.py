@@ -4,7 +4,7 @@ import plotly.express as px
 import requests
 import json
 import unicodedata
-import re
+import re # Já estava presente nas adaptações anteriores
 
 # Substitua pela URL RAW correta do seu arquivo CSV no GitHub
 GITHUB_CSV_URL = 'https://raw.githubusercontent.com/calazansiesb/CIADM1A/main/GALINACEOS.csv'
@@ -41,9 +41,24 @@ def normalize_state_name(name):
 @st.cache_data # Usar st.cache_data para cache de dados
 def load_data(url):
     try:
-        # Adicionei sep=';' e encoding='latin1' pois é comum em CSVs brasileiros
-        # Adicionei thousands='.' para tratar o ponto como separador de milhares na leitura de números
+        # Tentar ler com delimitador ';' e ponto como separador de milhares
         df = pd.read_csv(url, sep=';', encoding='latin1', thousands='.')
+
+        # --- CONVERSÃO NUMÉRICA ROBUSTA PARA AS COLUNAS DE DADOS ---
+        for col_key, info in DATA_VARS.items():
+            col_name = info['column_name']
+            if col_name in df.columns:
+                # Converte para string para garantir manipulação de texto
+                # Remove pontos (separadores de milhares)
+                # Substitui vírgulas (se usadas como decimal) por pontos (para pd.to_numeric)
+                df[col_name] = df[col_name].astype(str).str.replace('.', '', regex=False).str.replace(',', '.', regex=False)
+                # Converte para numérico, valores inválidos viram NaN
+                df[col_name] = pd.to_numeric(df[col_name], errors='coerce')
+                # Preenche NaN com 0 (ou outro valor apropriado, dependendo do contexto)
+                df[col_name] = df[col_name].fillna(0)
+                # Converte para inteiro, pois são contagens/totais
+                df[col_name] = df[col_name].astype(int)
+
         return df
     except FileNotFoundError:
         st.error("Erro: O arquivo não foi encontrado na URL especificada. Verifique se a URL está correta e o arquivo existe.")
@@ -97,6 +112,7 @@ for col in required_columns:
 # --- Normalização da coluna NOM_TERR no DataFrame ---
 df['NOM_TERR_NORMALIZED'] = df['NOM_TERR'].apply(normalize_state_name)
 
+
 st.header('🌎 Análise da Pecuária (Galináceos) no Brasil')
 
 # Lista oficial dos 26 estados + DF
@@ -142,8 +158,6 @@ selected_y_label = selected_metric_info['y_axis_label']
 
 
 # Calcular a SOMA da métrica selecionada por UF (para o Brasil inteiro)
-freq_data_por_uf_total = df_uf.groupby('NOM_TERR')['E_CRIA_GAL'].sum().sort_values(ascending=False) # Inicia com E_CRIA_GAL, será atualizado abaixo
-# A linha acima está usando 'E_CRIA_GAL' fixo. Mudar para o comportamento dinâmico.
 freq_data_por_uf_total = df_uf.groupby('NOM_TERR')[selected_column].sum().sort_values(ascending=False)
 df_plot_total = freq_data_por_uf_total.rename_axis('Unidade Federativa').reset_index(name=selected_y_label)
 
@@ -192,6 +206,7 @@ if not df_plot_filtered.empty:
         plot_bgcolor='white',
         font=dict(size=14)
     )
+    # Formatação para números inteiros com separadores de milhares
     fig_bar_dynamic.update_traces(texttemplate='%{y:,.0f}', textposition='outside')
     st.plotly_chart(fig_bar_dynamic, use_container_width=True)
 else:
