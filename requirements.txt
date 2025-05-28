@@ -7,3 +7,8 @@ numpy
 scikit-learn
 plotly
 statsmodels
+tensorflow
+pandas
+streamlit
+requests
+scikit-learn
