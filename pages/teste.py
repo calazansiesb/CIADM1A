@@ -4,19 +4,6 @@ import numpy as np
 import plotly.express as px
 import unicodedata # Adicionado para limpeza de nomes de colunas
 
-# Configuração da página
-st.set_page_config(
-    page_title="Trabalho Final - Introdução à Ciência de Dados CIADM1A-CIA001-20251",
-    page_icon="🐔",
-    layout="wide",
-    initial_sidebar_state="expanded",
-)
-
-# Título principal
-st.title("Trabalho Final - Introdução à Ciência de Dados CIADM1A-CIA001-20251")
-st.subheader("Professor: Alexandre Vaz Roriz")
-st.subheader("Alunos: Diego Sá, Ewerton Calazans")
-
 st.title('Análise de Galináceos no Brasil (IBGE 2017)')
 st.markdown("---")
 
