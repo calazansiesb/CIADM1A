@@ -1,9 +1,15 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import json # Importar para carregar o GeoJSON
 
 # Substitua pela URL RAW correta do seu arquivo CSV no GitHub
 GITHUB_CSV_URL = 'https://raw.githubusercontent.com/calazansiesb/CIADM1A/main/GALINACEOS.csv'
+
+# URL para o arquivo GeoJSON dos estados do Brasil (exemplo)
+# ATENÇÃO: Esta URL pode não ser permanente ou pode precisar de autenticação dependendo da fonte.
+# Recomenda-se baixar este arquivo e colocá-lo em seu repositório ou encontrar uma fonte mais estável.
+GEOJSON_BR_STATES_URL = 'https://raw.githubusercontent.com/codeforamerica/click_that_hood/master/public/data/brazil-states.geojson'
 
 @st.cache_data # Usar st.cache_data para cache de dados
 def load_data(url):
@@ -25,12 +31,28 @@ def load_data(url):
         st.error(f"Erro ao carregar dados do GitHub. Verifique a URL ou o formato do arquivo. Detalhes: {e}")
         return pd.DataFrame()
 
+@st.cache_data # Cache para o GeoJSON
+def load_geojson(url):
+    try:
+        response = pd.read_json(url)
+        # O GeoJSON precisa ser um dicionário Python (ou objeto JSON)
+        return json.loads(response.to_json())
+    except Exception as e:
+        st.error(f"Erro ao carregar o arquivo GeoJSON: {e}. Verifique a URL ou o formato do arquivo.")
+        return None
+
 # Carregamento dos dados
 df = load_data(GITHUB_CSV_URL)
+geojson_data = load_geojson(GEOJSON_BR_STATES_URL)
 
 if df.empty:
     st.warning("Não foi possível carregar os dados. Verifique a URL e o conteúdo do arquivo CSV.")
     st.stop() # Interrompe a execução se os dados não puderem ser carregados
+
+if geojson_data is None:
+    st.warning("Não foi possível carregar os dados geográficos. O mapa não será exibido.")
+    # Não st.stop() aqui, para que o restante do app ainda funcione.
+
 
 # Verifique as colunas do seu DataFrame.
 # Se a coluna com os nomes das unidades federativas tiver outro nome, altere 'NOM_TERR' para o nome correto.
@@ -128,6 +150,40 @@ else:
     st.info(f"Não há dados para a região '{selected_region}' com os estados filtrados.")
 
 st.markdown('---')
+
+# === Mapa do Brasil por Região/Estado ===
+st.header('🗺️ Mapa da Distribuição de Galináceos por Estado')
+
+if geojson_data is not None and not df_plot_filtered.empty:
+    # Para o mapa, vamos usar df_plot_filtered (já está filtrado pela região se aplicável)
+    # Certifique-se de que os nomes dos estados no seu CSV (NOM_TERR) correspondem aos nomes no GeoJSON.
+    # O GeoJSON de exemplo usa 'name' para o nome do estado.
+
+    # Adiciona a coluna 'Regiao' a df_plot_filtered para colorir o mapa por região
+    df_plot_filtered['Regiao'] = df_plot_filtered['Unidade Federativa'].map(estado_para_regiao)
+
+    fig_map = px.choropleth_mapbox(
+        df_plot_filtered,
+        geojson=geojson_data,
+        locations='Unidade Federativa', # Coluna no DataFrame com os nomes dos estados
+        featureidkey="properties.name", # Caminho para o nome do estado no GeoJSON
+        color='Quantidade de Galináceos', # Coluna para colorir o mapa
+        color_continuous_scale="Viridis", # Escala de cor
+        range_color=(df_plot_filtered['Quantidade de Galináceos'].min(), df_plot_filtered['Quantidade de Galináceos'].max()),
+        mapbox_style="carto-positron", # Estilo do mapa
+        zoom=3.5, # Zoom inicial
+        center={"lat": -15.78, "lon": -47.93}, # Centro do mapa (Brasília)
+        opacity=0.7,
+        labels={'Quantidade de Galináceos':'Total de Galináceos'},
+        title=f'Quantidade de Galináceos por Estado{title_sufix}'
+    )
+    fig_map.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
+    st.plotly_chart(fig_map, use_container_width=True)
+else:
+    st.info("Não foi possível gerar o mapa. Verifique se o GeoJSON foi carregado e se há dados filtrados.")
+
+st.markdown('---')
+
 
 # Restante do código para os gráficos dos 3 maiores, 3 do meio e 3 menores (com alterações de rótulos)
 st.header('Análise Detalhada da Quantidade de Galináceos por Estado (Brasil)') # Título alterado
