@@ -1,7 +1,10 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-import json # Importar para carregar o GeoJSON
+import requests # Importar para carregar o GeoJSON de forma mais robusta
+import json # Usado em load_geojson, mas requests.json() geralmente já retorna o dicionário
+import unicodedata # Para normalização de texto (remover acentos)
+import re # Para normalização de texto (opcional, mas bom para strip e lower)
 
 # Substitua pela URL RAW correta do seu arquivo CSV no GitHub
 GITHUB_CSV_URL = 'https://raw.githubusercontent.com/calazansiesb/CIADM1A/main/GALINACEOS.csv'
@@ -10,6 +13,14 @@ GITHUB_CSV_URL = 'https://raw.githubusercontent.com/calazansiesb/CIADM1A/main/GA
 # ATENÇÃO: Esta URL pode não ser permanente ou pode precisar de autenticação dependendo da fonte.
 # Recomenda-se baixar este arquivo e colocá-lo em seu repositório ou encontrar uma fonte mais estável.
 GEOJSON_BR_STATES_URL = 'https://raw.githubusercontent.com/codeforamerica/click_that_hood/master/public/data/brazil-states.geojson'
+
+# Função auxiliar para normalizar nomes (remover acentos e converter para minúsculas)
+def normalize_state_name(name):
+    if isinstance(name, str):
+        # Remove acentos e caracteres especiais, depois converte para minúsculas e remove espaços extras
+        normalized = unicodedata.normalize('NFKD', name).encode('ascii', 'ignore').decode('utf-8')
+        return normalized.strip().lower()
+    return name # Retorna o valor original se não for string (ex: NaN)
 
 @st.cache_data # Usar st.cache_data para cache de dados
 def load_data(url):
@@ -34,9 +45,16 @@ def load_data(url):
 @st.cache_data # Cache para o GeoJSON
 def load_geojson(url):
     try:
-        response = pd.read_json(url)
-        # O GeoJSON precisa ser um dicionário Python (ou objeto JSON)
-        return json.loads(response.to_json())
+        response = requests.get(url)
+        response.raise_for_status() # Lança um erro para status HTTP ruins (4xx ou 5xx)
+        geojson_data = response.json()
+
+        # Normaliza os nomes dos estados dentro do GeoJSON para facilitar o matching
+        for feature in geojson_data['features']:
+            if 'name' in feature['properties']:
+                feature['properties']['name_original'] = feature['properties']['name'] # Mantém o nome original
+                feature['properties']['name_normalized'] = normalize_state_name(feature['properties']['name'])
+        return geojson_data
     except Exception as e:
         st.error(f"Erro ao carregar o arquivo GeoJSON: {e}. Verifique a URL ou o formato do arquivo.")
         return None
@@ -55,8 +73,6 @@ if geojson_data is None:
 
 
 # Verifique as colunas do seu DataFrame.
-# Se a coluna com os nomes das unidades federativas tiver outro nome, altere 'NOM_TERR' para o nome correto.
-# Certifique-se de que 'E_CRIA_GAL' também esteja presente.
 if 'NOM_TERR' not in df.columns:
     st.error("A coluna 'NOM_TERR' não foi encontrada no DataFrame. Por favor, verifique o nome da coluna no seu CSV.")
     st.stop()
@@ -64,9 +80,9 @@ if 'E_CRIA_GAL' not in df.columns:
     st.error("A coluna 'E_CRIA_GAL' não foi encontrada no DataFrame. Por favor, verifique o nome da coluna no seu CSV.")
     st.stop()
 
-# Garantir que E_CRIA_GAL é numérica
-# Se 'thousands='.' não funcionar perfeitamente, podemos fazer uma conversão manual aqui:
-# df['E_CRIA_GAL'] = pd.to_numeric(df['E_CRIA_GAL'].astype(str).str.replace('.', '', regex=False), errors='coerce').fillna(0)
+# --- Normalização da coluna NOM_TERR no DataFrame ---
+# Isso garante que NOM_TERR e os nomes do GeoJSON estejam no mesmo formato para matching.
+df['NOM_TERR_NORMALIZED'] = df['NOM_TERR'].apply(normalize_state_name)
 
 
 st.header('🌎 Distribuição por Unidade Federativa')
@@ -79,6 +95,9 @@ estados_brasil = [
     'São Paulo', 'Sergipe', 'Tocantins'
 ]
 
+# Normaliza a lista de estados para a filtragem consistente
+normalized_estados_brasil = [normalize_state_name(estado) for estado in estados_brasil]
+
 # Mapeamento de estados para regiões
 regioes_estados = {
     'Norte': ['Acre', 'Amapá', 'Amazonas', 'Pará', 'Rondônia', 'Roraima', 'Tocantins'],
@@ -88,15 +107,16 @@ regioes_estados = {
     'Sul': ['Paraná', 'Rio Grande do Sul', 'Santa Catarina']
 }
 
-# Inverter o dicionário para mapear estado -> região
-estado_para_regiao = {estado: regiao for regiao, estados in regioes_estados.items() for estado in estados}
+# Inverter o dicionário para mapear estado normalizado -> região
+# Usa a lista `estados_brasil` original para mapear as regiões e então normaliza as chaves do dicionário para uso posterior
+estado_para_regiao_normalized = {normalize_state_name(estado): regiao for regiao, estados in regioes_estados.items() for estado in estados}
 
-# Adicionar 'Regiao' ao DataFrame principal para uso posterior, se necessário
-# Certifique-se que df['NOM_TERR'] está limpo e corresponde aos nomes de estado
-df['Regiao'] = df['NOM_TERR'].map(estado_para_regiao)
+# Adicionar 'Regiao' ao DataFrame principal (usando o nome normalizado para o mapeamento de região)
+df['Regiao'] = df['NOM_TERR_NORMALIZED'].map(estado_para_regiao_normalized)
 
-# Filtrar apenas estados do Brasil
-df_uf = df[df['NOM_TERR'].isin(estados_brasil)].copy() # Use .copy() para evitar SettingWithCopyWarning
+# Filtrar apenas estados do Brasil (usando a coluna normalizada e a lista normalizada)
+df_uf = df[df['NOM_TERR_NORMALIZED'].isin(normalized_estados_brasil)].copy()
+
 
 # Calcular a SOMA de E_CRIA_GAL por UF (para o Brasil inteiro)
 freq_estab_por_uf_total = df_uf.groupby('NOM_TERR')['E_CRIA_GAL'].sum().sort_values(ascending=False)
@@ -113,15 +133,19 @@ df_filtered_by_region = df_uf.copy() # Começa com todos os estados do Brasil
 title_sufix = ''
 if selected_region != 'Todas as Regiões':
     estados_da_regiao = regioes_estados[selected_region]
-    df_filtered_by_region = df_filtered_by_region[df_filtered_by_region['NOM_TERR'].isin(estados_da_regiao)]
+    # Normaliza os estados da região para a filtragem
+    normalized_estados_da_regiao = [normalize_state_name(e) for e in estados_da_regiao]
+    df_filtered_by_region = df_filtered_by_region[df_filtered_by_region['NOM_TERR_NORMALIZED'].isin(normalized_estados_da_regiao)]
     title_sufix = f' na Região {selected_region}'
 
 # Calcular a SOMA de E_CRIA_GAL APENAS para os estados filtrados
 if not df_filtered_by_region.empty:
     freq_estab_por_uf_filtered = df_filtered_by_region.groupby('NOM_TERR')['E_CRIA_GAL'].sum().sort_values(ascending=False)
     df_plot_filtered = freq_estab_por_uf_filtered.rename_axis('Unidade Federativa').reset_index(name='Quantidade de Galináceos')
+    # Adiciona a coluna normalizada para o matching no mapa
+    df_plot_filtered['Unidade Federativa_Normalized_for_map'] = df_plot_filtered['Unidade Federativa'].apply(normalize_state_name)
 else:
-    df_plot_filtered = pd.DataFrame(columns=['Unidade Federativa', 'Quantidade de Galináceos']) # DataFrame vazio se não houver dados
+    df_plot_filtered = pd.DataFrame(columns=['Unidade Federativa', 'Quantidade de Galináceos', 'Unidade Federativa_Normalized_for_map']) # DataFrame vazio se não houver dados
 
 
 # === Gráfico Dinâmico de Distribuição por UF ===
@@ -130,11 +154,11 @@ if not df_plot_filtered.empty:
     fig2 = px.bar(
         df_plot_filtered,
         x='Unidade Federativa',
-        y='Quantidade de Galináceos', # Alterado para 'Quantidade de Galináceos'
-        title=f'Quantidade de Galináceos por Unidade Federativa{title_sufix}', # Título alterado
-        labels={'Unidade Federativa': 'Estado', 'Quantidade de Galináceos': 'Quantidade de Galináceos'}, # Rótulos alterados
-        color='Unidade Federativa',  # Cor única para cada estado!
-        color_discrete_sequence=px.colors.qualitative.Set2  # Paleta amigável
+        y='Quantidade de Galináceos',
+        title=f'Quantidade de Galináceos por Unidade Federativa{title_sufix}',
+        labels={'Unidade Federativa': 'Estado', 'Quantidade de Galináceos': 'Quantidade de Galináceos'},
+        color='Unidade Federativa',
+        color_discrete_sequence=px.colors.qualitative.Set2
     )
     fig2.update_layout(
         xaxis_tickangle=-35,
@@ -143,8 +167,8 @@ if not df_plot_filtered.empty:
         plot_bgcolor='white',
         font=dict(size=14)
     )
-    # Adicionar o valor exato no topo de cada barra
-    fig2.update_traces(texttemplate='%{y:.2s}', textposition='outside') # Formato para grandes números
+    # Adicionar o valor exato no topo de cada barra (formatado como inteiro com separador de milhares)
+    fig2.update_traces(texttemplate='%{y:,.0f}', textposition='outside')
     st.plotly_chart(fig2, use_container_width=True)
 else:
     st.info(f"Não há dados para a região '{selected_region}' com os estados filtrados.")
@@ -155,18 +179,12 @@ st.markdown('---')
 st.header('🗺️ Mapa da Distribuição de Galináceos por Estado')
 
 if geojson_data is not None and not df_plot_filtered.empty:
-    # Para o mapa, vamos usar df_plot_filtered (já está filtrado pela região se aplicável)
-    # Certifique-se de que os nomes dos estados no seu CSV (NOM_TERR) correspondem aos nomes no GeoJSON.
-    # O GeoJSON de exemplo usa 'name' para o nome do estado.
-
-    # Adiciona a coluna 'Regiao' a df_plot_filtered para colorir o mapa por região
-    df_plot_filtered['Regiao'] = df_plot_filtered['Unidade Federativa'].map(estado_para_regiao)
-
+    # Use a coluna normalizada para o matching no GeoJSON
     fig_map = px.choropleth_mapbox(
         df_plot_filtered,
         geojson=geojson_data,
-        locations='Unidade Federativa', # Coluna no DataFrame com os nomes dos estados
-        featureidkey="properties.name", # Caminho para o nome do estado no GeoJSON
+        locations='Unidade Federativa_Normalized_for_map', # Coluna no DataFrame com os nomes dos estados normalizados
+        featureidkey="properties.name_normalized", # Caminho para o nome do estado normalizado no GeoJSON
         color='Quantidade de Galináceos', # Coluna para colorir o mapa
         color_continuous_scale="Viridis", # Escala de cor
         range_color=(df_plot_filtered['Quantidade de Galináceos'].min(), df_plot_filtered['Quantidade de Galináceos'].max()),
@@ -184,9 +202,8 @@ else:
 
 st.markdown('---')
 
-
 # Restante do código para os gráficos dos 3 maiores, 3 do meio e 3 menores (com alterações de rótulos)
-st.header('Análise Detalhada da Quantidade de Galináceos por Estado (Brasil)') # Título alterado
+st.header('Análise Detalhada da Quantidade de Galináceos por Estado (Brasil)')
 
 # Garantir que temos dados suficientes para essas análises
 if len(df_plot_total) >= 3:
@@ -195,33 +212,33 @@ if len(df_plot_total) >= 3:
     fig_top_3 = px.bar(
         top_3,
         x='Unidade Federativa',
-        y='Quantidade de Galináceos', # Alterado para 'Quantidade de Galináceos'
-        title='Top 3 Maiores Estados em Quantidade de Galináceos', # Título alterado
-        labels={'Unidade Federativa': 'Estado', 'Quantidade de Galináceos': 'Quantidade de Galináceos'}, # Rótulos alterados
+        y='Quantidade de Galináceos',
+        title='Top 3 Maiores Estados em Quantidade de Galináceos',
+        labels={'Unidade Federativa': 'Estado', 'Quantidade de Galináceos': 'Quantidade de Galináceos'},
         color='Unidade Federativa',
         color_discrete_sequence=px.colors.qualitative.Plotly
     )
     fig_top_3.update_layout(xaxis_tickangle=-35, showlegend=False, plot_bgcolor='white', font=dict(size=14))
-    fig_top_3.update_traces(texttemplate='%{y:.2s}', textposition='outside') # Adiciona o valor
+    fig_top_3.update_traces(texttemplate='%{y:,.0f}', textposition='outside')
     st.plotly_chart(fig_top_3, use_container_width=True)
 
     # 3 do Meio
-    if len(df_plot_total) >= 6: # Precisamos de pelo menos 6 estados para ter 3 do meio razoavelmente definidos
-        middle_start = len(df_plot_total) // 2 - 1 # Ajuste para pegar 3 do meio
-        if middle_start < 0: middle_start = 0 # Garante que não seja negativo
+    if len(df_plot_total) >= 6:
+        middle_start = len(df_plot_total) // 2 - 1
+        if middle_start < 0: middle_start = 0
         middle_3 = df_plot_total.iloc[middle_start : middle_start + 3]
 
         fig_middle_3 = px.bar(
             middle_3,
             x='Unidade Federativa',
-            y='Quantidade de Galináceos', # Alterado para 'Quantidade de Galináceos'
-            title='3 Estados do Meio em Quantidade de Galináceos', # Título alterado
-            labels={'Unidade Federativa': 'Estado', 'Quantidade de Galináceos': 'Quantidade de Galináceos'}, # Rótulos alterados
+            y='Quantidade de Galináceos',
+            title='3 Estados do Meio em Quantidade de Galináceos',
+            labels={'Unidade Federativa': 'Estado', 'Quantidade de Galináceos': 'Quantidade de Galináceos'},
             color='Unidade Federativa',
             color_discrete_sequence=px.colors.qualitative.D3
         )
         fig_middle_3.update_layout(xaxis_tickangle=-35, showlegend=False, plot_bgcolor='white', font=dict(size=14))
-        fig_middle_3.update_traces(texttemplate='%{y:.2s}', textposition='outside') # Adiciona o valor
+        fig_middle_3.update_traces(texttemplate='%{y:,.0f}', textposition='outside')
         st.plotly_chart(fig_middle_3, use_container_width=True)
     else:
         st.info("Não há estados suficientes para exibir os '3 do meio'. São necessários pelo menos 6 estados.")
@@ -232,14 +249,14 @@ if len(df_plot_total) >= 3:
     fig_bottom_3 = px.bar(
         bottom_3,
         x='Unidade Federativa',
-        y='Quantidade de Galináceos', # Alterado para 'Quantidade de Galináceos'
-        title='Top 3 Menores Estados em Quantidade de Galináceos', # Título alterado
-        labels={'Unidade Federativa': 'Estado', 'Quantidade de Galináceos': 'Quantidade de Galináceos'}, # Rótulos alterados
+        y='Quantidade de Galináceos',
+        title='Top 3 Menores Estados em Quantidade de Galináceos',
+        labels={'Unidade Federativa': 'Estado', 'Quantidade de Galináceos': 'Quantidade de Galináceos'},
         color='Unidade Federativa',
         color_discrete_sequence=px.colors.qualitative.G10
     )
     fig_bottom_3.update_layout(xaxis_tickangle=-35, showlegend=False, plot_bgcolor='white', font=dict(size=14))
-    fig_bottom_3.update_traces(texttemplate='%{y:.2s}', textposition='outside') # Adiciona o valor
+    fig_bottom_3.update_traces(texttemplate='%{y:,.0f}', textposition='outside')
     st.plotly_chart(fig_bottom_3, use_container_width=True)
 
 else:
