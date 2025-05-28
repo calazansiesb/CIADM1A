@@ -7,10 +7,10 @@ from sklearn.preprocessing import StandardScaler
 import requests
 import io
 
-# URL do GitHub (substitua pelo seu link direto para CSV)
-github_url = 'https://raw.githubusercontent.com/seu_usuario/seu_repositorio/main/dados.csv'
+# URL do GitHub para carregar o CSV
+github_url = 'https://raw.githubusercontent.com/seu_usuario/seu_repositorio/main/CIADM1A/GALINACEOS.csv'
 
-# Carregar os dados do GitHub
+# Função para carregar os dados do GitHub
 @st.cache_data
 def load_data(url):
     response = requests.get(url)
@@ -18,13 +18,13 @@ def load_data(url):
         df = pd.read_csv(io.StringIO(response.text), delimiter=';')
         return df
     else:
-        st.error("Erro ao carregar dados do GitHub.")
+        st.error("Erro ao carregar dados do GitHub. Verifique a URL.")
         return None
 
 df = load_data(github_url)
 
 if df is not None:
-    st.title("Predição de Aves por Redes Neurais")
+    st.title("🔎 Predição de Aves por Redes Neurais")
 
     # Selecionar variáveis
     X = df[['GAL_TOTAL']]  # Número de granjas
@@ -54,15 +54,14 @@ if df is not None:
     predicao = model.predict(X_test)
 
     # Exibir resultados no Streamlit
-    st.write(f"🔎 Predições de Aves: {predicao.flatten()[:5]}")
     st.write(f"📊 Erro médio quadrático: {model.evaluate(X_test, y_test, verbose=0)}")
-    
+
     # Adicionar interatividade
-    granjas = st.slider("Número de Granjas", int(X.min()), int(X.max()), int(X.mean()))
+    granjas = st.slider("📌 Número de Granjas", int(X.min()), int(X.max()), int(X.mean()))
     granjas_scaled = scaler.transform([[granjas]])
     aves_preditas = model.predict(granjas_scaled)[0][0]
 
-    st.write(f"🐔 Para {granjas} granjas, o modelo prevê aproximadamente {int(scaler.inverse_transform([[aves_preditas]])[0][0])} aves.")
+    st.write(f"🐔 Para {granjas} granjas, o modelo prevê aproximadamente **{int(scaler.inverse_transform([[aves_preditas]])[0][0])}** aves.")
 
 else:
-    st.error("Não foi possível carregar os dados.")
+    st.error("⚠️ Não foi possível carregar os dados.")
