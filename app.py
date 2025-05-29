@@ -34,7 +34,28 @@ def main():
     
     # Divisor
     st.write("---")
-    
+
+    # Seção de informações da equipe
+    col1, col2 = st.columns([1, 2])
+
+    with col1:
+        # Professor
+        st.subheader("Professor:")
+        st.markdown("""
+        <div class="custom-card">
+            Alexandre Vaz Roriz
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Alunos
+        st.subheader("Alunos:")
+        st.markdown("""
+        <div class="custom-card">
+            Diego Sá<br>
+            Ewerton Calazans
+        </div>
+        """, unsafe_allow_html=True)
+
     # Introdução
     with st.expander("📌 Introdução"):
         st.markdown("""
