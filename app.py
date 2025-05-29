@@ -35,37 +35,29 @@ def main():
     # Divisor
     st.write("---")
     
-    # Seção de informações da equipe
-    col1, col2 = st.columns([1, 2])
-    
-    with col1:
-        # Professor
-        st.subheader("Professor:")
+    # Introdução
+    with st.expander("📌 Introdução"):
         st.markdown("""
-        <div class="custom-card">
-            Alexandre Vaz Roriz
-        </div>
-        """, unsafe_allow_html=True)
+        A avicultura desempenha um papel fundamental no setor agropecuário brasileiro, sendo uma das principais atividades econômicas ligadas à produção de proteína animal. Para compreender melhor os fatores que influenciam a produção avícola, este trabalho apresenta uma análise baseada no **dataset do IBGE de 2017 sobre avicultura**, explorando diferentes características do setor por meio de técnicas de ciência de dados.
         
-        # Alunos
-        st.subheader("Alunos:")
-        st.markdown("""
-        <div class="custom-card">
-            Diego Sá<br>
-            Ewerton Calazans
-        </div>
-        """, unsafe_allow_html=True)
-    
-    with col2:
-        # Sobre o trabalho
-        st.subheader("Sobre o Trabalho")
-        st.markdown("""
-        <div class="custom-card">
-            <p>Este trabalho foi desenvolvido com base em um <strong>dataset do IBGE de 2017 sobre avicultura</strong>.
-            Exploramos diversos aspectos da produção avícola no Brasil, utilizando técnicas de ciência de dados para extrair insights valiosos.</p>
-            <div class="highlight-box">
-                <p><strong>💡 Dica:</strong> Navegue pelo menu lateral para acessar cada tópico da análise.</p>
-            </div>
+        O objetivo principal é identificar padrões e tendências significativas que possam impactar a lucratividade, estrutura dos estabelecimentos e desempenho da produção. Para isso, foram formuladas **oito perguntas-chave**, abordando aspectos essenciais do conjunto de dados e possibilitando insights visuais por meio de gráficos e modelagens.
+
+        ### **Entre os tópicos explorados, destacamos:**
+        - 📈 **Fatores de Lucratividade** – Quais elementos têm maior impacto no desempenho financeiro dos estabelecimentos avícolas?
+        - 🏢 **Dimensão do Estabelecimento** – Existe uma relação entre o tamanho do estabelecimento e o número de trabalhadores?
+        - 📦 **Distribuição por Porte** – Como os diferentes portes de estabelecimentos estão distribuídos geograficamente?
+        - 🗺️ **Matrizes Avícolas** – Qual é a concentração da produção de matrizes avícolas no Brasil?
+        - 🔮 **Modelo de Regressão** – É possível prever a produção avícola com base em variáveis históricas?
+        - 📊 **Análise da Pecuária** – Qual a representatividade dos galináceos na pecuária nacional?
+        - 🔍 **Gráfico de Dispersão** – Quais métricas possuem correlação significativa dentro do conjunto de dados?
+        - 🏭 **Sistemas de Criação** – Quais diferenças existem entre os sistemas de produção utilizados?
+
+        Utilizando ferramentas como análise exploratória de dados, visualização gráfica e modelagem estatística, buscamos responder cada uma dessas questões, transformando números em **informações acionáveis** que possam agregar valor à compreensão do setor.
+
+        Ao longo deste trabalho, os resultados serão organizados de forma clara e objetiva, permitindo que tendências relevantes sejam facilmente identificadas. Esperamos que esta análise contribua para uma visão aprofundada da avicultura brasileira e auxilie na tomada de decisões estratégicas para a otimização da produção.
+
+        <div class="highlight-box">
+            <p><strong>💡 Dica:</strong> Navegue pelo menu lateral para acessar cada tópico da análise.</p>
         </div>
         """, unsafe_allow_html=True)
     
