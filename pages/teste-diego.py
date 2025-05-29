@@ -35,39 +35,35 @@ def main():
     # Divisor
     st.write("---")
     
-    # Seção de informações da equipe
-    col1, col2 = st.columns([1, 2])
-    
-    with col1:
-        # Professor
-        st.subheader("Professor:")
-        st.markdown("""
-        <div class="custom-card">
-            Alexandre Vaz Roriz
-        </div>
-        """, unsafe_allow_html=True)
+    # Introdução
+    st.subheader("Introdução")
+    st.markdown("""
+    <div class="custom-card">
+        <p>A avicultura desempenha um papel fundamental no setor agropecuário brasileiro, sendo uma das principais atividades econômicas ligadas à produção de proteína animal. Para compreender melhor os fatores que influenciam a produção avícola, este trabalho apresenta uma análise baseada no <strong>dataset do IBGE de 2017 sobre avicultura</strong>, explorando diferentes características do setor por meio de técnicas de ciência de dados.</p>
         
-        # Alunos
-        st.subheader("Alunos:")
-        st.markdown("""
-        <div class="custom-card">
-            Diego Sá<br>
-            Ewerton Calazans
+        <p>O objetivo principal é identificar padrões e tendências significativas que possam impactar a lucratividade, estrutura dos estabelecimentos e desempenho da produção. Para isso, foram formuladas <strong>oito perguntas-chave</strong>, abordando aspectos essenciais do conjunto de dados e possibilitando insights visuais por meio de gráficos e modelagens.</p>
+        
+        <p>Entre os tópicos explorados, destacamos:</p>
+        <ul>
+            <li>📈 <strong>Fatores de Lucratividade</strong> – Quais elementos têm maior impacto no desempenho financeiro dos estabelecimentos avícolas?</li>
+            <li>🏢 <strong>Dimensão do Estabelecimento</strong> – Existe uma relação entre o tamanho do estabelecimento e o número de trabalhadores?</li>
+            <li>📦 <strong>Distribuição por Porte</strong> – Como os diferentes portes de estabelecimentos estão distribuídos geograficamente?</li>
+            <li>🗺️ <strong>Matrizes Avícolas</strong> – Qual é a concentração da produção de matrizes avícolas no Brasil?</li>
+            <li>🔮 <strong>Modelo de Regressão</strong> – É possível prever a produção avícola com base em variáveis históricas?</li>
+            <li>📊 <strong>Análise da Pecuária</strong> – Qual a representatividade dos galináceos na pecuária nacional?</li>
+            <li>🔍 <strong>Gráfico de Dispersão</strong> – Quais métricas possuem correlação significativa dentro do conjunto de dados?</li>
+            <li>🏭 <strong>Sistemas de Criação</strong> – Quais diferenças existem entre os sistemas de produção utilizados?</li>
+        </ul>
+
+        <p>Utilizando ferramentas como análise exploratória de dados, visualização gráfica e modelagem estatística, buscamos responder cada uma dessas questões, transformando números em <strong>informações acionáveis</strong> que possam agregar valor à compreensão do setor.</p>
+
+        <p>Ao longo deste trabalho, os resultados serão organizados de forma clara e objetiva, permitindo que tendências relevantes sejam facilmente identificadas. Esperamos que esta análise contribua para uma visão aprofundada da avicultura brasileira e auxilie na tomada de decisões estratégicas para a otimização da produção.</p>
+
+        <div class="highlight-box">
+            <p><strong>💡 Dica:</strong> Navegue pelo menu lateral para acessar cada tópico da análise.</p>
         </div>
-        """, unsafe_allow_html=True)
-    
-    with col2:
-        # Sobre o trabalho
-        st.subheader("Sobre o Trabalho")
-        st.markdown("""
-        <div class="custom-card">
-            <p>Este trabalho foi desenvolvido com base em um <strong>dataset do IBGE de 2017 sobre avicultura</strong>.
-            Exploramos diversos aspectos da produção avícola no Brasil, utilizando técnicas de ciência de dados para extrair insights valiosos.</p>
-            <div class="highlight-box">
-                <p><strong>💡 Dica:</strong> Navegue pelo menu lateral para acessar cada tópico da análise.</p>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+    </div>
+    """, unsafe_allow_html=True)
     
     # Divisor
     st.write("---")
