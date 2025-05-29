@@ -1,110 +1,136 @@
 import streamlit as st
-import plotly.express as px
 import pandas as pd
+import plotly.express as px
+import os
 
-# URL do arquivo CSV no GitHub (versão raw)
-url = "https://raw.githubusercontent.com/calazansiesb/CIADM1A/main/GALINACEOS.csv"
+# ===============================================================================
+# 0. Carregamento do DataFrame
+# ===============================================================================
+url_galinaceos_csv = "https://raw.githubusercontent.com/calazansiesb/CIADM1A/main/GALINACEOS.csv"
 
-# Carregar os dados corretamente
-df = pd.read_csv(url, sep=";", encoding="utf-8")
+try:
+    df = pd.read_csv(url_galinaceos_csv, sep=';')
+    # st.success("Dados 'GALINACEOS.csv' carregados com sucesso!") # Comentar para não poluir a interface
+except Exception as e:
+    st.error(f"Erro ao carregar o DataFrame 'GALINACEOS.csv' do GitHub: {e}")
+    st.info("Por favor, verifique a URL, a acessibilidade do arquivo CSV e o formato (delimitador ';').")
+    df = pd.DataFrame() # Define um df vazio para evitar erros posteriores
 
-# Dicionário de descrições das variáveis
-descricao_variaveis = {
-    "SIST_CRIA": "Sistema de criação",
-    "NIV_TERR": "Nível das unidades territoriais",
-    "COD_TERR": "Código das unidades territoriais",
-    "NOM_TERR": "Nome das unidades territoriais",
-    "GAL_TOTAL": "Total efetivo de galináceos",
-    "V_GAL_VEND": "Valor dos galináceos vendidos",
-    "E_RECEBE_ORI": "Estabelecimentos com orientação técnica",
-    "VTP_AGRO": "Valor total da produção agropecuária",
-    "E_ORI_GOV": "Orientação do governo",
-    "A_PAST_PLANT": "Área de pastagem plantada",
-    "GAL_ENG": "Galináceos para engorda",
-    "E_ASSOC_COOP": "Associação a cooperativas",
-    "CL_GAL": "Classe de cabeças de galináceos",
-    "GAL_POED": "Total de poedeiras",
-    "Q_DZ_VEND": "Ovos vendidos em dúzias",
-    "E_COMERC": "Estabelecimentos comerciais",
-    "E_AGRIFAM": "Agricultura familiar",
-    "E_FINANC": "Estabelecimentos com investimento",
-    "RECT_AGRO": "Receita total agropecuária",
-    "E_FINANC_COOP": "Investimento de cooperativas",
-    "E_CNPJ": "Estabelecimentos com CNPJ",
-    "E_SUBS": "Produção para consumo próprio",
-    "E_DAP": "Possui DAP/PRONAF",
-    "N_TRAB_TOTAL": "Total de trabalhadores",
-    "E_PRODUTOR": "Produtor individual",
-    "GAL_MATR": "Total de matrizes",
-    "GAL_VEND": "Galináceos vendidos",
-    "E_ORI_INTEG": "Orientação de integradoras",
-    "E_GAL_MATR": "Estabelecimentos com matrizes"
-}
+# ===============================================================================
+# 1. Pré-processamento Comum do DataFrame (seções anteriores)
+# ===============================================================================
 
-# Configuração da interface do Streamlit
-st.title("Gráfico de Dispersão - Correlação entre Métricas - Diego")
-
-# Seletores para métricas
-col_x = st.selectbox("Selecione a métrica para o eixo X:", df.columns, format_func=lambda x: descricao_variaveis.get(x, x))
-col_y = st.selectbox("Selecione a métrica para o eixo Y:", df.columns, format_func=lambda y: descricao_variaveis.get(y, y))
-
-# Seletor para região
-if "NIV_TERR" in df.columns:
-    regiao = st.selectbox("Selecione a Região:", df["NIV_TERR"].unique())
-    df_filtrado = df[df["NIV_TERR"] == regiao]
+# Mapeamento e Limpeza da coluna SIST_CRIA (aplicado globalmente ao df)
+if not df.empty and 'SIST_CRIA' in df.columns:
+    df['SIST_CRIA'] = df['SIST_CRIA'].astype(str).str.strip()
+    mapeamento_sistemas = {
+        '1-SIST_POC': 'Produtores de Ovos para Consumo',
+        '2-SIST_POI': 'Produtores de Ovos para Incubacao',
+        '3-SIST_PFC': 'Produtores de Frangos de Corte',
+        '4-Outro': 'Outros Produtores'
+    }
+    df['SIST_CRIA'] = df['SIST_CRIA'].replace(mapeamento_sistemas)
 else:
-    st.error("Coluna 'NIV_TERR' não encontrada no arquivo.")
-    df_filtrado = df
+    if not df.empty:
+        st.warning("Coluna 'SIST_CRIA' não encontrada para mapeamento.")
 
-# Criar o gráfico de dispersão
-fig = px.scatter(
-    df_filtrado, 
-    x=col_x, 
-    y=col_y, 
-    color="NOM_TERR" if "NOM_TERR" in df.columns else None,
-    title=f"Correlação entre {col_x} e {col_y} para {regiao}",
-    labels={col_x: col_x, col_y: col_y}
-)
 
-# Exibir o gráfico no Streamlit
-st.plotly_chart(fig)
+# =============================================
+# 4. Relação: Tamanho × Trabalhadores
+# =============================================
+st.header('👥 Relação entre Tamanho do Estabelecimento e Número de Trabalhadores')
 
-# Expander para exibir sugestões adicionais
-with st.expander("Sugestões de Análises"):
-    st.write(f"""
-    **1. Produção vs. Comercialização**  
-    - **Eixo X:** {descricao_variaveis["GAL_TOTAL"]}  
-    - **Eixo Y:** {descricao_variaveis["V_GAL_VEND"]}  
-    - **Cores:** {descricao_variaveis["NIV_TERR"]}  
-    - **Filtro:** {descricao_variaveis["NOM_TERR"]}  
-    - **Objetivo:** Verificar se estabelecimentos com maior efetivo de galináceos geram mais receita com vendas.  
+if not df.empty and 'GAL_TOTAL' in df.columns and 'N_TRAB_TOTAL' in df.columns and 'SIST_CRIA' in df.columns:
+    df['GAL_TOTAL'] = pd.to_numeric(df['GAL_TOTAL'], errors='coerce')
+    df['N_TRAB_TOTAL'] = pd.to_numeric(df['N_TRAB_TOTAL'], errors='coerce')
 
-    **2. Orientação Técnica vs. Produtividade**  
-    - **Eixo X:** {descricao_variaveis["E_RECEBE_ORI"]}  
-    - **Eixo Y:** {descricao_variaveis["VTP_AGRO"]}  
-    - **Cores:** {descricao_variaveis["E_ORI_GOV"]}  
-    - **Filtro:** {descricao_variaveis["SIST_CRIA"]}  
-    - **Objetivo:** Analisar se a assistência técnica está correlacionada com maior valor de produção.  
+    df_clean_trab = df.dropna(subset=['GAL_TOTAL', 'N_TRAB_TOTAL', 'SIST_CRIA'])
 
-    **3. Área de Pastagem vs. Criação de Galináceos**  
-    - **Eixo X:** {descricao_variaveis["A_PAST_PLANT"]}  
-    - **Eixo Y:** {descricao_variaveis["GAL_ENG"]}  
-    - **Cores:** {descricao_variaveis["E_ASSOC_COOP"]}  
-    - **Filtro:** {descricao_variaveis["CL_GAL"]}  
-    - **Objetivo:** Investigar se propriedades com mais pastagem tendem a ter maior produção de aves para engorda.  
+    if not df_clean_trab.empty:
+        corr = df_clean_trab['GAL_TOTAL'].corr(df_clean_trab['N_TRAB_TOTAL'])
+        fig3 = px.scatter(
+            df_clean_trab,
+            x='GAL_TOTAL',
+            y='N_TRAB_TOTAL',
+            title='Relação entre Tamanho do Estabelecimento e Número de Trabalhadores',
+            labels={'GAL_TOTAL': 'Total de Galináceos', 'N_TRAB_TOTAL': 'Número de Trabalhadores', 'SIST_CRIA': 'Sistema de Criação'},
+            trendline="ols",
+            color='SIST_CRIA',
+            hover_name="SIST_CRIA"
+        )
+        st.plotly_chart(fig3, use_container_width=True)
+        st.info(f"**Correlação Calculada:** {corr:.2f}")
 
-    **4. Venda de Ovos vs. Número de Poedeiras**  
-    - **Eixo X:** {descricao_variaveis["GAL_POED"]}  
-    - **Eixo Y:** {descricao_variaveis["Q_DZ_VEND"]}  
-    - **Cores:** {descricao_variaveis["E_COMERC"]}  
-    - **Filtro:** {descricao_variaveis["E_AGRIFAM"]}  
-    - **Objetivo:** Correlacionar o tamanho do plantel de poedeiras com a comercialização de ovos.  
+        with st.expander("💡 Interpretação do Gráfico de Relação entre Tamanho e Trabalhadores"):
+            st.info("""
+            **👥 Análise da Relação entre Tamanho do Estabelecimento e Número de Trabalhadores**
 
-    **5. Investimento vs. Receita Total**  
-    - **Eixo X:** {descricao_variaveis["E_FINANC"]}  
-    - **Eixo Y:** {descricao_variaveis["RECT_AGRO"]}  
-    - **Cores:** {descricao_variaveis["E_FINANC_COOP"]}  
-    - **Filtro:** {descricao_variaveis["E_CNPJ"]}  
-    - **Objetivo:** Avaliar se acesso a financiamento está ligado a maiores receitas.  
-    """)
+            📌 **Principais observações:**
+            - A maioria dos estabelecimentos é de **pequeno a médio porte** (poucos galináceos), empregando, em geral, **menos de 200 trabalhadores**.
+            - Há uma **alta dispersão** na quantidade de trabalhadores em estabelecimentos menores, indicando variabilidade nas operações.
+            - A correlação geral (que você verá no `st.info` acima) é geralmente **muito fraca ou quase nula**, mas a análise por sistema de criação (as cores dos pontos) revela tendências distintas.
+            - Para **Produtores de Frangos de Corte** e **Outros Produtores**, a linha de tendência pode ser **levemente negativa/plana**, sugerindo que o aumento da escala pode ser acompanhado por maior automação e eficiência de mão de obra.
+            - Para **Produtores de Ovos para Consumo** e **Produtores de Ovos para Incubacao**, a relação tende a ser mais **estável ou ligeiramente positiva**, indicando que a demanda por mão de obra é menos reduzida com o aumento da escala por unidade produzida.
 
+            💡 **Interpretação:**
+            - A relação entre o tamanho do plantel e o número de trabalhadores é **complexa e não linear**, sendo fortemente influenciada pelo **sistema de criação**.
+            - Sistemas como **Produtores de Frangos de Corte** podem se beneficiar mais de **automação em larga escala**, enquanto a **produção de ovos** pode ter uma necessidade de mão de obra mais **constante** por unidade produzida.
+            - As diferenças observadas indicam que o setor avícola possui **perfis operacionais diversos**, que dependem não apenas do tamanho, mas também da especialização do estabelecimento.
+            """)
+    else:
+        st.warning("Não há dados válidos (não-nulos) nas colunas 'GAL_TOTAL', 'N_TRAB_TOTAL' ou 'SIST_CRIA' para exibir o gráfico após o tratamento de valores ausentes na seção de Trabalhadores. Verifique seus dados de origem.")
+else:
+    st.warning("As colunas 'GAL_TOTAL', 'N_TRAB_TOTAL' ou 'SIST_CRIA' não foram encontradas no DataFrame principal ou o DataFrame está vazio para a seção de Trabalhadores. Verifique o nome das colunas no seu arquivo CSV e a acessibilidade.")
+
+
+# =============================================
+# 5. Distribuição por Porte dos Estabelecimentos
+# =============================================
+st.markdown("---") # Linha divisória
+st.header('🏭 Distribuição por Porte dos Estabelecimentos')
+
+# Adaptação para usar df_clean ou df e tratar NaNs se houver
+if not df.empty and 'NOM_CL_GAL' in df.columns:
+    # O .value_counts() já ignora NaN por padrão, mas é bom garantir a tipagem
+    df['NOM_CL_GAL'] = df['NOM_CL_GAL'].astype(str).str.strip()
+    
+    # Se houver valores como 'nan' (string) após o strip, podemos querer removê-los
+    # ou tratá-los de outra forma, dependendo do que NOM_CL_GAL possa ter.
+    # Por enquanto, assumimos que são strings válidas ou nulos reais.
+    
+    # É uma boa prática filtrar antes de fazer value_counts se houver NaNs que você não quer contar
+    freq_portes = df['NOM_CL_GAL'].value_counts().sort_index()
+
+    # Filtra valores que podem ter se tornado "nan" (string) se houverem
+    if 'nan' in freq_portes.index:
+        freq_portes = freq_portes.drop('nan')
+
+    if not freq_portes.empty: # Verifica se há dados para plotar
+        fig4 = px.bar(
+            x=freq_portes.index,
+            y=freq_portes.values,
+            title='Distribuição de Estabelecimentos por Porte (Faixas IBGE)',
+            labels={'x': 'Porte do Estabelecimento', 'y': 'Quantidade'},
+            color_discrete_sequence=['#636EFA', '#EF553B', '#00CC96', '#AB63FA', '#FFA15A', '#FF6692'] # Adicionei mais uma cor se houver mais de 5 categorias
+        )
+        st.plotly_chart(fig4, use_container_width=True)
+
+        with st.expander("💡 Interpretação do Gráfico de Distribuição por Porte dos Estabelecimentos"):
+            st.info("""
+            **🏭 Análise da Distribuição por Porte dos Estabelecimentos**
+
+            O gráfico mostra a quantidade de estabelecimentos distribuídos por diferentes faixas de porte (definidas pelo IBGE):
+
+            - As faixas intermediárias, especialmente entre **201 e 5.000 aves**, concentram os maiores números de estabelecimentos, sugerindo predominância de produtores de médio porte no setor.
+            - Pequenos produtores ("De 1 a 100" e "De 101 a 200") também são numerosos, mas em menor quantidade que as faixas intermediárias.
+            - Faixas extremas ("De 100.001 e mais" e "Sem galináceos em 30.09.2017") apresentam participação reduzida, indicando que grandes produtores e estabelecimentos temporariamente inativos são minoria.
+            - A categoria "Total" pode representar registros agregados ou casos não classificados nas demais faixas, devendo ser analisada com cautela.
+            - A presença de estabelecimentos "Sem galináceos" reforça a importância de considerar sazonalidade ou inatividade temporária.
+
+            **Conclusão:**
+            - O perfil da produção avícola brasileira é fortemente marcado pela presença de estabelecimentos de porte intermediário, com pequena participação de grandes produtores e um contingente relevante de pequenos estabelecimentos. Isso tem implicações para políticas públicas, estratégias de mercado e apoio ao setor.
+            """)
+    else:
+        st.warning("Não há dados válidos na coluna 'NOM_CL_GAL' para exibir o gráfico de Distribuição por Porte após a filtragem.")
+else:
+    st.warning("A coluna 'NOM_CL_GAL' não foi encontrada no DataFrame principal ou o DataFrame está vazio para a seção de Distribuição por Porte.")
