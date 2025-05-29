@@ -4,19 +4,19 @@ import plotly.express as px
 import os
 
 # ===============================================================================
-# 0. Carregamento do DataFrame (USANDO DADOS REAIS DO GITHUB)
+# 0. Carregamento do DataFrame (USANDO DADOS REAIS DO GITHUB - DELIMITADOR CORRIGIDO)
 # ===============================================================================
 # URL direta para o arquivo CSV no GitHub (usando raw.githubusercontent.com)
 url_galinaceos_csv = "https://raw.githubusercontent.com/calazansiesb/CIADM1A/main/GALINACEOS.csv"
 
 try:
-    df = pd.read_csv(url_galinaceos_csv)
+    # CORREÇÃO AQUI: Adicionando sep=';'
+    df = pd.read_csv(url_galinaceos_csv, sep=';')
     st.success(f"Dados carregados com sucesso de: {url_galinaceos_csv}")
 except Exception as e:
     st.error(f"Erro ao carregar o DataFrame do GitHub: {e}")
     st.info("Por favor, verifique a URL e a acessibilidade do arquivo CSV.")
-    # Se o DataFrame não puder ser carregado, definimos um df vazio para evitar erros posteriores
-    df = pd.DataFrame()
+    df = pd.DataFrame() # Define um df vazio para evitar erros posteriores
 
 
 # =============================================
@@ -24,10 +24,10 @@ except Exception as e:
 # =============================================
 st.header('👥 Relação entre Tamanho do Estabelecimento e Número de Trabalhadores')
 
-# --- INÍCIO DA DEPURACÃO ---
+# --- INÍCIO DA DEPURACÃO (Pode remover após o gráfico aparecer) ---
 st.write("--- Verificações de Depuração ---")
 st.write(f"DataFrame 'df' está vazio? {df.empty}")
-st.write(f"Colunas em 'df': {df.columns.tolist()}")
+st.write(f"Colunas em 'df': {df.columns.tolist()}") # DEVE AGORA MOSTRAR AS COLUNAS CORRETAMENTE SEPARADAS
 
 col_gal_total_exists = 'GAL_TOTAL' in df.columns
 col_n_trab_total_exists = 'N_TRAB_TOTAL' in df.columns
@@ -43,6 +43,8 @@ st.write("---------------------------------")
 if col_gal_total_exists and col_n_trab_total_exists and col_sist_cria_exists:
     st.write("Todas as colunas necessárias foram encontradas. Prosseguindo...") # Depuração
     # Converte as colunas para numérico, tratando erros
+    # Nota: Se houver vírgulas como separador decimal em algumas colunas numéricas,
+    # você precisaria adicionar `decimal=','` aqui também, mas por enquanto, vamos com o básico.
     df['GAL_TOTAL'] = pd.to_numeric(df['GAL_TOTAL'], errors='coerce')
     df['N_TRAB_TOTAL'] = pd.to_numeric(df['N_TRAB_TOTAL'], errors='coerce')
 
@@ -92,4 +94,4 @@ if col_gal_total_exists and col_n_trab_total_exists and col_sist_cria_exists:
     else:
         st.warning("Não há dados válidos (não-nulos) nas colunas 'GAL_TOTAL' e 'N_TRAB_TOTAL' para exibir o gráfico após o tratamento de valores ausentes.")
 else:
-    st.warning("As colunas 'GAL_TOTAL', 'N_TRAB_TOTAL' ou 'SIST_CRIA' não foram encontradas no DataFrame principal 'df'. Verifique os nomes das colunas no seu arquivo CSV e a acessibilidade.")
+    st.warning("As colunas 'GAL_TOTAL', 'N_TRAB_TOTAL' ou 'SIST_CRIA' não foram encontradas no DataFrame principal 'df' APÓS A TENTATIVA DE CARREGAMENTO. Verifique a URL do arquivo CSV e se ele realmente contém essas colunas com os nomes exatos.")
