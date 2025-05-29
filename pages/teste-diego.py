@@ -42,7 +42,7 @@ descricao_variaveis = {
 }
 
 # Configuração da interface do Streamlit
-st.title("Gráfico de Dispersão - Correlação entre Métricas")
+st.title("Gráfico de Dispersão - Correlação entre Métricas das Galinhas do Calazans")
 
 # Seletores para métricas
 col_x = st.selectbox("Selecione a métrica para o eixo X:", df.columns, format_func=lambda x: descricao_variaveis.get(x, x))
