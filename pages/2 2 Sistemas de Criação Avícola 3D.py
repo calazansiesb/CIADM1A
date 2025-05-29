@@ -6,16 +6,14 @@ import os
 # ===============================================================================
 # 0. Carregamento do DataFrame (USANDO DADOS REAIS DO GITHUB)
 # ===============================================================================
-# URL direta para o arquivo CSV no GitHub (usando raw.githubusercontent.com)
 url_galinaceos_csv = "https://raw.githubusercontent.com/calazansiesb/CIADM1A/main/GALINACEOS.csv"
 
 try:
-    # CORREÇÃO AQUI: Adicionando sep=';' para o delimitador correto
     df = pd.read_csv(url_galinaceos_csv, sep=';')
 except Exception as e:
     st.error(f"Erro ao carregar o DataFrame do GitHub: {e}")
     st.info("Por favor, verifique a URL e a acessibilidade do arquivo CSV e o formato (delimitador).")
-    df = pd.DataFrame() # Define um df vazio para evitar erros posteriores e interromper a execução do gráfico
+    df = pd.DataFrame()
 
 
 # =============================================
@@ -27,6 +25,9 @@ st.header('👥 Relação entre Tamanho do Estabelecimento e Número de Trabalha
 if not df.empty and 'GAL_TOTAL' in df.columns and 'N_TRAB_TOTAL' in df.columns and 'SIST_CRIA' in df.columns:
 
     # --- INÍCIO: Mapeamento e Limpeza da coluna SIST_CRIA ---
+    st.write("--- Depuração SIST_CRIA ---") # Linha de depuração
+    st.write(f"Valores únicos de 'SIST_CRIA' ANTES da limpeza e mapeamento: {df['SIST_CRIA'].unique().tolist()}") # Linha de depuração
+
     df['SIST_CRIA'] = df['SIST_CRIA'].astype(str).str.strip()
     mapeamento_sistemas = {
         '1-SIST_POC': 'Produtores de Ovos para Consumo',
@@ -34,9 +35,10 @@ if not df.empty and 'GAL_TOTAL' in df.columns and 'N_TRAB_TOTAL' in df.columns a
         '3-SIST_PFC': 'Produtores de Frangos de Corte',
         '4-Outro': 'Outros Produtores'
     }
-    # Aplica o mapeamento. Valores que não estão no dicionário permanecerão como estão
-    # ou se tornarão NaN se não houver um mapeamento correspondente para eles.
     df['SIST_CRIA'] = df['SIST_CRIA'].replace(mapeamento_sistemas)
+
+    st.write(f"Valores únicos de 'SIST_CRIA' DEPOIS da limpeza e mapeamento: {df['SIST_CRIA'].unique().tolist()}") # Linha de depuração
+    st.write("--- Fim Depuração SIST_CRIA ---") # Linha de depuração
     # --- FIM: Mapeamento e Limpeza da coluna SIST_CRIA ---
 
     # Converte as colunas para numérico, tratando erros
@@ -44,7 +46,6 @@ if not df.empty and 'GAL_TOTAL' in df.columns and 'N_TRAB_TOTAL' in df.columns a
     df['N_TRAB_TOTAL'] = pd.to_numeric(df['N_TRAB_TOTAL'], errors='coerce')
 
     # Remove linhas com valores NaN resultantes da coerção para as colunas essenciais
-    # É importante incluir 'SIST_CRIA' aqui caso o replace crie NaNs para valores não mapeados
     df_clean = df.dropna(subset=['GAL_TOTAL', 'N_TRAB_TOTAL', 'SIST_CRIA'])
 
     if not df_clean.empty:
@@ -57,10 +58,10 @@ if not df.empty and 'GAL_TOTAL' in df.columns and 'N_TRAB_TOTAL' in df.columns a
             x='GAL_TOTAL',
             y='N_TRAB_TOTAL',
             title='Relação entre Tamanho do Estabelecimento e Número de Trabalhadores',
-            labels={'GAL_TOTAL': 'Total de Galináceos', 'N_TRAB_TOTAL': 'Número de Trabalhadores', 'SIST_CRIA': 'Sistema de Criação'}, # Adicionado label para SIST_CRIA
+            labels={'GAL_TOTAL': 'Total de Galináceos', 'N_TRAB_TOTAL': 'Número de Trabalhadores', 'SIST_CRIA': 'Sistema de Criação'},
             trendline="ols",
             color='SIST_CRIA',
-            hover_name="SIST_CRIA" # Adiciona o nome do sistema de criação ao passar o mouse
+            hover_name="SIST_CRIA"
         )
         st.plotly_chart(fig3, use_container_width=True)
 
