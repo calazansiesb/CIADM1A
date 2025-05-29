@@ -1,4 +1,4 @@
-# --- 0. CONFIGURAÇÃO DA PÁGINA (DEVE SER A PRIMEIRA INSTRUÇÃO) ---
+# 1. CONFIGURAÇÃO DA PÁGINA - DEVE SER A PRIMEIRA LINHA EXECUTÁVEL
 import streamlit as st
 st.set_page_config(
     layout="wide",
@@ -7,197 +7,115 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- 1. IMPORTAÇÕES ---
-import plotly.express as px
-import plotly.graph_objects as go
+# 2. IMPORTAÇÕES (APÓS A CONFIGURAÇÃO DA PÁGINA)
 import pandas as pd
 import numpy as np
+import plotly.express as px
 import unicodedata
 
-# --- 2. INICIALIZAÇÃO DO ESTADO DA SESSÃO ---
-if 'scatter_x' not in st.session_state:
-    st.session_state.scatter_x = None
-if 'scatter_y' not in st.session_state:
-    st.session_state.scatter_y = None
-if 'scatter_color' not in st.session_state:
-    st.session_state.scatter_color = "Nenhuma"
-if 'scatter_filter_col' not in st.session_state:
-    st.session_state.scatter_filter_col = "Nenhuma"
-
-# --- 3. CARREGAMENTO E PRÉ-PROCESSAMENTO DOS DADOS ---
+# 3. CARREGAMENTO DE DADOS COM TRATAMENTO DE ERRO ROBUSTO
 @st.cache_data
 def load_data():
     url = "https://raw.githubusercontent.com/calazansiesb/CIADM1A/main/GALINACEOS.csv"
     try:
+        # Tentativa com encoding mais comum primeiro
         df = pd.read_csv(url, sep=";", encoding="latin1")
     except UnicodeDecodeError:
-        df = pd.read_csv(url, sep=";", encoding="utf-8")
+        try:
+            # Segunda tentativa com UTF-8
+            df = pd.read_csv(url, sep=";", encoding="utf-8")
+        except Exception as e:
+            st.error(f"Falha crítica ao carregar dados: {str(e)}")
+            st.stop()
     
-    # Limpeza das colunas
+    # Pré-processamento seguro
+    numeric_cols = []
     for col in df.columns:
         if df[col].dtype == 'object':
             try:
-                df[col] = df[col].astype(str).str.replace(',', '.', regex=False)
+                # Converter vírgulas para pontos em números
+                df[col] = df[col].astype(str).str.replace(',', '.')
+                # Tentar converter para numérico
                 df[col] = pd.to_numeric(df[col], errors='ignore')
-            except ValueError:
-                pass
+                if pd.api.types.is_numeric_dtype(df[col]):
+                    numeric_cols.append(col)
+            except Exception as e:
+                st.warning(f"Não foi possível converter a coluna {col}: {str(e)}")
     
-    return df
+    return df, numeric_cols
 
-df = load_data()
+# Carrega os dados
+df, numeric_cols = load_data()
 
-# --- 4. DICIONÁRIO DE DESCRIÇÕES ---
-descricao_variaveis = {
-    "SIST_CRIA": "Sistema de criação",
-    "NIV_TERR": "Nível territorial",
-    "COD_TERR": "Código territorial",
-    "NOM_TERR": "Nome territorial",
-    "GAL_TOTAL": "Total de galináceos",
-    "V_GAL_VEND": "Valor de venda",
-    "E_RECEBE_ORI": "Recebe orientação",
-    "VTP_AGRO": "Valor total produção",
-    "E_ORI_GOV": "Orientação governo",
-    "A_PAST_PLANT": "Área pastagem",
-    "GAL_ENG": "Galináceos engorda",
-    "E_ASSOC_COOP": "Associado a cooperativa",
-    "CL_GAL": "Classe galináceos",
-    "GAL_POED": "Galináceos poedeiras",
-    "Q_DZ_VEND": "Dúzias vendidas",
-    "E_COMERC": "Estabelecimento comercial",
-    "E_AGRIFAM": "Agricultura familiar",
-    "E_FINANC": "Recebe financiamento",
-    "RECT_AGRO": "Receita agropecuária",
-    "E_FINANC_COOP": "Financiamento cooperativa",
-    "E_CNPJ": "Possui CNPJ",
-    "E_SUBS": "Produção subsistência",
-    "E_DAP": "Possui DAP",
-    "N_TRAB_TOTAL": "Total trabalhadores",
-    "E_PRODUTOR": "Produtor individual",
-    "GAL_MATR": "Galináceos matrizes",
-    "GAL_VEND": "Galináceos vendidos",
-    "E_ORI_INTEG": "Orientação integradora",
-    "E_GAL_MATR": "Possui matrizes"
-}
-
-# --- 5. FILTROS DE COLUNAS ---
-df_numerico = df.select_dtypes(include=[np.number])
-colunas_numericas = df_numerico.columns.tolist()
-
-colunas_para_cor = [col for col in df.columns if col not in colunas_numericas and df[col].nunique() < 20] + \
-                   [col for col in colunas_numericas if df[col].nunique() < 20 and df[col].isin([0, 1]).all()]
-colunas_para_cor_map = {col: descricao_variaveis.get(col, col) for col in colunas_para_cor}
-colunas_para_cor_map["Nenhuma"] = "Nenhuma"
-
-# --- 6. INTERFACE PRINCIPAL ---
+# 4. CONFIGURAÇÃO DA INTERFACE PRINCIPAL
 st.title("🐔 Análise de Dados de Galináceos")
-st.markdown("Explore as relações entre diferentes métricas da avicultura brasileira")
+st.markdown("""
+**Fonte:** IBGE - Pesquisa da Pecuária Municipal 2017  
+**Dashboard interativo** para análise de estabelecimentos avícolas brasileiros
+""")
 
-tab1, tab2, tab3 = st.tabs(["Gráfico Personalizado", "Sugestões", "Correlações"])
+# 5. DEFINIÇÃO DE ABAS
+tab1, tab2 = st.tabs(["Análise Exploratória", "Correlações"])
 
-# --- 7. FUNÇÃO AUXILIAR ---
-def set_scatter_vars(x, y, color, filter_col=None):
-    st.session_state.scatter_x = x
-    st.session_state.scatter_y = y
-    st.session_state.scatter_color = color
-    st.session_state.scatter_filter_col = filter_col if filter_col else "Nenhuma"
-
-# --- 8. ABA GRÁFICO PERSONALIZADO ---
 with tab1:
-    st.header("Gráfico de Dispersão Interativo")
+    st.header("Exploração Interativa")
     
+    # Seletores em colunas
     col1, col2 = st.columns(2)
+    
     with col1:
-        x_col = st.selectbox(
-            "Eixo X:", 
-            colunas_numericas,
-            format_func=lambda x: descricao_variaveis.get(x, x),
-            key='scatter_x'
+        x_axis = st.selectbox(
+            "Selecione a variável para o Eixo X:",
+            options=numeric_cols,
+            index=0,
+            key='x_axis'
         )
+    
     with col2:
-        y_col = st.selectbox(
-            "Eixo Y:", 
-            colunas_numericas,
-            format_func=lambda y: descricao_variaveis.get(y, y),
-            key='scatter_y'
+        y_axis = st.selectbox(
+            "Selecione a variável para o Eixo Y:",
+            options=numeric_cols,
+            index=1 if len(numeric_cols) > 1 else 0,
+            key='y_axis'
         )
     
-    color_col = st.selectbox(
-        "Colorir por:",
-        list(colunas_para_cor_map.keys()),
-        format_func=lambda x: colunas_para_cor_map.get(x, x),
-        key='scatter_color'
-    )
-    
-    # Filtros adicionais
-    filter_col = st.selectbox(
-        "Filtrar por:",
-        ["Nenhuma"] + [col for col in df.columns if df[col].nunique() < 50],
-        format_func=lambda x: descricao_variaveis.get(x, x) if x != "Nenhuma" else "Nenhum filtro",
-        key='scatter_filter_col'
-    )
-    
-    # Aplicar filtros
-    df_filtrado = df.copy()
-    if filter_col != "Nenhuma":
-        selected_values = st.multiselect(
-            f"Valores de {descricao_variaveis.get(filter_col, filter_col)}",
-            df[filter_col].unique(),
-            default=df[filter_col].unique()
-        )
-        df_filtrado = df_filtrado[df_filtrado[filter_col].isin(selected_values)]
-    
-    # Plotar gráfico
-    if x_col and y_col:
+    # Gráfico de dispersão
+    if x_axis and y_axis:
         fig = px.scatter(
-            df_filtrado.dropna(subset=[x_col, y_col]),
-            x=x_col,
-            y=y_col,
-            color=color_col if color_col != "Nenhuma" else None,
+            df,
+            x=x_axis,
+            y=y_axis,
             hover_name="NOM_TERR" if "NOM_TERR" in df.columns else None,
-            labels={x_col: descricao_variaveis.get(x_col, x_col),
-                    y_col: descricao_variaveis.get(y_col, y_col)},
+            hover_data=numeric_cols,
             height=600
         )
         st.plotly_chart(fig, use_container_width=True)
 
-# --- 9. ABA SUGESTÕES ---
 with tab2:
-    st.header("Análises Pré-definidas")
+    st.header("Análise de Correlações")
     
-    suggestions = [
-        ("Produção vs Vendas", "GAL_TOTAL", "V_GAL_VEND", "NIV_TERR", "NOM_TERR"),
-        ("Orientação vs Produtividade", "E_RECEBE_ORI", "VTP_AGRO", "E_ORI_GOV", "SIST_CRIA"),
-        ("Área vs Produção", "A_PAST_PLANT", "GAL_ENG", "E_ASSOC_COOP", "CL_GAL")
-    ]
-    
-    for name, x, y, color, filtro in suggestions:
-        if st.button(f"{name}: {descricao_variaveis[x]} × {descricao_variaveis[y]}", 
-                    on_click=set_scatter_vars, args=(x, y, color, filtro)):
-            st.experimental_rerun()
-
-# --- 10. ABA CORRELAÇÕES ---
-with tab3:
-    st.header("Análise de Correlação")
-    
-    if not df_numerico.empty:
-        corr_matrix = df_numerico.corr()
+    if len(numeric_cols) > 1:
+        # Calcula matriz de correlação apenas com colunas numéricas
+        corr_matrix = df[numeric_cols].corr()
         
-        # Heatmap
+        # Heatmap interativo
         fig = px.imshow(
             corr_matrix,
-            text_auto=True,
-            color_continuous_scale="RdBu_r",
+            text_auto=".2f",
+            color_continuous_scale="RdBu",
+            aspect="auto",
             labels=dict(color="Correlação"),
-            height=800
+            x=corr_matrix.columns,
+            y=corr_matrix.columns,
+            height=700
         )
         st.plotly_chart(fig, use_container_width=True)
-        
-        # Top correlações
-        st.subheader("Principais Correlações")
-        corr_series = corr_matrix.unstack().sort_values(key=abs, ascending=False)
-        corr_series = corr_series[corr_series != 1].drop_duplicates()
-        st.dataframe(corr_series.head(10).rename(descricao_variaveis))
+    else:
+        st.warning("Número insuficiente de colunas numéricas para análise de correlação")
 
-# --- 11. RODAPÉ ---
+# 6. RODAPÉ
 st.markdown("---")
-st.caption("Dados do IBGE 2017 | Análise CIADM1A 2025")
+st.caption("""
+**Desenvolvido por:** CIADM1A - Análise de Dados  
+**Atualizado em:** Junho 2025
+""")
