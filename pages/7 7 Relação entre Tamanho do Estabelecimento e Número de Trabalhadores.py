@@ -1,22 +1,22 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-import os
+import os # Embora 'os' não seja estritamente necessário para esta URL, é bom manter se usado em outras partes do seu script.
 
 # ===============================================================================
-# 0. Carregamento do DataFrame (USANDO DADOS REAIS DO GITHUB - DELIMITADOR CORRIGIDO)
+# 0. Carregamento do DataFrame (USANDO DADOS REAIS DO GITHUB)
 # ===============================================================================
 # URL direta para o arquivo CSV no GitHub (usando raw.githubusercontent.com)
 url_galinaceos_csv = "https://raw.githubusercontent.com/calazansiesb/CIADM1A/main/GALINACEOS.csv"
 
 try:
-    # CORREÇÃO AQUI: Adicionando sep=';'
+    # CORREÇÃO AQUI: Adicionando sep=';' para o delimitador correto
     df = pd.read_csv(url_galinaceos_csv, sep=';')
-    st.success(f"Dados carregados com sucesso de: {url_galinaceos_csv}")
+    # st.success(f"Dados carregados com sucesso de: {url_galinaceos_csv}") # Removido para limpeza
 except Exception as e:
     st.error(f"Erro ao carregar o DataFrame do GitHub: {e}")
-    st.info("Por favor, verifique a URL e a acessibilidade do arquivo CSV.")
-    df = pd.DataFrame() # Define um df vazio para evitar erros posteriores
+    st.info("Por favor, verifique a URL e a acessibilidade do arquivo CSV e o formato (delimitador).")
+    df = pd.DataFrame() # Define um df vazio para evitar erros posteriores e interromper a execução do gráfico
 
 
 # =============================================
@@ -24,50 +24,30 @@ except Exception as e:
 # =============================================
 st.header('👥 Relação entre Tamanho do Estabelecimento e Número de Trabalhadores')
 
-# --- INÍCIO DA DEPURACÃO (Pode remover após o gráfico aparecer) ---
-st.write("--- Verificações de Depuração ---")
-st.write(f"DataFrame 'df' está vazio? {df.empty}")
-st.write(f"Colunas em 'df': {df.columns.tolist()}") # DEVE AGORA MOSTRAR AS COLUNAS CORRETAMENTE SEPARADAS
-
-col_gal_total_exists = 'GAL_TOTAL' in df.columns
-col_n_trab_total_exists = 'N_TRAB_TOTAL' in df.columns
-col_sist_cria_exists = 'SIST_CRIA' in df.columns
-
-st.write(f"Coluna 'GAL_TOTAL' existe? {col_gal_total_exists}")
-st.write(f"Coluna 'N_TRAB_TOTAL' existe? {col_n_trab_total_exists}")
-st.write(f"Coluna 'SIST_CRIA' existe? {col_sist_cria_exists}")
-st.write("---------------------------------")
-# --- FIM DA DEPURACÃO ---
-
-
-if col_gal_total_exists and col_n_trab_total_exists and col_sist_cria_exists:
-    st.write("Todas as colunas necessárias foram encontradas. Prosseguindo...") # Depuração
+# Verifica se as colunas necessárias existem no DataFrame
+# Esta verificação é crucial para evitar erros se o DataFrame estiver vazio ou mal formatado
+if not df.empty and 'GAL_TOTAL' in df.columns and 'N_TRAB_TOTAL' in df.columns and 'SIST_CRIA' in df.columns:
     # Converte as colunas para numérico, tratando erros
-    # Nota: Se houver vírgulas como separador decimal em algumas colunas numéricas,
-    # você precisaria adicionar `decimal=','` aqui também, mas por enquanto, vamos com o básico.
     df['GAL_TOTAL'] = pd.to_numeric(df['GAL_TOTAL'], errors='coerce')
     df['N_TRAB_TOTAL'] = pd.to_numeric(df['N_TRAB_TOTAL'], errors='coerce')
 
-    # Remove linhas com valores NaN resultantes da coerção, se aplicável
-    df_clean = df.dropna(subset=['GAL_TOTAL', 'N_TRAB_TOTAL'])
-
-    st.write(f"DataFrame 'df_clean' após remover NaNs: {df_clean.head()}") # Depuração
-    st.write(f"DataFrame 'df_clean' está vazio após NaNs? {df_clean.empty}") # Depuração
+    # Remove linhas com valores NaN resultantes da coerção para as colunas essenciais
+    df_clean = df.dropna(subset=['GAL_TOTAL', 'N_TRAB_TOTAL', 'SIST_CRIA'])
 
     if not df_clean.empty:
-        st.write("DataFrame limpo não está vazio. Gerando gráfico...") # Depuração
         # Calcula a correlação
         corr = df_clean['GAL_TOTAL'].corr(df_clean['N_TRAB_TOTAL'])
 
         # Cria o gráfico de dispersão com linha de tendência OLS e cor por sistema de criação
         fig3 = px.scatter(
-            df_clean, # Use o DataFrame limpo aqui
+            df_clean,
             x='GAL_TOTAL',
             y='N_TRAB_TOTAL',
             title='Relação entre Tamanho do Estabelecimento e Número de Trabalhadores',
             labels={'GAL_TOTAL': 'Total de Galináceos', 'N_TRAB_TOTAL': 'Número de Trabalhadores'},
-            trendline="ols", # Linha de tendência de Mínimos Quadrados Ordinários
-            color='SIST_CRIA' # Colore os pontos com base no sistema de criação
+            trendline="ols",
+            color='SIST_CRIA',
+            hover_name="SIST_CRIA" # Adiciona o nome do sistema de criação ao passar o mouse
         )
         st.plotly_chart(fig3, use_container_width=True)
 
@@ -92,6 +72,6 @@ if col_gal_total_exists and col_n_trab_total_exists and col_sist_cria_exists:
             - As diferenças observadas indicam que o setor avícola possui **perfis operacionais diversos**, que dependem não apenas do tamanho, mas também da especialização do estabelecimento.
             """)
     else:
-        st.warning("Não há dados válidos (não-nulos) nas colunas 'GAL_TOTAL' e 'N_TRAB_TOTAL' para exibir o gráfico após o tratamento de valores ausentes.")
+        st.warning("Não há dados válidos (não-nulos) nas colunas 'GAL_TOTAL', 'N_TRAB_TOTAL' ou 'SIST_CRIA' para exibir o gráfico após o tratamento de valores ausentes. Verifique seus dados de origem.")
 else:
-    st.warning("As colunas 'GAL_TOTAL', 'N_TRAB_TOTAL' ou 'SIST_CRIA' não foram encontradas no DataFrame principal 'df' APÓS A TENTATIVA DE CARREGAMENTO. Verifique a URL do arquivo CSV e se ele realmente contém essas colunas com os nomes exatos.")
+    st.warning("As colunas 'GAL_TOTAL', 'N_TRAB_TOTAL' ou 'SIST_CRIA' não foram encontradas no DataFrame principal. Verifique o nome das colunas no seu arquivo CSV e a acessibilidade do mesmo.")
