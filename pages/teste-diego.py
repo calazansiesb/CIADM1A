@@ -8,7 +8,7 @@ from sklearn.linear_model import LinearRegression
 import statsmodels.api as sm
 
 # Configuração da página
-st.set_page_config(layout="wide", page_title="Análise de Galináceos", icon="🐓")
+
 
 st.title("Dashboard de Análise de Galináceos")
 
