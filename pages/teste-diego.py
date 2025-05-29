@@ -1,103 +1,109 @@
 import streamlit as st
+import plotly.express as px
+import pandas as pd
 
-def main():
-    # Configuração da página
-    st.set_page_config(
-        page_title="Análise Avícola - CIADM1A",
-        page_icon="🐔",
-        layout="wide",
-        initial_sidebar_state="expanded"
-    )
-    
-    # CSS incorporado para estilização mínima
-    st.markdown("""
-    <style>
-    .custom-card {
-        padding: 1.5rem;
-        border-radius: 10px;
-        background-color: #ffffff;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        margin-bottom: 1rem;
-    }
-    .highlight-box {
-        background-color: #e3f2fd;
-        padding: 1rem;
-        border-radius: 8px;
-        margin-top: 1rem;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-    
-    # Cabeçalho
-    st.title("Trabalho Final - Introdução à Ciência de Dados")
-    st.subheader("CIADM1A-CIA001-20251")
-    
-    # Divisor
-    st.write("---")
-    
-    # Introdução
-    st.subheader("Introdução")
-    st.markdown("""
-    <div class="custom-card">
-        <p>A avicultura desempenha um papel fundamental no setor agropecuário brasileiro, sendo uma das principais atividades econômicas ligadas à produção de proteína animal. Para compreender melhor os fatores que influenciam a produção avícola, este trabalho apresenta uma análise baseada no <strong>dataset do IBGE de 2017 sobre avicultura</strong>, explorando diferentes características do setor por meio de técnicas de ciência de dados.</p>
-        
-        <p>O objetivo principal é identificar padrões e tendências significativas que possam impactar a lucratividade, estrutura dos estabelecimentos e desempenho da produção. Para isso, foram formuladas <strong>oito perguntas-chave</strong>, abordando aspectos essenciais do conjunto de dados e possibilitando insights visuais por meio de gráficos e modelagens.</p>
-        
-        <p>Entre os tópicos explorados, destacamos:</p>
-        <ul>
-            <li>📈 <strong>Fatores de Lucratividade</strong> – Quais elementos têm maior impacto no desempenho financeiro dos estabelecimentos avícolas?</li>
-            <li>🏢 <strong>Dimensão do Estabelecimento</strong> – Existe uma relação entre o tamanho do estabelecimento e o número de trabalhadores?</li>
-            <li>📦 <strong>Distribuição por Porte</strong> – Como os diferentes portes de estabelecimentos estão distribuídos geograficamente?</li>
-            <li>🗺️ <strong>Matrizes Avícolas</strong> – Qual é a concentração da produção de matrizes avícolas no Brasil?</li>
-            <li>🔮 <strong>Modelo de Regressão</strong> – É possível prever a produção avícola com base em variáveis históricas?</li>
-            <li>📊 <strong>Análise da Pecuária</strong> – Qual a representatividade dos galináceos na pecuária nacional?</li>
-            <li>🔍 <strong>Gráfico de Dispersão</strong> – Quais métricas possuem correlação significativa dentro do conjunto de dados?</li>
-            <li>🏭 <strong>Sistemas de Criação</strong> – Quais diferenças existem entre os sistemas de produção utilizados?</li>
-        </ul>
+# URL do arquivo CSV no GitHub (versão raw)
+url = "https://raw.githubusercontent.com/calazansiesb/CIADM1A/main/GALINACEOS.csv"
 
-        <p>Utilizando ferramentas como análise exploratória de dados, visualização gráfica e modelagem estatística, buscamos responder cada uma dessas questões, transformando números em <strong>informações acionáveis</strong> que possam agregar valor à compreensão do setor.</p>
+# Carregar os dados corretamente
+df = pd.read_csv(url, sep=";", encoding="utf-8")
 
-        <p>Ao longo deste trabalho, os resultados serão organizados de forma clara e objetiva, permitindo que tendências relevantes sejam facilmente identificadas. Esperamos que esta análise contribua para uma visão aprofundada da avicultura brasileira e auxilie na tomada de decisões estratégicas para a otimização da produção.</p>
+# Dicionário de descrições das variáveis
+descricao_variaveis = {
+    "SIST_CRIA": "Sistema de criação",
+    "NIV_TERR": "Nível das unidades territoriais",
+    "COD_TERR": "Código das unidades territoriais",
+    "NOM_TERR": "Nome das unidades territoriais",
+    "GAL_TOTAL": "Total efetivo de galináceos",
+    "V_GAL_VEND": "Valor dos galináceos vendidos",
+    "E_RECEBE_ORI": "Estabelecimentos com orientação técnica",
+    "VTP_AGRO": "Valor total da produção agropecuária",
+    "E_ORI_GOV": "Orientação do governo",
+    "A_PAST_PLANT": "Área de pastagem plantada",
+    "GAL_ENG": "Galináceos para engorda",
+    "E_ASSOC_COOP": "Associação a cooperativas",
+    "CL_GAL": "Classe de cabeças de galináceos",
+    "GAL_POED": "Total de poedeiras",
+    "Q_DZ_VEND": "Ovos vendidos em dúzias",
+    "E_COMERC": "Estabelecimentos comerciais",
+    "E_AGRIFAM": "Agricultura familiar",
+    "E_FINANC": "Estabelecimentos com investimento",
+    "RECT_AGRO": "Receita total agropecuária",
+    "E_FINANC_COOP": "Investimento de cooperativas",
+    "E_CNPJ": "Estabelecimentos com CNPJ",
+    "E_SUBS": "Produção para consumo próprio",
+    "E_DAP": "Possui DAP/PRONAF",
+    "N_TRAB_TOTAL": "Total de trabalhadores",
+    "E_PRODUTOR": "Produtor individual",
+    "GAL_MATR": "Total de matrizes",
+    "GAL_VEND": "Galináceos vendidos",
+    "E_ORI_INTEG": "Orientação de integradoras",
+    "E_GAL_MATR": "Estabelecimentos com matrizes"
+}
 
-        <div class="highlight-box">
-            <p><strong>💡 Dica:</strong> Navegue pelo menu lateral para acessar cada tópico da análise.</p>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    # Divisor
-    st.write("---")
-    
-    # Seção de navegação
-    st.subheader("Explore Nossas Análises")
-    st.write("Selecione uma seção no menu lateral para visualizar as análises:")
-    
-    sections = [
-        ("📈", "Fatores de Lucratividade", "Elementos que influenciam o desempenho financeiro"),
-        ("🏢", "Dimensão do Estabelecimento", "Quantidade de Empregados"),
-        ("📦", "Distribuição por Porte", "Estabelecimentos"),
-        ("🗺️", "Matrizes Avícolas", "Distribuição por região"),
-        ("🔮", "Modelo de Regressão", "Previsão da produção"),
-        ("📊", "Análise da Pecuária", "Galináceos no Brasil"),
-        ("🔍", "Gráfico de Dispersão", "Correlação entre Métricas"),
-        ("🏭", "Sistemas de Criação", "Comparação entre sistemas")
-    ]
-    
-    for i in range(0, len(sections), 4):
-        cols = st.columns(4)
-        for col, (icon, title, desc) in zip(cols, sections[i:i+4]):
-            with col:
-                st.markdown(f"""
-                <div class="custom-card">
-                    <h4>{icon} {title}</h4>
-                    <p style="color:#7f8c8d; font-size:0.9em;">{desc}</p>
-                </div>
-                """, unsafe_allow_html=True)
-    
-    # Rodapé
-    st.write("---")
-    st.caption("Trabalho desenvolvido para a disciplina de Introdução à Ciência de Dados - 2025/1")
-    st.caption("Dados: IBGE - Pesquisa da Pecuária Municipal 2017")
+# Configuração da interface do Streamlit
+st.title("Gráfico de Dispersão - Correlação entre Métricas")
 
-if __name__ == "__main__":
-    main()
+# Seletores para métricas
+col_x = st.selectbox("Selecione a métrica para o eixo X:", df.columns, format_func=lambda x: descricao_variaveis.get(x, x))
+col_y = st.selectbox("Selecione a métrica para o eixo Y:", df.columns, format_func=lambda y: descricao_variaveis.get(y, y))
+
+# Seletor para região
+if "NIV_TERR" in df.columns:
+    regiao = st.selectbox("Selecione a Região:", df["NIV_TERR"].unique())
+    df_filtrado = df[df["NIV_TERR"] == regiao]
+else:
+    st.error("Coluna 'NIV_TERR' não encontrada no arquivo.")
+    df_filtrado = df
+
+# Criar o gráfico de dispersão
+fig = px.scatter(
+    df_filtrado, 
+    x=col_x, 
+    y=col_y, 
+    color="NOM_TERR" if "NOM_TERR" in df.columns else None,
+    title=f"Correlação entre {col_x} e {col_y} para {regiao}",
+    labels={col_x: col_x, col_y: col_y}
+)
+
+# Exibir o gráfico no Streamlit
+st.plotly_chart(fig)
+
+# Expander para exibir sugestões adicionais
+with st.expander("Sugestões de Análises"):
+    st.write(f"""
+    **1. Produção vs. Comercialização**  
+    - **Eixo X:** {descricao_variaveis["GAL_TOTAL"]}  
+    - **Eixo Y:** {descricao_variaveis["V_GAL_VEND"]}  
+    - **Cores:** {descricao_variaveis["NIV_TERR"]}  
+    - **Filtro:** {descricao_variaveis["NOM_TERR"]}  
+    - **Objetivo:** Verificar se estabelecimentos com maior efetivo de galináceos geram mais receita com vendas.  
+
+    **2. Orientação Técnica vs. Produtividade**  
+    - **Eixo X:** {descricao_variaveis["E_RECEBE_ORI"]}  
+    - **Eixo Y:** {descricao_variaveis["VTP_AGRO"]}  
+    - **Cores:** {descricao_variaveis["E_ORI_GOV"]}  
+    - **Filtro:** {descricao_variaveis["SIST_CRIA"]}  
+    - **Objetivo:** Analisar se a assistência técnica está correlacionada com maior valor de produção.  
+
+    **3. Área de Pastagem vs. Criação de Galináceos**  
+    - **Eixo X:** {descricao_variaveis["A_PAST_PLANT"]}  
+    - **Eixo Y:** {descricao_variaveis["GAL_ENG"]}  
+    - **Cores:** {descricao_variaveis["E_ASSOC_COOP"]}  
+    - **Filtro:** {descricao_variaveis["CL_GAL"]}  
+    - **Objetivo:** Investigar se propriedades com mais pastagem tendem a ter maior produção de aves para engorda.  
+
+    **4. Venda de Ovos vs. Número de Poedeiras**  
+    - **Eixo X:** {descricao_variaveis["GAL_POED"]}  
+    - **Eixo Y:** {descricao_variaveis["Q_DZ_VEND"]}  
+    - **Cores:** {descricao_variaveis["E_COMERC"]}  
+    - **Filtro:** {descricao_variaveis["E_AGRIFAM"]}  
+    - **Objetivo:** Correlacionar o tamanho do plantel de poedeiras com a comercialização de ovos.  
+
+    **5. Investimento vs. Receita Total**  
+    - **Eixo X:** {descricao_variaveis["E_FINANC"]}  
+    - **Eixo Y:** {descricao_variaveis["RECT_AGRO"]}  
+    - **Cores:** {descricao_variaveis["E_FINANC_COOP"]}  
+    - **Filtro:** {descricao_variaveis["E_CNPJ"]}  
+    - **Objetivo:** Avaliar se acesso a financiamento está ligado a maiores receitas.  
+    """)
