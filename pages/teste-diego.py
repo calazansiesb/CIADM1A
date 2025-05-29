@@ -74,13 +74,13 @@ def main():
     cols = st.columns(4)
     sections = [
         ("📈", "Fatores de Lucratividade", "Elementos que influenciam o desempenho financeiro"),
+        ("🏢", "Dimensão do Estabelecimento", "Quantidade de Empregados"),
+        ("📦", "Distribuição por Porte", "Estabelecimentos"),
         ("🗺️", "Matrizes Avícolas", "Distribuição por região"),
         ("🔮", "Modelo de Regressão", "Previsão da produção"),
-        ("🏭", "Sistemas de Criação", "Comparação entre sistemas"),
         ("📊", "Análise da Pecuária", "Galináceos no Brasil"),
         ("🔍", "Gráfico de Dispersão", "Correlação entre Métricas"),
-        ("🏢", "Dimensão do Estabelecimento", "Quantidade de Empregados"),
-        ("📦", "Distribuição por Porte", "Estabelecimentos")
+        ("🏭", "Sistemas de Criação", "Comparação entre sistemas")
     ]
     
     for i in range(0, len(sections), 4):
