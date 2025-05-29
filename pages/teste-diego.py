@@ -2,6 +2,9 @@ import streamlit as st
 import plotly.express as px
 import pandas as pd
 
+# Configuração da página Streamlit (DEVE SER A PRIMEIRA FUNÇÃO DO STREAMLIT CHAMADA)
+st.set_page_config(layout="wide", page_title="Análise de Galináceos", icon="🐔")
+
 # URL do novo arquivo CSV no GitHub (versão raw)
 url_novo = "https://raw.githubusercontent.com/calazansiesb/CIADM1A/main/correlacao_resultado.csv"
 
