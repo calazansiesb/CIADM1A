@@ -4,10 +4,8 @@ import plotly.graph_objects as go
 import pandas as pd
 import numpy as np
 
-# --- 0. CONFIGURAÇÃO DA PÁGINA STREAMLIT (DEVE SER A PRIMEIRA COISA) ---
 st.set_page_config(layout="wide", page_title="Análise de Galináceos", icon="🐔")
 
-# --- 1. Inicializar st.session_state para os seletores ---
 if 'scatter_x' not in st.session_state:
     st.session_state.scatter_x = None
 if 'scatter_y' not in st.session_state:
@@ -17,7 +15,6 @@ if 'scatter_color' not in st.session_state:
 if 'scatter_filter_col' not in st.session_state:
     st.session_state.scatter_filter_col = "Nenhuma"
 
-# --- 2. Carregar e Pré-processar os Dados ---
 url = "https://raw.githubusercontent.com/calazansiesb/CIADM1A/main/GALINACEOS.csv"
 
 @st.cache_data
@@ -34,12 +31,10 @@ def load_data(url):
                 df[col] = pd.to_numeric(df[col], errors='coerce')
             except ValueError:
                 pass
-    
     return df
 
 df = load_data(url)
 
-# --- 3. Dicionário de Descrições das Variáveis ---
 descricao_variaveis = {
     "SIST_CRIA": "Sistema de criação",
     "NIV_TERR": "Nível das unidades territoriais",
@@ -72,7 +67,6 @@ descricao_variaveis = {
     "E_GAL_MATR": "Estabelecimentos com matrizes"
 }
 
-# --- 4. Filtro de Colunas Numéricas e Categóricas ---
 df_numerico = df.select_dtypes(include=[np.number])
 colunas_numericas = df_numerico.columns.tolist()
 
@@ -81,20 +75,17 @@ colunas_para_cor = [col for col in df.columns if col not in colunas_numericas an
 colunas_para_cor_map = {col: descricao_variaveis.get(col, col) for col in colunas_para_cor}
 colunas_para_cor_map["Nenhuma"] = "Nenhuma"
 
-# --- 5. Configuração da Interface do Streamlit (títulos principais) ---
 st.title("🐔 Análise de Dados de Galináceos")
 st.markdown("Explore as relações entre diferentes métricas usando gráficos de dispersão e mapas de calor.")
 
 tab1, tab2, tab3 = st.tabs(["Gráfico de Dispersão Personalizado", "Sugestões de Análise", "Matriz de Correlação"])
 
-# --- 6. Função para Atualizar o Estado da Sessão (SEM st.rerun() AQUI) ---
 def set_scatter_vars(x, y, color, filter_col_name=None):
     st.session_state.scatter_x = x
     st.session_state.scatter_y = y
     st.session_state.scatter_color = color
     st.session_state.scatter_filter_col = filter_col_name if filter_col_name else "Nenhuma"
 
-# --- 7. Conteúdo da Aba "Gráfico de Dispersão Personalizado" ---
 with tab1:
     st.header("Gráfico de Dispersão Personalizado")
 
@@ -167,7 +158,6 @@ with tab1:
 
     if col_x and col_y:
         df_plot = df_filtrado_scatter.dropna(subset=[col_x, col_y])
-
         fig_scatter = px.scatter(
             df_plot,
             x=col_x,
@@ -182,42 +172,15 @@ with tab1:
     else:
         st.info("Selecione as métricas para os eixos X e Y para gerar o gráfico.")
 
-# --- 8. Conteúdo da Aba "Sugestões de Análise" ---
 with tab2:
     st.header("Sugestões de Análise Pré-definidas")
-    st.markdown("Clique em uma sugestão para carregar automaticamente as variáveis no gráfico de dispersão na aba **'Gráfico de Dispersão Personalizado'**.")
 
     st.subheader("1. Produção vs. Comercialização")
-    st.write(f"**Eixo X:** {descricao_variaveis.get('GAL_TOTAL', 'GAL_TOTAL')}  \n**Eixo Y:** {descricao_variaveis.get('V_GAL_VEND', 'V_GAL_VEND')}  \n**Cores:** {descricao_variaveis.get('NIV_TERR', 'NIV_TERR')}  \n**Filtro:** {descricao_variaveis.get('NOM_TERR', 'NOM_TERR')}")
+    st.write("**Eixo X:** Total efetivo de galináceos  \n**Eixo Y:** Valor dos galináceos vendidos")
     if st.button("Ver Sugestão 1", key="sugestao1", on_click=set_scatter_vars, args=('GAL_TOTAL', 'V_GAL_VEND', 'NIV_TERR', 'NOM_TERR')):
         pass
     st.markdown("---")
 
-    st.subheader("2. Orientação Técnica vs. Produtividade")
-    st.write(f"**Eixo X:** {descricao_variaveis.get('E_RECEBE_ORI', 'E_RECEBE_ORI')}  \n**Eixo Y:** {descricao_variaveis.get('VTP_AGRO', 'VTP_AGRO')}  \n**Cores:** {descricao_variaveis.get('E_ORI_GOV', 'E_ORI_GOV')}  \n**Filtro:** {descricao_variaveis.get('SIST_CRIA', 'SIST_CRIA')}")
-    if st.button("Ver Sugestão 2", key="sugestao2", on_click=set_scatter_vars, args=('E_RECEBE_ORI', 'VTP_AGRO', 'E_ORI_GOV', 'SIST_CRIA')):
-        pass
-    st.markdown("---")
-
-    st.subheader("3. Área de Pastagem vs. Criação de Galináceos")
-    st.write(f"**Eixo X:** {descricao_variaveis.get('A_PAST_PLANT', 'A_PAST_PLANT')}  \n**Eixo Y:** {descricao_variaveis.get('GAL_ENG', 'GAL_ENG')}  \n**Cores:** {descricao_variaveis.get('E_ASSOC_COOP', 'E_ASSOC_COOP')}  \n**Filtro:** {descricao_variaveis.get('CL_GAL', 'CL_GAL')}")
-    if st.button("Ver Sugestão 3", key="sugestao3", on_click=set_scatter_vars, args=('A_PAST_PLANT', 'GAL_ENG', 'E_ASSOC_COOP', 'CL_GAL')):
-        pass
-    st.markdown("---")
-
-    st.subheader("4. Venda de Ovos vs. Número de Poedeiras")
-    st.write(f"**Eixo X:** {descricao_variaveis.get('GAL_POED', 'GAL_POED')}  \n**Eixo Y:** {descricao_variaveis.get('Q_DZ_VEND', 'Q_DZ_VEND')}  \n**Cores:** {descricao_variaveis.get('E_COMERC', 'E_COMERC')}  \n**Filtro:** {descricao_variaveis.get('E_AGRIFAM', 'E_AGRIFAM')}")
-    if st.button("Ver Sugestão 4", key="sugestao4", on_click=set_scatter_vars, args=('GAL_POED', 'Q_DZ_VEND', 'E_COMERC', 'E_AGRIFAM')):
-        pass
-    st.markdown("---")
-
-    st.subheader("5. Investimento vs. Receita Total")
-    st.write(f"**Eixo X:** {descricao_variaveis.get('E_FINANC', 'E_FINANC')}  \n**Eixo Y:** {descricao_variaveis.get('RECT_AGRO', 'RECT_AGRO')}  \n**Cores:** {descricao_variaveis.get('E_FINANC_COOP', 'E_FINANC_COOP')}  \n**Filtro:** {descricao_variaveis.get('E_CNPJ', 'E_CNPJ')}")
-    if st.button("Ver Sugestão 5", key="sugestao5", on_click=set_scatter_vars, args=('E_FINANC', 'RECT_AGRO', 'E_FINANC_COOP', 'E_CNPJ')):
-        pass
-    st.markdown("---")
-
-# --- 9. Conteúdo da Aba "Matriz de Correlação" ---
 with tab3:
     st.header("Análise da Matriz de Correlação")
 
@@ -239,23 +202,13 @@ with tab3:
         st.subheader("Top 10 Maiores Correlações (valores absolutos)")
         corr_abs = matriz_correlacao.abs()
         tri_superior = corr_abs.where(np.triu(np.ones(corr_abs.shape), k=1).astype(bool))
-        pares_correlacao = tri_superior.stack()
-        melhores_correlacoes_geral = pares_correlacao.sort_values(ascending=False)
+        pares_correlacao = tri_superior.stack().sort_values(ascending=False)
 
-        # --- CORREÇÃO FINAL PARA O ERRO 'NotImplementedError: isna is not defined for MultiIndex' ---
-        # 1. Converte a Series (com MultiIndex) em um DataFrame com colunas normais.
-        df_temp_corr = melhores_correlacoes_geral.reset_index()
-        # 2. Renomeia as colunas para clareza
+        df_temp_corr = pares_correlacao.reset_index()
         df_temp_corr.columns = ['Variavel1', 'Variavel2', 'Correlacao']
-
-        # 3. Mapeia os nomes das variáveis para suas descrições amigáveis.
-        # Usa .map() e .fillna() para garantir que todas as descrições sejam aplicadas ou o nome original mantido.
         df_temp_corr['Variavel1_desc'] = df_temp_corr['Variavel1'].map(descricao_variaveis).fillna(df_temp_corr['Variavel1'])
         df_temp_corr['Variavel2_desc'] = df_temp_corr['Variavel2'].map(descricao_variaveis).fillna(df_temp_corr['Variavel2'])
-        
-        # 4. Cria um novo MultiIndex a partir das colunas de descrição e reestabelece a Series
         melhores_correlacoes_com_desc = df_temp_corr.set_index(['Variavel1_desc', 'Variavel2_desc'])['Correlacao']
-        # --- FIM DA CORREÇÃO FINAL ---
 
         st.write(melhores_correlacoes_com_desc.head(10))
 
@@ -269,10 +222,8 @@ with tab3:
 
         if variavel_alvo_corr:
             correlacoes_alvo = matriz_correlacao[variavel_alvo_corr].drop(variavel_alvo_corr).sort_values(ascending=False)
-            # AQUI, estamos renomeando um Index simples (não MultiIndex), então o .rename() funciona
-            correlacoes_alvo_com_desc = correlacoes_alvo.rename(
-                index=lambda x: descricao_variaveis.get(x, x)
-            )
+            correlacoes_alvo_com_desc = correlacoes_alvo.rename(index=lambda x: descricao_variaveis.get(x, x))
             st.write(correlacoes_alvo_com_desc)
     else:
-        st.warning("Não há colunas numéricas suficientes para calcular a matriz de correlação. Verifique o pré-processamento dos dados.")
+        st.warning("Não há colunas numéricas suficientes para calcular a matriz de correlação.")
+
