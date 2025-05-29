@@ -1,13 +1,14 @@
+# --- 0. CONFIGURAÇÃO DA PÁGINA STREAMLIT (DEVE SER A PRIMEIRA COISA) ---
 import streamlit as st
+st.set_page_config(layout="wide", page_title="Análise de Galináceos", icon="🐔")
+
+# --- 1. Restante das importações ---
 import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
 import numpy as np
 
-# --- 0. CONFIGURAÇÃO DA PÁGINA STREAMLIT (DEVE SER A PRIMEIRA COISA) ---
-st.set_page_config(layout="wide", page_title="Análise de Galináceos", icon="🐔")
-
-# --- 1. Inicializar st.session_state para os seletores ---
+# --- 2. Inicializar st.session_state para os seletores ---
 if 'scatter_x' not in st.session_state:
     st.session_state.scatter_x = None
 if 'scatter_y' not in st.session_state:
@@ -17,7 +18,7 @@ if 'scatter_color' not in st.session_state:
 if 'scatter_filter_col' not in st.session_state:
     st.session_state.scatter_filter_col = "Nenhuma"
 
-# --- 2. Carregar e Pré-processar os Dados ---
+# --- 3. Carregar e Pré-processar os Dados ---
 url = "https://raw.githubusercontent.com/calazansiesb/CIADM1A/main/GALINACEOS.csv"
 
 @st.cache_data
