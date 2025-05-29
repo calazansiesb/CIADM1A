@@ -19,6 +19,12 @@ def main():
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         margin-bottom: 1rem;
     }
+    .highlight-box {
+        background-color: #e3f2fd;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-top: 1rem;
+    }
     </style>
     """, unsafe_allow_html=True)
     
@@ -57,9 +63,8 @@ def main():
         <div class="custom-card">
             <p>Este trabalho foi desenvolvido com base em um <strong>dataset do IBGE de 2017 sobre avicultura</strong>.
             Exploramos diversos aspectos da produção avícola no Brasil, utilizando técnicas de ciência de dados para extrair insights valiosos.</p>
-            
-            <div style="background-color:#e3f2fd; padding:1rem; border-radius:8px; margin-top:1rem;">
-                <p style="margin:0;"><strong>💡 Dica:</strong> Navegue pelo menu lateral para acessar cada tópico da análise.</p>
+            <div class="highlight-box">
+                <p><strong>💡 Dica:</strong> Navegue pelo menu lateral para acessar cada tópico da análise.</p>
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -71,7 +76,6 @@ def main():
     st.subheader("Explore Nossas Análises")
     st.write("Selecione uma seção no menu lateral para visualizar as análises:")
     
-    cols = st.columns(4)
     sections = [
         ("📈", "Fatores de Lucratividade", "Elementos que influenciam o desempenho financeiro"),
         ("🏢", "Dimensão do Estabelecimento", "Quantidade de Empregados"),
