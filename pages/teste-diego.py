@@ -107,4 +107,3 @@ with st.expander("Sugestões de Análises"):
     - **Filtro:** {descricao_variaveis["E_CNPJ"]}  
     - **Objetivo:** Avaliar se acesso a financiamento está ligado a maiores receitas.  
     """)
-
