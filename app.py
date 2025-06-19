@@ -30,7 +30,7 @@ def main():
     
     # Cabeçalho
     st.title("Análise Exploratória do Dataset: Censo da Avicultura 2017 - IBGE")
-    st.subheader("CIADM1A-CIA001-20251")
+    
     
     # Divisor
     st.write("---")
