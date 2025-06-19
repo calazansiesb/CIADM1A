@@ -29,7 +29,7 @@ def main():
     """, unsafe_allow_html=True)
     
     # Cabeçalho
-    st.title("Trabalho Final - Introdução à Ciência de Dados")
+    st.title("Análise Exploratória do Dataset: Censo da Avicultura 2017 - IBGE")
     st.subheader("CIADM1A-CIA001-20251")
     
     # Divisor
