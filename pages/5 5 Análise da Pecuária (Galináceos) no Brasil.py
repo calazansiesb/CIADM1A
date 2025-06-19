@@ -113,7 +113,7 @@ for col in required_columns:
 df['NOM_TERR_NORMALIZED'] = df['NOM_TERR'].apply(normalize_state_name)
 
 
-st.header('🌎 Análise de Galináceos — Explore 3 Variáveis por Região ou Nacional')
+st.header('🌎 Análise de Galináceos — Explore 3 Métrica por Região ou Nacional')
 
 # Lista oficial dos 26 estados + DF
 estados_brasil = [
